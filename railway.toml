@@ -2,7 +2,7 @@
 buildCommand = "npx prisma generate && npm run build"
 
 [deploy]
-startCommand = "npx prisma migrate deploy && npm start"
+startCommand = "node_modules/.bin/prisma migrate deploy && node_modules/.bin/next start -p ${PORT:-3000}"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
