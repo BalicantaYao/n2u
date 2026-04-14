@@ -1,0 +1,82 @@
+import type { Market, Side, LotType } from "./taiwan";
+
+export interface Trade {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  symbol: string;
+  symbolName?: string;
+  market: Market;
+  side: Side;
+  tradeDate: string;
+  settlementDate?: string;
+  lotType: LotType;
+  lots?: number;
+  shares: number;
+  price: number;
+  commission: number;
+  transactionTax: number;
+  totalFees: number;
+  grossAmount: number;
+  netAmount: number;
+  realizedPnL?: number;
+  isETF: boolean;
+  stopLoss?: number;
+  takeProfit?: number;
+  notes?: string;
+  tags?: string;
+}
+
+export interface CreateTradeInput {
+  symbol: string;
+  symbolName?: string;
+  market: Market;
+  side: Side;
+  tradeDate: string;
+  lotType: LotType;
+  lots?: number;
+  shares: number;
+  price: number;
+  isETF?: boolean;
+  stopLoss?: number;
+  takeProfit?: number;
+  notes?: string;
+  tags?: string;
+}
+
+export interface Position {
+  symbol: string;
+  symbolName?: string;
+  market: Market;
+  totalShares: number;
+  avgCostPerShare: number;
+  totalCost: number;
+  currentPrice?: number;
+  marketValue?: number;
+  unrealizedPnL?: number;
+  unrealizedPnLPct?: number;
+  stopLoss?: number;
+  takeProfit?: number;
+  isStopLossAlert?: boolean;
+  isTakeProfitAlert?: boolean;
+}
+
+export interface PnLSummary {
+  totalRealized: number;
+  totalUnrealized: number;
+  totalTrades: number;
+  winCount: number;
+  lossCount: number;
+  winRate: number;
+  profitFactor: number;
+  avgWin: number;
+  avgLoss: number;
+  totalCommission: number;
+  totalTransactionTax: number;
+}
+
+export interface DailyPnL {
+  date: string;
+  daily: number;
+  cumulative: number;
+}
