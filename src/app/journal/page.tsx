@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTradeStore } from "@/store/useTradeStore";
 import { formatTWD } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 
 export default function JournalPage() {
   const { trades, isLoading, fetchTrades, deleteTrade, filters, setFilters } =
@@ -97,7 +97,13 @@ export default function JournalPage() {
             onChange={(e) => setFilters({ to: e.target.value || undefined })}
           />
 
-          <div className="ml-auto">
+          <div className="ml-auto flex gap-2">
+            <Link href="/journal/import">
+              <Button variant="outline">
+                <Upload className="h-4 w-4 mr-1.5" />
+                匯入 CSV
+              </Button>
+            </Link>
             <Link href="/journal/new">
               <Button>
                 <Plus className="h-4 w-4 mr-1.5" />
