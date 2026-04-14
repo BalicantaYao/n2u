@@ -5,8 +5,10 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import { fetchQuotes } from "@/lib/yahoo-finance";
 
 import type { PnLSummary } from "@/types/trade";
+import type { Market } from "@/types/taiwan";
 
 /**
  * 賣出時執行 FIFO 配對，回傳該筆賣出的已實現損益。
@@ -99,9 +101,42 @@ export async function computePnLSummary(): Promise<PnLSummary> {
     totalTransactionTax += t.transactionTax;
   }
 
+  // Compute total unrealized P&L from open position lots + live quotes
+  const openLots = await prisma.positionLot.findMany({
+    where: { isOpen: true },
+    select: { symbol: true, market: true, shares: true, costPerShare: true },
+  });
+
+  const posMap = new Map<string, { symbol: string; market: Market; totalShares: number; totalCost: number }>();
+  for (const lot of openLots) {
+    const existing = posMap.get(lot.symbol);
+    if (existing) {
+      existing.totalShares += lot.shares;
+      existing.totalCost += lot.shares * lot.costPerShare;
+    } else {
+      posMap.set(lot.symbol, {
+        symbol: lot.symbol,
+        market: lot.market as Market,
+        totalShares: lot.shares,
+        totalCost: lot.shares * lot.costPerShare,
+      });
+    }
+  }
+
+  const posSymbols = Array.from(posMap.values()).map((p) => ({ symbol: p.symbol, market: p.market }));
+  const quotes = posSymbols.length > 0 ? await fetchQuotes(posSymbols) : {};
+
+  let totalUnrealized = 0;
+  for (const pos of posMap.values()) {
+    const quote = quotes[pos.symbol];
+    if (quote?.price != null) {
+      totalUnrealized += quote.price * pos.totalShares - pos.totalCost;
+    }
+  }
+
   return {
     totalRealized,
-    totalUnrealized: 0, // computed separately with live prices
+    totalUnrealized,
     totalTrades,
     winCount,
     lossCount,
