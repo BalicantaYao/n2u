@@ -89,7 +89,7 @@ function parseCSV(raw: string): RawRow[] {
 async function lookupMarkets(
   symbols: string[]
 ): Promise<Map<string, { market: "TWSE" | "TPEX"; symbolName: string } | null>> {
-  const unique = [...new Set(symbols)];
+  const unique = Array.from(new Set(symbols));
   const entries = await Promise.all(
     unique.map(async (sym) => {
       try {
