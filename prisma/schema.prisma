@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Trade {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  symbol         String
+  symbolName     String?
+  market         String          // "TWSE" | "TPEX"
+  side           String          // "BUY" | "SELL"
+  tradeDate      DateTime
+  settlementDate DateTime?
+
+  lotType        String          // "ROUND" | "ODD"
+  lots           Int?
+  shares         Int
+  price          Float
+
+  commission     Float
+  transactionTax Float
+  totalFees      Float
+  grossAmount    Float
+  netAmount      Float
+
+  realizedPnL    Float?
+  isETF          Boolean  @default(false)
+
+  stopLoss       Float?
+  takeProfit     Float?
+  notes          String?
+  tags           String?
+
+  positionLots   PositionLot[]
+
+  @@index([symbol])
+  @@index([tradeDate])
+}
+
+model PositionLot {
+  id           String   @id @default(cuid())
+  symbol       String
+  market       String
+  lotType      String
+  openTradeId  String
+  openTrade    Trade    @relation(fields: [openTradeId], references: [id], onDelete: Cascade)
+  openDate     DateTime
+  shares       Int
+  costPerShare Float
+  isOpen       Boolean  @default(true)
+
+  @@index([symbol, isOpen])
+}
+
+model Watchlist {
+  id         String   @id @default(cuid())
+  symbol     String   @unique
+  symbolName String?
+  market     String
+  isETF      Boolean  @default(false)
+  addedAt    DateTime @default(now())
+}
