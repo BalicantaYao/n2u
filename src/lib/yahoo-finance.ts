@@ -23,13 +23,14 @@ export async function fetchQuote(
   try {
     const ticker = toYahooSymbol(symbol, market);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result: any = await yahooFinance.quote(ticker);
+    const result: any = await yahooFinance.quote(ticker, {}, { validateResult: false });
     if (!result) return null;
+    if (result.regularMarketPrice == null) return null;
 
     return {
       symbol,
       symbolName: result.shortName ?? result.longName ?? undefined,
-      price: result.regularMarketPrice ?? 0,
+      price: result.regularMarketPrice,
       change: result.regularMarketChange ?? 0,
       changePct: (result.regularMarketChangePercent ?? 0) / 100,
       open: result.regularMarketOpen ?? 0,
@@ -39,7 +40,8 @@ export async function fetchQuote(
       volume: result.regularMarketVolume ?? 0,
       timestamp: new Date(result.regularMarketTime ?? Date.now()),
     };
-  } catch {
+  } catch (err) {
+    console.error(`[fetchQuote] Failed to fetch ${toYahooSymbol(symbol, market)}:`, err);
     return null;
   }
 }
