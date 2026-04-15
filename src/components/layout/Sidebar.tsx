@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   BookOpen,
   LineChart,
-  Star,
   TrendingUp,
   Briefcase,
   BarChart3,
@@ -19,7 +18,6 @@ const navItems = [
   { href: "/positions", label: "持倉分析", icon: Briefcase },
   { href: "/results", label: "交易成果", icon: BarChart3 },
   { href: "/charts", label: "走勢圖", icon: LineChart },
-  { href: "/watchlist", label: "自選股", icon: Star },
 ];
 
 export function Sidebar() {

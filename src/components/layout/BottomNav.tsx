@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   BookOpen,
-  Star,
   Briefcase,
   BarChart3,
 } from "lucide-react";
@@ -16,7 +15,6 @@ const navItems = [
   { href: "/journal", label: "日誌", icon: BookOpen },
   { href: "/positions", label: "持倉", icon: Briefcase },
   { href: "/results", label: "成果", icon: BarChart3 },
-  { href: "/watchlist", label: "自選股", icon: Star },
 ];
 
 export function BottomNav() {
