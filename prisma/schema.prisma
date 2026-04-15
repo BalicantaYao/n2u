@@ -57,12 +57,3 @@ model PositionLot {
 
   @@index([symbol, isOpen])
 }
-
-model Watchlist {
-  id         String   @id @default(cuid())
-  symbol     String   @unique
-  symbolName String?
-  market     String
-  isETF      Boolean  @default(false)
-  addedAt    DateTime @default(now())
-}
