@@ -129,7 +129,7 @@ export async function computePnLSummary(): Promise<PnLSummary> {
   let totalUnrealized = 0;
   for (const pos of posMap.values()) {
     const quote = quotes[pos.symbol];
-    if (quote?.price != null) {
+    if (quote?.price) {
       totalUnrealized += quote.price * pos.totalShares - pos.totalCost;
     }
   }
