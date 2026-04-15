@@ -5,11 +5,11 @@
  * TPEX 上櫃股票：代碼 + ".TWO" (e.g. "3008.TWO")
  */
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const yahooFinance = require("yahoo-finance2").default;
-
+import YahooFinance from "yahoo-finance2";
 import type { Market } from "@/types/taiwan";
 import type { Quote, OHLCVBar } from "@/types/market";
+
+const yahooFinance = new YahooFinance();
 
 export function toYahooSymbol(symbol: string, market: Market): string {
   return market === "TWSE" ? `${symbol}.TW` : `${symbol}.TWO`;
