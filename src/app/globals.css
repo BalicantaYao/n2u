@@ -56,6 +56,28 @@
   body {
     @apply bg-background text-foreground;
     font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Prevent iOS Safari from zooming on input focus (< 16px triggers zoom) */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  @media (min-width: 768px) {
+    input, select, textarea {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+@layer utilities {
+  /* iPhone safe area bottom padding */
+  .pb-safe-bottom {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 768px) {
+    .pb-safe-bottom {
+      padding-bottom: 0;
+    }
   }
 }
 

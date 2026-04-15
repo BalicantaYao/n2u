@@ -148,12 +148,12 @@ export default function WatchlistPage() {
                 <thead>
                   <tr className="border-b text-xs text-muted-foreground bg-muted/30">
                     <th className="text-left py-3 px-4 font-medium">代號</th>
-                    <th className="text-left py-3 pr-4 font-medium">名稱</th>
-                    <th className="text-left py-3 pr-4 font-medium">市場</th>
+                    <th className="text-left py-3 pr-4 font-medium hidden sm:table-cell">名稱</th>
+                    <th className="text-left py-3 pr-4 font-medium hidden md:table-cell">市場</th>
                     <th className="text-right py-3 pr-4 font-medium">現價</th>
-                    <th className="text-right py-3 pr-4 font-medium">漲跌</th>
+                    <th className="text-right py-3 pr-4 font-medium hidden sm:table-cell">漲跌</th>
                     <th className="text-right py-3 pr-4 font-medium">漲跌幅</th>
-                    <th className="text-right py-3 pr-4 font-medium">成交量</th>
+                    <th className="text-right py-3 pr-4 font-medium hidden md:table-cell">成交量</th>
                     <th className="py-3 text-center font-medium">操作</th>
                   </tr>
                 </thead>
@@ -163,14 +163,17 @@ export default function WatchlistPage() {
                     const up = q ? q.change >= 0 : null;
                     return (
                       <tr key={item.id} className="border-b last:border-0 hover:bg-muted/40">
-                        <td className="py-3 px-4 font-mono font-medium">{item.symbol}</td>
-                        <td className="py-3 pr-4 text-muted-foreground">
+                        <td className="py-3 px-4">
+                          <p className="font-mono font-semibold">{item.symbol}</p>
+                          <p className="text-xs text-muted-foreground sm:hidden">{item.symbolName ?? ""}</p>
+                        </td>
+                        <td className="py-3 pr-4 text-muted-foreground hidden sm:table-cell">
                           {item.symbolName ?? "—"}
                           {item.isETF && (
                             <Badge variant="secondary" className="ml-1.5 text-xs py-0">ETF</Badge>
                           )}
                         </td>
-                        <td className="py-3 pr-4">
+                        <td className="py-3 pr-4 hidden md:table-cell">
                           <Badge
                             variant={item.market === "TWSE" ? "twse" : "tpex"}
                             className="text-xs py-0"
@@ -186,7 +189,7 @@ export default function WatchlistPage() {
                           {q ? q.price.toLocaleString() : "—"}
                         </td>
                         <td className={cn(
-                          "py-3 pr-4 text-right tabular-nums",
+                          "py-3 pr-4 text-right tabular-nums hidden sm:table-cell",
                           up === true && "text-green-600",
                           up === false && "text-red-600"
                         )}>
@@ -199,17 +202,17 @@ export default function WatchlistPage() {
                         )}>
                           {q ? `${up ? "+" : ""}${(q.changePct * 100).toFixed(2)}%` : "—"}
                         </td>
-                        <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
+                        <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground hidden md:table-cell">
                           {q ? `${(q.volume / 1000).toFixed(0)}張` : "—"}
                         </td>
                         <td className="py-3 text-center">
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
                             onClick={() => handleRemove(item.id, item.symbol)}
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </td>
                       </tr>

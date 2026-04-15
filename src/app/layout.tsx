@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -7,6 +7,12 @@ import { Toaster } from "sonner";
 export const metadata: Metadata = {
   title: "台股日誌 | Taiwan Trading Journal",
   description: "台灣股市交易日誌，支援 TWSE / TPEX，損益分析、走勢圖表一覽",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -18,7 +24,7 @@ export default function RootLayout({
     <html lang="zh-TW">
       <body className="antialiased bg-background text-foreground">
         <Sidebar />
-        <main className="md:ml-56 min-h-screen pb-16 md:pb-0">
+        <main className="md:ml-56 min-h-screen pb-safe-bottom md:pb-0">
           {children}
         </main>
         <BottomNav />
