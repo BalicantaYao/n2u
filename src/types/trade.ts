@@ -80,3 +80,44 @@ export interface DailyPnL {
   daily: number;
   cumulative: number;
 }
+
+export interface SellTradeDetail {
+  id: string;
+  tradeDate: string;
+  shares: number;
+  lotType: LotType;
+  price: number;
+  netAmount: number;
+  buyCost: number;
+  realizedPnL: number;
+  realizedPnLPct: number;
+  notes?: string;
+}
+
+export interface SymbolResult {
+  symbol: string;
+  symbolName?: string;
+  market: Market;
+  tradeCount: number;
+  totalShares: number;
+  totalRealizedPnL: number;
+  totalBuyCost: number;
+  realizedPnLPct: number;
+  winCount: number;
+  lossCount: number;
+  lastTradeDate: string;
+  trades: SellTradeDetail[];
+}
+
+export interface TradingResultsData {
+  summary: {
+    totalRealized: number;
+    totalTrades: number;
+    winCount: number;
+    lossCount: number;
+    winRate: number;
+    totalCommission: number;
+    totalTransactionTax: number;
+  };
+  bySymbol: SymbolResult[];
+}
