@@ -9,6 +9,7 @@ import {
   Star,
   TrendingUp,
   Briefcase,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ const navItems = [
   { href: "/dashboard", label: "總覽", icon: LayoutDashboard },
   { href: "/journal", label: "交易日誌", icon: BookOpen },
   { href: "/positions", label: "持倉分析", icon: Briefcase },
+  { href: "/results", label: "交易成果", icon: BarChart3 },
   { href: "/charts", label: "走勢圖", icon: LineChart },
   { href: "/watchlist", label: "自選股", icon: Star },
 ];

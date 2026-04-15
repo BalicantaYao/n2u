@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   BookOpen,
-  LineChart,
   Star,
   Briefcase,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ const navItems = [
   { href: "/dashboard", label: "總覽", icon: LayoutDashboard },
   { href: "/journal", label: "日誌", icon: BookOpen },
   { href: "/positions", label: "持倉", icon: Briefcase },
-  { href: "/charts", label: "走勢圖", icon: LineChart },
+  { href: "/results", label: "成果", icon: BarChart3 },
   { href: "/watchlist", label: "自選股", icon: Star },
 ];
 
