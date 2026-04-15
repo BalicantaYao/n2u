@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   BookOpen,
@@ -9,6 +11,7 @@ import {
   TrendingUp,
   Briefcase,
   BarChart3,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +25,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   return (
     <aside className="hidden md:flex fixed left-0 top-0 z-40 h-screen w-56 border-r bg-card flex-col">
@@ -54,10 +58,40 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="px-5 py-4 border-t text-xs text-muted-foreground">
-        <p>台灣股市交易日誌</p>
-        <p className="mt-0.5">TWSE / TPEX</p>
+      {/* User info + logout */}
+      <div className="px-3 py-4 border-t">
+        {session?.user && (
+          <div className="flex items-center gap-3 px-2">
+            {session.user.image ? (
+              <Image
+                src={session.user.image}
+                alt=""
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full"
+              />
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
+                {session.user.name?.[0] ?? "U"}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-sm font-medium">
+                {session.user.name}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {session.user.email}
+              </p>
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              title="登出"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

@@ -6,6 +6,7 @@ import { WinLossDonut } from "@/components/dashboard/WinLossDonut";
 import { RecentTrades } from "@/components/dashboard/RecentTrades";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { computePnLSummary, getDailyPnL } from "@/lib/pnl-calculator";
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatTWD } from "@/lib/utils";
 import {
@@ -20,10 +21,12 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  const user = await requireUser();
   const [summary, dailyPnL, recentTrades] = await Promise.all([
-    computePnLSummary(),
-    getDailyPnL(),
+    computePnLSummary(user.id),
+    getDailyPnL(user.id),
     prisma.trade.findMany({
+      where: { userId: user.id },
       orderBy: { tradeDate: "desc" },
       take: 10,
     }),

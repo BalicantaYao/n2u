@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { BottomNav } from "@/components/layout/BottomNav";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
@@ -23,12 +22,10 @@ export default function RootLayout({
   return (
     <html lang="zh-TW">
       <body className="antialiased bg-background text-foreground">
-        <Sidebar />
-        <main className="md:ml-56 min-h-screen pb-safe-bottom md:pb-0">
+        <AuthProvider>
           {children}
-        </main>
-        <BottomNav />
-        <Toaster richColors position="top-right" />
+          <Toaster richColors position="top-right" />
+        </AuthProvider>
       </body>
     </html>
   );

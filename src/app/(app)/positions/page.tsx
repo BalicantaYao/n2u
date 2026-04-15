@@ -2,6 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fetchQuotes } from "@/lib/yahoo-finance";
 import { formatTWD, formatPct } from "@/lib/utils";
@@ -20,9 +21,9 @@ import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-async function getOpenPositions(): Promise<Position[]> {
+async function getOpenPositions(userId: string): Promise<Position[]> {
   const lots = await prisma.positionLot.findMany({
-    where: { isOpen: true },
+    where: { isOpen: true, userId },
     include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true } } },
   });
 
@@ -93,7 +94,8 @@ async function getOpenPositions(): Promise<Position[]> {
 }
 
 export default async function PositionsPage() {
-  const positions = await getOpenPositions();
+  const user = await requireUser();
+  const positions = await getOpenPositions(user.id);
 
   const totalCost = positions.reduce((s, p) => s + p.totalCost, 0);
   const totalMarketValue = positions.reduce(

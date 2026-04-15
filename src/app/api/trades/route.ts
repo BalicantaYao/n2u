@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
 import { calculateFees, calcSettlementDate, lotsToShares } from "@/lib/taiwan-fees";
 import { matchSellFIFO } from "@/lib/pnl-calculator";
 import type { CreateTradeInput } from "@/types/trade";
 
 export async function GET(req: NextRequest) {
+  const user = await requireUser();
   const { searchParams } = req.nextUrl;
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { userId: user.id };
 
   const symbol = searchParams.get("symbol");
   const market = searchParams.get("market");
@@ -35,6 +37,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const user = await requireUser();
   const body: CreateTradeInput = await req.json();
 
   const {
@@ -74,7 +77,8 @@ export async function POST(req: NextRequest) {
 
       if (side === "SELL") {
         realizedPnL = await matchSellFIFO({
-          tradeId: "", // will update below
+          tradeId: "",
+          userId: user.id,
           symbol: symbol.toUpperCase(),
           shares,
           netSellProceeds: fees.netAmount,
@@ -83,6 +87,7 @@ export async function POST(req: NextRequest) {
 
       const created = await tx.trade.create({
         data: {
+          userId: user.id,
           symbol: symbol.toUpperCase(),
           symbolName,
           market,
@@ -110,6 +115,7 @@ export async function POST(req: NextRequest) {
       if (side === "BUY") {
         await tx.positionLot.create({
           data: {
+            userId: user.id,
             symbol: symbol.toUpperCase(),
             market,
             lotType,
