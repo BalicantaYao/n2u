@@ -93,7 +93,7 @@ export default function WatchlistPage() {
   return (
     <div>
       <Header title="自選股" />
-      <div className="p-6 space-y-4">
+      <div className="p-4 md:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className={cn(

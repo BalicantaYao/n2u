@@ -17,10 +17,10 @@ export function Header({ title }: { title: string }) {
   }, []);
 
   return (
-    <header className="h-14 border-b bg-card flex items-center justify-between px-6 sticky top-0 z-30">
+    <header className="h-14 border-b bg-card flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
       <h1 className="text-base font-semibold">{title}</h1>
-      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-        <span>{today}</span>
+      <div className="flex items-center gap-2 md:gap-3 text-sm text-muted-foreground">
+        <span className="hidden sm:inline">{today}</span>
         <Badge
           className={cn(
             "text-xs",

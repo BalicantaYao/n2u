@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
@@ -17,9 +18,10 @@ export default function RootLayout({
     <html lang="zh-TW">
       <body className="antialiased bg-background text-foreground">
         <Sidebar />
-        <main className="ml-56 min-h-screen">
+        <main className="md:ml-56 min-h-screen pb-16 md:pb-0">
           {children}
         </main>
+        <BottomNav />
         <Toaster richColors position="top-right" />
       </body>
     </html>
