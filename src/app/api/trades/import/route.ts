@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { calculateFees, calcSettlementDate, lotsToShares } from "@/lib/taiwan-fees";
 import { matchSellFIFO } from "@/lib/pnl-calculator";
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
     const settlementDate = calcSettlementDate(new Date(tradeDate));
 
     try {
-      const trade = await prisma.$transaction(async (tx) => {
+      const trade = await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
         let realizedPnL: number | undefined;
 
         if (side === "SELL") {
