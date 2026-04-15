@@ -83,8 +83,8 @@ export default function ChartsPage() {
   return (
     <div>
       <Header title="走勢圖" />
-      <div className="p-6 space-y-4">
-        <div className="max-w-md">
+      <div className="p-4 md:p-6 space-y-4">
+        <div className="w-full max-w-md">
           <SymbolSearch
             value={symbol}
             onChange={handleSelectSymbol}

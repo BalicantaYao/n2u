@@ -14,13 +14,13 @@ interface StatCardProps {
 export function StatCard({ title, value, sub, icon: Icon, trend, className }: StatCardProps) {
   return (
     <Card className={cn("", className)}>
-      <CardContent className="p-5">
+      <CardContent className="p-4 md:p-5">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground font-medium">{title}</p>
             <p
               className={cn(
-                "text-2xl font-bold tabular-nums",
+                "text-xl md:text-2xl font-bold tabular-nums",
                 trend === "positive" && "text-green-600 dark:text-green-400",
                 trend === "negative" && "text-red-600 dark:text-red-400"
               )}

@@ -5,7 +5,7 @@ export default function ImportPage() {
   return (
     <div>
       <Header title="批量匯入 CSV" />
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <CSVImporter />
       </div>
     </div>
