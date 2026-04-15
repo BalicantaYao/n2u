@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/user/n2u && npm run build 2>&1 | tail -30",
+            "timeout": 120,
+            "statusMessage": "Checking build..."
+          }
+        ]
+      }
+    ]
+  }
+}

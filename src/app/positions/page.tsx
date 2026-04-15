@@ -184,10 +184,14 @@ export default async function PositionsPage() {
                                 <div className="flex items-center gap-1.5">
                                   <span className="font-semibold tabular-nums">{pos.symbol}</span>
                                   {pos.isStopLossAlert && (
-                                    <AlertTriangle className="h-3.5 w-3.5 text-red-500" title="觸及停損" />
+                                    <span title="觸及停損">
+                                      <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
+                                    </span>
                                   )}
                                   {pos.isTakeProfitAlert && (
-                                    <Target className="h-3.5 w-3.5 text-green-500" title="觸及停利" />
+                                    <span title="觸及停利">
+                                      <Target className="h-3.5 w-3.5 text-green-500" />
+                                    </span>
                                   )}
                                 </div>
                                 {pos.symbolName && (
