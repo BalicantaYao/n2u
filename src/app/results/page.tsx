@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
 import { ResultsTable, SellTradeList } from "@/components/results/ResultsTable";
-import { formatTWD, formatPct } from "@/lib/utils";
+import { formatTWD } from "@/lib/utils";
 import type { TradingResultsData } from "@/types/trade";
 
 type Tab = "bySymbol" | "byTrade";
