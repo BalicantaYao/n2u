@@ -9,18 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import type { Market } from "@/types/taiwan";
 import type { OHLCVBar, Quote } from "@/types/market";
 
 type Interval = "1d" | "1wk" | "1mo";
 type Range = "1mo" | "3mo" | "6mo" | "1y" | "3y";
 
-const RANGE_LABELS: Record<Range, string> = {
-  "1mo": "1月",
-  "3mo": "3月",
-  "6mo": "6月",
-  "1y": "1年",
-  "3y": "3年",
+const RANGE_LABEL_KEYS: Record<Range, string> = {
+  "1mo": "charts.range1m",
+  "3mo": "charts.range3m",
+  "6mo": "charts.range6m",
+  "1y": "charts.range1y",
+  "3y": "charts.range3y",
 };
 
 function rangeToFrom(range: Range): string {
@@ -44,6 +45,7 @@ export default function ChartsPage() {
   const [interval, setInterval] = useState<Interval>("1d");
   const [range, setRange] = useState<Range>("1y");
   const [loading, setLoading] = useState(false);
+  const { t } = useT();
 
   async function loadData(sym: string, mkt: Market, iv: Interval = interval, r: Range = range) {
     setLoading(true);
@@ -82,13 +84,13 @@ export default function ChartsPage() {
 
   return (
     <div>
-      <Header title="走勢圖" />
+      <Header titleKey="charts.title" />
       <div className="p-4 md:p-6 space-y-4">
         <div className="w-full max-w-md">
           <SymbolSearch
             value={symbol}
             onChange={handleSelectSymbol}
-            placeholder="輸入股票代碼或名稱..."
+            placeholder={t("charts.searchPlaceholder")}
           />
         </div>
 
@@ -116,31 +118,31 @@ export default function ChartsPage() {
                 </div>
                 <div className="flex gap-4 text-sm flex-wrap">
                   <div>
-                    <p className="text-muted-foreground text-xs">漲跌</p>
+                    <p className="text-muted-foreground text-xs">{t("charts.change")}</p>
                     <p className={cn("tabular-nums font-medium", changeIsPositive ? "text-green-600" : "text-red-600")}>
                       {changeIsPositive ? "+" : ""}{quote.change.toFixed(2)}
                       {" "}({changeIsPositive ? "+" : ""}{(quote.changePct * 100).toFixed(2)}%)
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs">開盤</p>
+                    <p className="text-muted-foreground text-xs">{t("charts.open")}</p>
                     <p className="tabular-nums">{quote.open.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs">最高</p>
+                    <p className="text-muted-foreground text-xs">{t("charts.high")}</p>
                     <p className="tabular-nums text-green-600">{quote.high.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs">最低</p>
+                    <p className="text-muted-foreground text-xs">{t("charts.low")}</p>
                     <p className="tabular-nums text-red-600">{quote.low.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs">前收</p>
+                    <p className="text-muted-foreground text-xs">{t("charts.prevClose")}</p>
                     <p className="tabular-nums">{quote.prevClose.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs">成交量</p>
-                    <p className="tabular-nums">{(quote.volume / 1000).toFixed(0)}張</p>
+                    <p className="text-muted-foreground text-xs">{t("charts.volume")}</p>
+                    <p className="tabular-nums">{(quote.volume / 1000).toFixed(0)}{t("charts.volumeUnit")}</p>
                   </div>
                 </div>
               </div>
@@ -152,7 +154,7 @@ export default function ChartsPage() {
           <CardHeader className="pb-2 flex-row items-center justify-between flex-wrap gap-3">
             {/* Range buttons */}
             <div className="flex gap-1">
-              {(Object.keys(RANGE_LABELS) as Range[]).map((r) => (
+              {(Object.keys(RANGE_LABEL_KEYS) as Range[]).map((r) => (
                 <Button
                   key={r}
                   size="sm"
@@ -160,7 +162,7 @@ export default function ChartsPage() {
                   className="h-7 px-3 text-xs"
                   onClick={() => handleRangeChange(r)}
                 >
-                  {RANGE_LABELS[r]}
+                  {t(RANGE_LABEL_KEYS[r])}
                 </Button>
               ))}
             </div>
@@ -174,7 +176,7 @@ export default function ChartsPage() {
                   className="h-7 px-3 text-xs"
                   onClick={() => handleIntervalChange(iv)}
                 >
-                  {iv === "1d" ? "日" : iv === "1wk" ? "週" : "月"}
+                  {iv === "1d" ? t("charts.daily") : iv === "1wk" ? t("charts.weekly") : t("charts.monthly")}
                 </Button>
               ))}
             </div>
@@ -182,7 +184,7 @@ export default function ChartsPage() {
           <CardContent>
             {loading ? (
               <div className="h-80 flex items-center justify-center text-muted-foreground text-sm">
-                載入中...
+                {t("common.loading")}
               </div>
             ) : (
               <PriceChart

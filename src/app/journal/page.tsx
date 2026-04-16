@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTradeStore } from "@/store/useTradeStore";
 import { formatTWD } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import { Plus, Upload } from "lucide-react";
 
 export default function JournalPage() {
   const { trades, isLoading, fetchTrades, deleteTrade, filters, setFilters } =
     useTradeStore();
+  const { t } = useT();
 
   useEffect(() => {
     fetchTrades();
@@ -21,7 +23,7 @@ export default function JournalPage() {
 
   async function handleDelete(id: string) {
     await deleteTrade(id);
-    toast.success("交易記錄已刪除");
+    toast.success(t("journal.deleted"));
   }
 
   // Stats
@@ -31,22 +33,22 @@ export default function JournalPage() {
 
   return (
     <div>
-      <Header title="交易日誌" />
+      <Header titleKey="journal.title" />
       <div className="p-4 md:p-6 space-y-4">
         {/* Stats bar */}
         <div className="flex flex-wrap gap-4 p-4 rounded-lg bg-muted/30 text-sm">
           <div>
-            <span className="text-muted-foreground">總已實現損益：</span>
+            <span className="text-muted-foreground">{t("journal.totalRealizedPnL")}</span>
             <span className={`font-semibold tabular-nums ${totalPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
               {formatTWD(totalPnL, true)}
             </span>
           </div>
           <div>
-            <span className="text-muted-foreground">交易筆數：</span>
+            <span className="text-muted-foreground">{t("journal.tradeCount")}</span>
             <span className="font-semibold">{trades.length}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">勝率：</span>
+            <span className="text-muted-foreground">{t("journal.winRate")}</span>
             <span className="font-semibold">
               {sellTrades.length > 0
                 ? `${((wins / sellTrades.length) * 100).toFixed(1)}%`
@@ -61,20 +63,20 @@ export default function JournalPage() {
             <Link href="/journal/import">
               <Button variant="outline" size="sm">
                 <Upload className="h-4 w-4 mr-1.5" />
-                <span className="hidden sm:inline">匯入 CSV</span>
-                <span className="sm:hidden">匯入</span>
+                <span className="hidden sm:inline">{t("journal.importCsv")}</span>
+                <span className="sm:hidden">{t("journal.importShort")}</span>
               </Button>
             </Link>
             <Link href="/journal/new">
               <Button size="sm">
                 <Plus className="h-4 w-4 mr-1.5" />
-                新增交易
+                {t("journal.addTrade")}
               </Button>
             </Link>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Input
-              placeholder="搜尋代號..."
+              placeholder={t("journal.searchSymbol")}
               className="w-28 md:w-40"
               value={filters.symbol ?? ""}
               onChange={(e) =>
@@ -86,18 +88,18 @@ export default function JournalPage() {
               value={filters.market ?? ""}
               onChange={(e) => setFilters({ market: e.target.value || undefined })}
             >
-              <option value="">全部市場</option>
-              <option value="TWSE">上市</option>
-              <option value="TPEX">上櫃</option>
+              <option value="">{t("journal.allMarkets")}</option>
+              <option value="TWSE">{t("common.twse")}</option>
+              <option value="TPEX">{t("common.tpex")}</option>
             </select>
             <select
               className="h-9 rounded-md border border-input bg-background px-2 text-sm"
               value={filters.side ?? ""}
               onChange={(e) => setFilters({ side: e.target.value || undefined })}
             >
-              <option value="">買賣方向</option>
-              <option value="BUY">買進</option>
-              <option value="SELL">賣出</option>
+              <option value="">{t("journal.buySellDirection")}</option>
+              <option value="BUY">{t("common.buy")}</option>
+              <option value="SELL">{t("common.sell")}</option>
             </select>
             <Input
               type="date"
@@ -105,7 +107,7 @@ export default function JournalPage() {
               value={filters.from ?? ""}
               onChange={(e) => setFilters({ from: e.target.value || undefined })}
             />
-            <span className="text-muted-foreground text-sm">至</span>
+            <span className="text-muted-foreground text-sm">{t("common.to")}</span>
             <Input
               type="date"
               className="w-36 md:w-40"
@@ -119,7 +121,7 @@ export default function JournalPage() {
         <div className="rounded-lg border bg-card">
           {isLoading ? (
             <div className="text-center py-16 text-muted-foreground text-sm">
-              載入中...
+              {t("common.loading")}
             </div>
           ) : (
             <TradeTable trades={trades} onDelete={handleDelete} />

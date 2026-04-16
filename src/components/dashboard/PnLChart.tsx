@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { formatTWD } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import type { DailyPnL } from "@/types/trade";
 
 interface PnLChartProps {
@@ -17,10 +18,12 @@ interface PnLChartProps {
 }
 
 export function PnLChart({ data }: PnLChartProps) {
+  const { t } = useT();
+
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">
-        尚無交易資料
+        {t("chart.noTradeData")}
       </div>
     );
   }
@@ -58,8 +61,8 @@ export function PnLChart({ data }: PnLChartProps) {
           width={50}
         />
         <Tooltip
-          formatter={(value) => [formatTWD(value as number), "累計損益"]}
-          labelFormatter={(label) => `日期：${label}`}
+          formatter={(value) => [formatTWD(value as number), t("chart.cumulativePnL")]}
+          labelFormatter={(label) => `${t("chart.datePrefix")}${label}`}
           contentStyle={{
             fontSize: 12,
             borderRadius: 8,

@@ -1,6 +1,7 @@
 "use client";
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useT } from "@/lib/i18n";
 
 interface WinLossDonutProps {
   winCount: number;
@@ -8,15 +9,17 @@ interface WinLossDonutProps {
 }
 
 export function WinLossDonut({ winCount, lossCount }: WinLossDonutProps) {
+  const { t } = useT();
+
   const data = [
-    { name: "獲利", value: winCount },
-    { name: "虧損", value: lossCount },
+    { name: t("chart.profit"), value: winCount },
+    { name: t("chart.loss"), value: lossCount },
   ];
 
   if (winCount + lossCount === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">
-        尚無資料
+        {t("common.noData")}
       </div>
     );
   }
@@ -37,7 +40,7 @@ export function WinLossDonut({ winCount, lossCount }: WinLossDonutProps) {
           <Cell fill="#dc2626" />
         </Pie>
         <Tooltip
-          formatter={(v, name) => [`${v} 筆`, name]}
+          formatter={(v, name) => [`${v} ${t("chart.trades")}`, name]}
           contentStyle={{ fontSize: 12, borderRadius: 8 }}
         />
         <Legend

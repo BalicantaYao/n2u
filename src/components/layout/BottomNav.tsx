@@ -9,16 +9,18 @@ import {
   BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 const navItems = [
-  { href: "/dashboard", label: "總覽", icon: LayoutDashboard },
-  { href: "/journal", label: "日誌", icon: BookOpen },
-  { href: "/positions", label: "持倉", icon: Briefcase },
-  { href: "/results", label: "成果", icon: BarChart3 },
+  { href: "/dashboard", labelKey: "nav.dashboard", shortKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/journal", labelKey: "nav.journal", shortKey: "nav.journalShort", icon: BookOpen },
+  { href: "/positions", labelKey: "nav.positions", shortKey: "nav.positionsShort", icon: Briefcase },
+  { href: "/results", labelKey: "nav.results", shortKey: "nav.resultsShort", icon: BarChart3 },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { t } = useT();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t bg-card md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
@@ -38,7 +40,7 @@ export function BottomNav() {
               )}
             >
               <Icon className="h-5 w-5" />
-              <span>{item.label}</span>
+              <span>{t(item.shortKey)}</span>
             </Link>
           );
         })}

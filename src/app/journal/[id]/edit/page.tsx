@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { TradeForm } from "@/components/trade-form/TradeForm";
+import { useT } from "@/lib/i18n";
 import type { Trade } from "@/types/trade";
 
 interface PositionLot {
@@ -23,6 +24,7 @@ export default function EditTradePage({
   const [editableFields, setEditableFields] = useState<"all" | "metadata-only">(
     "all"
   );
+  const { t } = useT();
 
   useEffect(() => {
     async function load() {
@@ -57,9 +59,9 @@ export default function EditTradePage({
   if (loading) {
     return (
       <div>
-        <Header title="編輯交易" />
+        <Header titleKey="trade.editTrade" />
         <div className="p-4 md:p-6 text-center text-muted-foreground text-sm py-16">
-          載入中...
+          {t("common.loading")}
         </div>
       </div>
     );
@@ -69,7 +71,7 @@ export default function EditTradePage({
 
   return (
     <div>
-      <Header title="編輯交易" />
+      <Header titleKey="trade.editTrade" />
       <div className="p-4 md:p-6">
         <TradeForm
           mode="edit"

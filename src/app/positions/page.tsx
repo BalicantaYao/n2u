@@ -1,18 +1,8 @@
-import { Header } from "@/components/layout/Header";
-import { StatCard } from "@/components/dashboard/StatCard";
-import { PositionsTable } from "@/components/positions/PositionsTable";
+import { PositionsContent } from "@/components/positions/PositionsContent";
 import { prisma } from "@/lib/prisma";
 import { fetchQuotes } from "@/lib/yahoo-finance";
-import { formatTWD, formatPct } from "@/lib/utils";
 import type { Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";
-import {
-  Briefcase,
-  TrendingUp,
-  TrendingDown,
-  Banknote,
-  Percent,
-} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -107,50 +97,13 @@ export default async function PositionsPage() {
   const hasQuotes = positions.some((p) => p.currentPrice != null);
 
   return (
-    <div>
-      <Header title="持倉分析" />
-      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-        {/* Summary KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <StatCard
-            title="持倉檔數"
-            value={`${positions.length} 檔`}
-            icon={Briefcase}
-            trend="neutral"
-          />
-          <StatCard
-            title="投入成本"
-            value={formatTWD(totalCost)}
-            icon={Banknote}
-            trend="neutral"
-          />
-          <StatCard
-            title="目前市值"
-            value={hasQuotes ? formatTWD(totalMarketValue) : "—"}
-            icon={TrendingUp}
-            trend="neutral"
-          />
-          <StatCard
-            title="未實現損益"
-            value={hasQuotes ? formatTWD(totalUnrealized, true) : "—"}
-            icon={totalUnrealized >= 0 ? TrendingUp : TrendingDown}
-            trend={
-              !hasQuotes ? "neutral" : totalUnrealized > 0 ? "positive" : totalUnrealized < 0 ? "negative" : "neutral"
-            }
-          />
-          <StatCard
-            title="整體報酬率"
-            value={hasQuotes ? formatPct(overallReturn) : "—"}
-            icon={Percent}
-            trend={
-              !hasQuotes ? "neutral" : overallReturn > 0 ? "positive" : overallReturn < 0 ? "negative" : "neutral"
-            }
-          />
-        </div>
-
-        {/* Positions Table */}
-        <PositionsTable positions={positions} />
-      </div>
-    </div>
+    <PositionsContent
+      positions={positions}
+      totalCost={totalCost}
+      totalMarketValue={totalMarketValue}
+      totalUnrealized={totalUnrealized}
+      overallReturn={overallReturn}
+      hasQuotes={hasQuotes}
+    />
   );
 }

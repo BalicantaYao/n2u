@@ -12,6 +12,7 @@ import { SymbolSearch } from "./SymbolSearch";
 import { FeePreview } from "./FeePreview";
 import { cn } from "@/lib/utils";
 import { getTodayTW, formatShares } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import { Info } from "lucide-react";
 import type { Trade } from "@/types/trade";
 import type { Market, Side, LotType } from "@/types/taiwan";
@@ -29,6 +30,7 @@ export function TradeForm({
 }: TradeFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { t } = useT();
 
   const isEdit = mode === "edit";
   const metadataOnly = editableFields === "metadata-only";
@@ -93,12 +95,12 @@ export function TradeForm({
         });
         if (!res.ok) {
           const err = await res.json();
-          throw new Error(err.error ?? "更新失敗");
+          throw new Error(err.error ?? t("trade.updateFailed"));
         }
-        toast.success("交易記錄已更新");
+        toast.success(t("trade.tradeUpdated"));
         router.push("/journal");
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "更新失敗，請重試");
+        toast.error(err instanceof Error ? err.message : t("trade.updateFailedRetry"));
       } finally {
         setLoading(false);
       }
@@ -106,10 +108,10 @@ export function TradeForm({
     }
 
     // Full validation for create or full-edit mode
-    if (!symbol) return toast.error("請選擇股票代碼");
-    if (!priceNum || priceNum <= 0) return toast.error("請輸入正確的成交價格");
-    if (lotType === "ROUND" && lotsNum <= 0) return toast.error("請輸入整張數量");
-    if (lotType === "ODD" && sharesNum <= 0) return toast.error("請輸入零股股數");
+    if (!symbol) return toast.error(t("trade.selectSymbol"));
+    if (!priceNum || priceNum <= 0) return toast.error(t("trade.invalidPrice"));
+    if (lotType === "ROUND" && lotsNum <= 0) return toast.error(t("trade.invalidLots"));
+    if (lotType === "ODD" && sharesNum <= 0) return toast.error(t("trade.invalidShares"));
 
     setLoading(true);
     try {
@@ -140,14 +142,14 @@ export function TradeForm({
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? (isEdit ? "更新失敗" : "新增失敗"));
+        throw new Error(err.error ?? (isEdit ? t("trade.updateFailed") : t("trade.createFailed")));
       }
 
-      toast.success(isEdit ? "交易記錄已更新" : "交易記錄已新增");
+      toast.success(isEdit ? t("trade.tradeUpdated") : t("trade.tradeCreated"));
       router.push("/journal");
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : isEdit ? "更新失敗，請重試" : "新增失敗，請重試"
+        err instanceof Error ? err.message : isEdit ? t("trade.updateFailedRetry") : t("trade.createFailedRetry")
       );
     } finally {
       setLoading(false);
@@ -160,16 +162,16 @@ export function TradeForm({
       {metadataOnly && (
         <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-3 text-sm text-amber-800 dark:text-amber-200">
           <Info className="h-4 w-4 mt-0.5 shrink-0" />
-          <span>此交易已被配對或為賣出交易，僅可修改停損停利與備註。如需修改核心欄位，請刪除後重新建立。</span>
+          <span>{t("trade.metadataOnlyWarning")}</span>
         </div>
       )}
 
       {/* Market selector */}
       <div className="space-y-2">
-        <Label>市場</Label>
+        <Label>{t("trade.market")}</Label>
         {metadataOnly ? (
           <p className="text-sm font-medium">
-            {market === "TWSE" ? "上市 (TWSE)" : "上櫃 (TPEX)"}
+            {market === "TWSE" ? t("common.twseFull") : t("common.tpexFull")}
           </p>
         ) : (
           <div className="flex gap-2">
@@ -187,7 +189,7 @@ export function TradeForm({
                     : "bg-background text-foreground border-input hover:bg-accent"
                 )}
               >
-                {m === "TWSE" ? "上市 (TWSE)" : "上櫃 (TPEX)"}
+                {m === "TWSE" ? t("common.twseFull") : t("common.tpexFull")}
               </button>
             ))}
           </div>
@@ -196,13 +198,13 @@ export function TradeForm({
 
       {/* Symbol search */}
       <div className="space-y-2">
-        <Label>股票代碼</Label>
+        <Label>{t("trade.symbolCode")}</Label>
         {metadataOnly ? (
           <div className="flex items-center gap-2 text-sm">
             <span className="font-medium">{symbol}</span>
             {symbolName && <span className="text-muted-foreground">{symbolName}</span>}
             <Badge variant={isETF ? "secondary" : "outline"} className="text-xs py-0">
-              {isETF ? "ETF" : "股票"}
+              {isETF ? t("common.etf") : t("common.stock")}
             </Badge>
           </div>
         ) : (
@@ -221,7 +223,7 @@ export function TradeForm({
                 <span className="font-medium text-foreground">{symbol}</span>
                 <span>{symbolName}</span>
                 <Badge variant={isETF ? "secondary" : "outline"} className="text-xs py-0">
-                  {isETF ? "ETF" : "股票"}
+                  {isETF ? t("common.etf") : t("common.stock")}
                 </Badge>
               </div>
             )}
@@ -231,10 +233,10 @@ export function TradeForm({
 
       {/* Buy / Sell toggle */}
       <div className="space-y-2">
-        <Label>方向</Label>
+        <Label>{t("common.direction")}</Label>
         {metadataOnly ? (
           <Badge variant={side === "BUY" ? "profit" : "loss"} className="text-xs">
-            {side === "BUY" ? "買進" : "賣出"}
+            {side === "BUY" ? t("common.buy") : t("common.sell")}
           </Badge>
         ) : (
           <div className="flex gap-2">
@@ -248,7 +250,7 @@ export function TradeForm({
                   : "border-input bg-background hover:bg-accent"
               )}
             >
-              買進
+              {t("common.buy")}
             </button>
             <button
               type="button"
@@ -260,7 +262,7 @@ export function TradeForm({
                   : "border-input bg-background hover:bg-accent"
               )}
             >
-              賣出
+              {t("common.sell")}
             </button>
           </div>
         )}
@@ -268,7 +270,7 @@ export function TradeForm({
 
       {/* Trade date */}
       <div className="space-y-2">
-        <Label htmlFor="tradeDate">交易日期</Label>
+        <Label htmlFor="tradeDate">{t("trade.tradeDate")}</Label>
         {metadataOnly ? (
           <p className="text-sm">{tradeDate}</p>
         ) : (
@@ -284,9 +286,9 @@ export function TradeForm({
 
       {/* Lot type toggle */}
       <div className="space-y-2">
-        <Label>交易單位</Label>
+        <Label>{t("trade.tradeUnit")}</Label>
         {metadataOnly ? (
-          <p className="text-sm">{lotType === "ROUND" ? "整張" : "零股"}</p>
+          <p className="text-sm">{lotType === "ROUND" ? t("common.roundLot") : t("common.oddLot")}</p>
         ) : (
           <div className="flex gap-2">
             {(["ROUND", "ODD"] as LotType[]).map((lt) => (
@@ -301,7 +303,7 @@ export function TradeForm({
                     : "bg-background border-input hover:bg-accent"
                 )}
               >
-                {lt === "ROUND" ? "整張" : "零股"}
+                {lt === "ROUND" ? t("common.roundLot") : t("common.oddLot")}
               </button>
             ))}
           </div>
@@ -312,42 +314,42 @@ export function TradeForm({
       <div className="space-y-2">
         {metadataOnly ? (
           <>
-            <Label>數量</Label>
+            <Label>{t("common.quantity")}</Label>
             <p className="text-sm tabular-nums">
               {formatShares(initialData?.shares ?? 0, lotType)}
             </p>
           </>
         ) : lotType === "ROUND" ? (
           <>
-            <Label htmlFor="lots">張數</Label>
+            <Label htmlFor="lots">{t("trade.lotsLabel")}</Label>
             <div className="flex items-center gap-2">
               <Input
                 id="lots"
                 type="number"
                 min={1}
                 step={1}
-                placeholder="例：3"
+                placeholder="e.g. 3"
                 value={lots}
                 onChange={(e) => setLots(e.target.value)}
                 className="max-w-xs"
               />
               {lotsNum > 0 && (
                 <span className="text-sm text-muted-foreground">
-                  = {(lotsNum * 1000).toLocaleString()} 股
+                  {t("trade.sharesConversion", { count: (lotsNum * 1000).toLocaleString() })}
                 </span>
               )}
             </div>
           </>
         ) : (
           <>
-            <Label htmlFor="shares">股數（零股，1–999）</Label>
+            <Label htmlFor="shares">{t("trade.sharesLabel")}</Label>
             <Input
               id="shares"
               type="number"
               min={1}
               max={999}
               step={1}
-              placeholder="例：50"
+              placeholder="e.g. 50"
               value={shares}
               onChange={(e) => setShares(e.target.value)}
               className="max-w-xs"
@@ -358,7 +360,7 @@ export function TradeForm({
 
       {/* Price */}
       <div className="space-y-2">
-        <Label htmlFor="price">成交價格（TWD）</Label>
+        <Label htmlFor="price">{t("trade.price")}</Label>
         {metadataOnly ? (
           <p className="text-sm tabular-nums">{initialData?.price?.toLocaleString()}</p>
         ) : (
@@ -367,7 +369,7 @@ export function TradeForm({
             type="number"
             min={0.01}
             step={0.01}
-            placeholder="例：810.00"
+            placeholder="e.g. 810.00"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             className="max-w-xs"
@@ -380,41 +382,41 @@ export function TradeForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="stopLoss">
-            停損價（TWD）
-            <span className="ml-1 text-xs text-muted-foreground">選填</span>
+            {t("trade.stopLoss")}
+            <span className="ml-1 text-xs text-muted-foreground">{t("common.optional")}</span>
           </Label>
           <Input
             id="stopLoss"
             type="number"
             min={0.01}
             step={0.01}
-            placeholder="例：750.00"
+            placeholder="e.g. 750.00"
             value={stopLoss}
             onChange={(e) => setStopLoss(e.target.value)}
           />
           {stopLoss && priceNum > 0 && (
             <p className="text-xs text-red-500">
-              距均價 {(((parseFloat(stopLoss) - priceNum) / priceNum) * 100).toFixed(2)}%
+              {t("trade.stopLossDistance", { pct: (((parseFloat(stopLoss) - priceNum) / priceNum) * 100).toFixed(2) })}
             </p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="takeProfit">
-            停利價（TWD）
-            <span className="ml-1 text-xs text-muted-foreground">選填</span>
+            {t("trade.takeProfit")}
+            <span className="ml-1 text-xs text-muted-foreground">{t("common.optional")}</span>
           </Label>
           <Input
             id="takeProfit"
             type="number"
             min={0.01}
             step={0.01}
-            placeholder="例：900.00"
+            placeholder="e.g. 900.00"
             value={takeProfit}
             onChange={(e) => setTakeProfit(e.target.value)}
           />
           {takeProfit && priceNum > 0 && (
             <p className="text-xs text-green-600">
-              距均價 +{(((parseFloat(takeProfit) - priceNum) / priceNum) * 100).toFixed(2)}%
+              {t("trade.takeProfitDistance", { pct: (((parseFloat(takeProfit) - priceNum) / priceNum) * 100).toFixed(2) })}
             </p>
           )}
         </div>
@@ -423,12 +425,12 @@ export function TradeForm({
       {/* Notes */}
       <div className="space-y-2">
         <Label htmlFor="notes">
-          備註
-          <span className="ml-1 text-xs text-muted-foreground">選填</span>
+          {t("common.notes")}
+          <span className="ml-1 text-xs text-muted-foreground">{t("common.optional")}</span>
         </Label>
         <Textarea
           id="notes"
-          placeholder="進場理由、市場觀察、操作心得..."
+          placeholder={t("trade.notesPlaceholder")}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
@@ -451,7 +453,7 @@ export function TradeForm({
       {/* Actions */}
       <div className="flex gap-3 pt-2">
         <Button type="submit" disabled={loading} className="min-w-[120px]">
-          {loading ? "儲存中..." : isEdit ? "儲存修改" : "新增交易"}
+          {loading ? t("trade.saving") : isEdit ? t("trade.saveChanges") : t("trade.createTrade")}
         </Button>
         <Button
           type="button"
@@ -459,7 +461,7 @@ export function TradeForm({
           onClick={() => router.back()}
           disabled={loading}
         >
-          取消
+          {t("common.cancel")}
         </Button>
       </div>
     </form>

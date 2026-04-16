@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
+import { useT } from "@/lib/i18n";
 import type { OHLCVBar } from "@/types/market";
 
 interface PriceChartProps {
@@ -19,16 +20,20 @@ interface PriceChartProps {
 }
 
 export function PriceChart({ data, prevClose }: PriceChartProps) {
+  const { t, locale } = useT();
+
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-80 text-muted-foreground text-sm">
-        請搜尋股票代碼以顯示走勢圖
+        {t("charts.searchToShow")}
       </div>
     );
   }
 
+  const dateLocale = locale === "en" ? "en-US" : "zh-TW";
+
   const chartData = data.map((bar) => ({
-    date: new Date(bar.date).toLocaleDateString("zh-TW", { month: "2-digit", day: "2-digit" }),
+    date: new Date(bar.date).toLocaleDateString(dateLocale, { month: "2-digit", day: "2-digit" }),
     close: bar.close,
     volume: bar.volume,
     open: bar.open,
@@ -79,10 +84,10 @@ export function PriceChart({ data, prevClose }: PriceChartProps) {
               return (
                 <div className="rounded-lg border bg-popover p-3 text-xs shadow-lg space-y-1">
                   <p className="font-semibold">{label}</p>
-                  <p>收盤：{d?.close?.toLocaleString()}</p>
-                  <p>開盤：{d?.open?.toLocaleString()}</p>
-                  <p>最高：{d?.high?.toLocaleString()}</p>
-                  <p>最低：{d?.low?.toLocaleString()}</p>
+                  <p>{t("charts.close")}{d?.close?.toLocaleString()}</p>
+                  <p>{t("charts.openTooltip")}{d?.open?.toLocaleString()}</p>
+                  <p>{t("charts.highTooltip")}{d?.high?.toLocaleString()}</p>
+                  <p>{t("charts.lowTooltip")}{d?.low?.toLocaleString()}</p>
                 </div>
               );
             }}
@@ -93,13 +98,13 @@ export function PriceChart({ data, prevClose }: PriceChartProps) {
                 y={prevClose * 1.1}
                 stroke="#dc2626"
                 strokeDasharray="4 2"
-                label={{ value: "漲停", position: "right", fontSize: 10, fill: "#dc2626" }}
+                label={{ value: t("charts.limitUp"), position: "right", fontSize: 10, fill: "#dc2626" }}
               />
               <ReferenceLine
                 y={prevClose * 0.9}
                 stroke="#16a34a"
                 strokeDasharray="4 2"
-                label={{ value: "跌停", position: "right", fontSize: 10, fill: "#16a34a" }}
+                label={{ value: t("charts.limitDown"), position: "right", fontSize: 10, fill: "#16a34a" }}
               />
             </>
           )}
@@ -126,7 +131,7 @@ export function PriceChart({ data, prevClose }: PriceChartProps) {
             tickLine={false}
           />
           <Tooltip
-            formatter={(v) => [`${((v as number) / 1000).toFixed(0)}K 股`, "成交量"]}
+            formatter={(v) => [`${((v as number) / 1000).toFixed(0)}${t("charts.kShares")}`, t("charts.volumeTooltip")]}
             contentStyle={{ fontSize: 11, borderRadius: 8 }}
           />
           <Bar dataKey="volume" fill="#94a3b8" opacity={0.7} radius={[1, 1, 0, 0]} />
