@@ -9,7 +9,7 @@ import type { Position } from "@/types/trade";
 export async function GET() {
   const lots = await prisma.positionLot.findMany({
     where: { isOpen: true },
-    include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true } } },
+    include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true, notes: true } } },
   });
 
   // group by symbol
@@ -23,6 +23,7 @@ export async function GET() {
       totalCost: number;
       stopLoss?: number;
       takeProfit?: number;
+      notes: string[];
     }
   >();
 
@@ -33,6 +34,9 @@ export async function GET() {
       existing.totalCost += lot.shares * lot.costPerShare;
       if (lot.openTrade.stopLoss != null) existing.stopLoss = lot.openTrade.stopLoss;
       if (lot.openTrade.takeProfit != null) existing.takeProfit = lot.openTrade.takeProfit;
+      if (lot.openTrade.notes && !existing.notes.includes(lot.openTrade.notes)) {
+        existing.notes.push(lot.openTrade.notes);
+      }
     } else {
       map.set(lot.symbol, {
         symbol: lot.symbol,
@@ -42,6 +46,7 @@ export async function GET() {
         totalCost: lot.shares * lot.costPerShare,
         stopLoss: lot.openTrade.stopLoss ?? undefined,
         takeProfit: lot.openTrade.takeProfit ?? undefined,
+        notes: lot.openTrade.notes ? [lot.openTrade.notes] : [],
       });
     }
   }
@@ -86,6 +91,7 @@ export async function GET() {
         currentPrice != null && p.takeProfit != null
           ? currentPrice >= p.takeProfit
           : false,
+      notes: p.notes,
     };
   });
 
