@@ -6,8 +6,8 @@ import { HtmlLangUpdater } from "@/components/layout/HtmlLangUpdater";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "台股日誌 | Taiwan Trading Journal",
-  description: "台灣股市交易日誌，支援 TWSE / TPEX，損益分析、走勢圖表一覽",
+  title: "Nothing 2 You | Taiwan Trading Journal",
+  description: "Nothing 2 You — 台灣股市交易日誌，支援 TWSE / TPEX，損益分析、走勢圖表一覽",
 };
 
 export const viewport: Viewport = {

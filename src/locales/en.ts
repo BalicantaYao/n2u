@@ -13,8 +13,8 @@ const en = {
 
   // ── Sidebar / Footer ───────────────────────────────────────
   sidebar: {
-    logo: "TW Journal",
-    footer1: "Taiwan Stock Trading Journal",
+    logo: "Nothing 2 You",
+    footer1: "Nothing 2 You — Trading Journal",
     footer2: "TWSE / TPEX",
   },
 

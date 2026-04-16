@@ -13,8 +13,8 @@ const zhTW = {
 
   // ── Sidebar / Footer ───────────────────────────────────────
   sidebar: {
-    logo: "台股日誌",
-    footer1: "台灣股市交易日誌",
+    logo: "Nothing 2 You",
+    footer1: "Nothing 2 You — 台股交易日誌",
     footer2: "TWSE / TPEX",
   },
 
