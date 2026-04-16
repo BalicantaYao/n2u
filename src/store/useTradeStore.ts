@@ -18,6 +18,7 @@ interface TradeStore {
   filters: TradeFilters;
   fetchTrades: () => Promise<void>;
   addTrade: (data: CreateTradeInput) => Promise<Trade>;
+  updateTrade: (id: string, data: Partial<CreateTradeInput>) => Promise<Trade>;
   deleteTrade: (id: string) => Promise<void>;
   setFilters: (f: Partial<TradeFilters>) => void;
   clearFilters: () => void;
@@ -61,6 +62,23 @@ export const useTradeStore = create<TradeStore>((set, get) => ({
     const trade = await res.json();
     set((state) => ({ trades: [trade, ...state.trades] }));
     return trade;
+  },
+
+  updateTrade: async (id, data) => {
+    const res = await fetch(`/api/trades/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error ?? "更新交易失敗");
+    }
+    const updated = await res.json();
+    set((state) => ({
+      trades: state.trades.map((t) => (t.id === id ? updated : t)),
+    }));
+    return updated;
   },
 
   deleteTrade: async (id) => {

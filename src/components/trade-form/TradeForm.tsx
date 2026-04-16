@@ -11,27 +11,65 @@ import { Badge } from "@/components/ui/badge";
 import { SymbolSearch } from "./SymbolSearch";
 import { FeePreview } from "./FeePreview";
 import { cn } from "@/lib/utils";
-import { getTodayTW } from "@/lib/utils";
+import { getTodayTW, formatShares } from "@/lib/utils";
+import { Info } from "lucide-react";
+import type { Trade } from "@/types/trade";
 import type { Market, Side, LotType } from "@/types/taiwan";
 
-export function TradeForm() {
+interface TradeFormProps {
+  mode?: "create" | "edit";
+  initialData?: Trade;
+  editableFields?: "all" | "metadata-only";
+}
+
+export function TradeForm({
+  mode = "create",
+  initialData,
+  editableFields = "all",
+}: TradeFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  // Form state
-  const [symbol, setSymbol] = useState("");
-  const [symbolName, setSymbolName] = useState("");
-  const [market, setMarket] = useState<Market>("TWSE");
-  const [isETF, setIsETF] = useState(false);
-  const [side, setSide] = useState<Side>("BUY");
-  const [tradeDate, setTradeDate] = useState(getTodayTW().replaceAll("/", "-"));
-  const [lotType, setLotType] = useState<LotType>("ROUND");
-  const [lots, setLots] = useState<string>("");
-  const [shares, setShares] = useState<string>("");
-  const [price, setPrice] = useState<string>("");
-  const [stopLoss, setStopLoss] = useState<string>("");
-  const [takeProfit, setTakeProfit] = useState<string>("");
-  const [notes, setNotes] = useState("");
+  const isEdit = mode === "edit";
+  const metadataOnly = editableFields === "metadata-only";
+
+  // Form state — initialized from initialData when editing
+  const [symbol, setSymbol] = useState(initialData?.symbol ?? "");
+  const [symbolName, setSymbolName] = useState(initialData?.symbolName ?? "");
+  const [market, setMarket] = useState<Market>(
+    (initialData?.market as Market) ?? "TWSE"
+  );
+  const [isETF, setIsETF] = useState(initialData?.isETF ?? false);
+  const [side, setSide] = useState<Side>(
+    (initialData?.side as Side) ?? "BUY"
+  );
+  const [tradeDate, setTradeDate] = useState(() => {
+    if (initialData?.tradeDate) {
+      return new Date(initialData.tradeDate).toISOString().slice(0, 10);
+    }
+    return getTodayTW().replaceAll("/", "-");
+  });
+  const [lotType, setLotType] = useState<LotType>(
+    (initialData?.lotType as LotType) ?? "ROUND"
+  );
+  const [lots, setLots] = useState<string>(
+    initialData?.lots != null ? String(initialData.lots) : ""
+  );
+  const [shares, setShares] = useState<string>(
+    initialData && initialData.lotType === "ODD"
+      ? String(initialData.shares)
+      : ""
+  );
+  const [price, setPrice] = useState<string>(
+    initialData?.price != null ? String(initialData.price) : ""
+  );
+  const [stopLoss, setStopLoss] = useState<string>(
+    initialData?.stopLoss != null ? String(initialData.stopLoss) : ""
+  );
+  const [takeProfit, setTakeProfit] = useState<string>(
+    initialData?.takeProfit != null ? String(initialData.takeProfit) : ""
+  );
+  const [notes, setNotes] = useState(initialData?.notes ?? "");
 
   const priceNum = parseFloat(price) || 0;
   const lotsNum = parseInt(lots) || 0;
@@ -39,6 +77,35 @@ export function TradeForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (isEdit && metadataOnly) {
+      // Only submit metadata fields
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/trades/${initialData!.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            stopLoss: stopLoss ? parseFloat(stopLoss) : null,
+            takeProfit: takeProfit ? parseFloat(takeProfit) : null,
+            notes: notes || null,
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error ?? "更新失敗");
+        }
+        toast.success("交易記錄已更新");
+        router.push("/journal");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "更新失敗，請重試");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Full validation for create or full-edit mode
     if (!symbol) return toast.error("請選擇股票代碼");
     if (!priceNum || priceNum <= 0) return toast.error("請輸入正確的成交價格");
     if (lotType === "ROUND" && lotsNum <= 0) return toast.error("請輸入整張數量");
@@ -46,35 +113,42 @@ export function TradeForm() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/trades", {
-        method: "POST",
+      const payload = {
+        symbol,
+        symbolName,
+        market,
+        side,
+        tradeDate,
+        lotType,
+        lots: lotType === "ROUND" ? lotsNum : undefined,
+        shares: lotType === "ROUND" ? lotsNum * 1000 : sharesNum,
+        price: priceNum,
+        isETF,
+        stopLoss: stopLoss ? parseFloat(stopLoss) : undefined,
+        takeProfit: takeProfit ? parseFloat(takeProfit) : undefined,
+        notes: notes || undefined,
+      };
+
+      const url = isEdit ? `/api/trades/${initialData!.id}` : "/api/trades";
+      const method = isEdit ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          symbol,
-          symbolName,
-          market,
-          side,
-          tradeDate,
-          lotType,
-          lots: lotType === "ROUND" ? lotsNum : undefined,
-          shares: lotType === "ROUND" ? lotsNum * 1000 : sharesNum,
-          price: priceNum,
-          isETF,
-          stopLoss: stopLoss ? parseFloat(stopLoss) : undefined,
-          takeProfit: takeProfit ? parseFloat(takeProfit) : undefined,
-          notes: notes || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? "新增失敗");
+        throw new Error(err.error ?? (isEdit ? "更新失敗" : "新增失敗"));
       }
 
-      toast.success("交易記錄已新增");
+      toast.success(isEdit ? "交易記錄已更新" : "交易記錄已新增");
       router.push("/journal");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "新增失敗，請重試");
+      toast.error(
+        err instanceof Error ? err.message : isEdit ? "更新失敗，請重試" : "新增失敗，請重試"
+      );
     } finally {
       setLoading(false);
     }
@@ -82,121 +156,168 @@ export function TradeForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+      {/* Metadata-only warning banner */}
+      {metadataOnly && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-3 text-sm text-amber-800 dark:text-amber-200">
+          <Info className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>此交易已被配對或為賣出交易，僅可修改停損停利與備註。如需修改核心欄位，請刪除後重新建立。</span>
+        </div>
+      )}
+
       {/* Market selector */}
       <div className="space-y-2">
         <Label>市場</Label>
-        <div className="flex gap-2">
-          {(["TWSE", "TPEX"] as Market[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMarket(m)}
-              className={cn(
-                "px-4 py-2 rounded-md text-sm font-medium border transition-colors",
-                market === m
-                  ? m === "TWSE"
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-purple-600 text-white border-purple-600"
-                  : "bg-background text-foreground border-input hover:bg-accent"
-              )}
-            >
-              {m === "TWSE" ? "上市 (TWSE)" : "上櫃 (TPEX)"}
-            </button>
-          ))}
-        </div>
+        {metadataOnly ? (
+          <p className="text-sm font-medium">
+            {market === "TWSE" ? "上市 (TWSE)" : "上櫃 (TPEX)"}
+          </p>
+        ) : (
+          <div className="flex gap-2">
+            {(["TWSE", "TPEX"] as Market[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMarket(m)}
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium border transition-colors",
+                  market === m
+                    ? m === "TWSE"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-purple-600 text-white border-purple-600"
+                    : "bg-background text-foreground border-input hover:bg-accent"
+                )}
+              >
+                {m === "TWSE" ? "上市 (TWSE)" : "上櫃 (TPEX)"}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Symbol search */}
       <div className="space-y-2">
         <Label>股票代碼</Label>
-        <SymbolSearch
-          value={symbol}
-          onChange={(sym, name, mkt, etf) => {
-            setSymbol(sym);
-            setSymbolName(name);
-            setMarket(mkt);
-            setIsETF(etf);
-          }}
-        />
-        {symbol && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">{symbol}</span>
-            <span>{symbolName}</span>
+        {metadataOnly ? (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-medium">{symbol}</span>
+            {symbolName && <span className="text-muted-foreground">{symbolName}</span>}
             <Badge variant={isETF ? "secondary" : "outline"} className="text-xs py-0">
               {isETF ? "ETF" : "股票"}
             </Badge>
           </div>
+        ) : (
+          <>
+            <SymbolSearch
+              value={symbol}
+              onChange={(sym, name, mkt, etf) => {
+                setSymbol(sym);
+                setSymbolName(name);
+                setMarket(mkt);
+                setIsETF(etf);
+              }}
+            />
+            {symbol && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">{symbol}</span>
+                <span>{symbolName}</span>
+                <Badge variant={isETF ? "secondary" : "outline"} className="text-xs py-0">
+                  {isETF ? "ETF" : "股票"}
+                </Badge>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* Buy / Sell toggle */}
       <div className="space-y-2">
         <Label>方向</Label>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setSide("BUY")}
-            className={cn(
-              "flex-1 py-3 rounded-md text-sm font-semibold border-2 transition-colors",
-              side === "BUY"
-                ? "bg-green-600 text-white border-green-600"
-                : "border-input bg-background hover:bg-accent"
-            )}
-          >
-            買進
-          </button>
-          <button
-            type="button"
-            onClick={() => setSide("SELL")}
-            className={cn(
-              "flex-1 py-3 rounded-md text-sm font-semibold border-2 transition-colors",
-              side === "SELL"
-                ? "bg-red-600 text-white border-red-600"
-                : "border-input bg-background hover:bg-accent"
-            )}
-          >
-            賣出
-          </button>
-        </div>
+        {metadataOnly ? (
+          <Badge variant={side === "BUY" ? "profit" : "loss"} className="text-xs">
+            {side === "BUY" ? "買進" : "賣出"}
+          </Badge>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setSide("BUY")}
+              className={cn(
+                "flex-1 py-3 rounded-md text-sm font-semibold border-2 transition-colors",
+                side === "BUY"
+                  ? "bg-green-600 text-white border-green-600"
+                  : "border-input bg-background hover:bg-accent"
+              )}
+            >
+              買進
+            </button>
+            <button
+              type="button"
+              onClick={() => setSide("SELL")}
+              className={cn(
+                "flex-1 py-3 rounded-md text-sm font-semibold border-2 transition-colors",
+                side === "SELL"
+                  ? "bg-red-600 text-white border-red-600"
+                  : "border-input bg-background hover:bg-accent"
+              )}
+            >
+              賣出
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Trade date */}
       <div className="space-y-2">
         <Label htmlFor="tradeDate">交易日期</Label>
-        <Input
-          id="tradeDate"
-          type="date"
-          value={tradeDate}
-          onChange={(e) => setTradeDate(e.target.value)}
-          required
-        />
+        {metadataOnly ? (
+          <p className="text-sm">{tradeDate}</p>
+        ) : (
+          <Input
+            id="tradeDate"
+            type="date"
+            value={tradeDate}
+            onChange={(e) => setTradeDate(e.target.value)}
+            required
+          />
+        )}
       </div>
 
       {/* Lot type toggle */}
       <div className="space-y-2">
         <Label>交易單位</Label>
-        <div className="flex gap-2">
-          {(["ROUND", "ODD"] as LotType[]).map((lt) => (
-            <button
-              key={lt}
-              type="button"
-              onClick={() => setLotType(lt)}
-              className={cn(
-                "px-4 py-2 rounded-md text-sm border transition-colors",
-                lotType === lt
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background border-input hover:bg-accent"
-              )}
-            >
-              {lt === "ROUND" ? "整張" : "零股"}
-            </button>
-          ))}
-        </div>
+        {metadataOnly ? (
+          <p className="text-sm">{lotType === "ROUND" ? "整張" : "零股"}</p>
+        ) : (
+          <div className="flex gap-2">
+            {(["ROUND", "ODD"] as LotType[]).map((lt) => (
+              <button
+                key={lt}
+                type="button"
+                onClick={() => setLotType(lt)}
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm border transition-colors",
+                  lotType === lt
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background border-input hover:bg-accent"
+                )}
+              >
+                {lt === "ROUND" ? "整張" : "零股"}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Quantity */}
       <div className="space-y-2">
-        {lotType === "ROUND" ? (
+        {metadataOnly ? (
+          <>
+            <Label>數量</Label>
+            <p className="text-sm tabular-nums">
+              {formatShares(initialData?.shares ?? 0, lotType)}
+            </p>
+          </>
+        ) : lotType === "ROUND" ? (
           <>
             <Label htmlFor="lots">張數</Label>
             <div className="flex items-center gap-2">
@@ -238,17 +359,21 @@ export function TradeForm() {
       {/* Price */}
       <div className="space-y-2">
         <Label htmlFor="price">成交價格（TWD）</Label>
-        <Input
-          id="price"
-          type="number"
-          min={0.01}
-          step={0.01}
-          placeholder="例：810.00"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          className="max-w-xs"
-          required
-        />
+        {metadataOnly ? (
+          <p className="text-sm tabular-nums">{initialData?.price?.toLocaleString()}</p>
+        ) : (
+          <Input
+            id="price"
+            type="number"
+            min={0.01}
+            step={0.01}
+            placeholder="例：810.00"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="max-w-xs"
+            required
+          />
+        )}
       </div>
 
       {/* Stop Loss & Take Profit */}
@@ -310,21 +435,23 @@ export function TradeForm() {
         />
       </div>
 
-      {/* Fee preview */}
-      <FeePreview
-        price={priceNum}
-        shares={sharesNum}
-        lotType={lotType}
-        lots={lotsNum}
-        side={side}
-        isETF={isETF}
-        tradeDate={tradeDate}
-      />
+      {/* Fee preview — only show when core fields are editable */}
+      {!metadataOnly && (
+        <FeePreview
+          price={priceNum}
+          shares={sharesNum}
+          lotType={lotType}
+          lots={lotsNum}
+          side={side}
+          isETF={isETF}
+          tradeDate={tradeDate}
+        />
+      )}
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
         <Button type="submit" disabled={loading} className="min-w-[120px]">
-          {loading ? "儲存中..." : "新增交易"}
+          {loading ? "儲存中..." : isEdit ? "儲存修改" : "新增交易"}
         </Button>
         <Button
           type="button"

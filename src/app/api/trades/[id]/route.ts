@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { calculateFees, calcSettlementDate, lotsToShares } from "@/lib/taiwan-fees";
+
+const CORE_FIELDS = [
+  "symbol", "symbolName", "market", "side", "tradeDate",
+  "lotType", "lots", "shares", "price", "isETF",
+];
+
+const METADATA_FIELDS = ["notes", "tags", "stopLoss", "takeProfit"];
 
 export async function GET(
   _req: NextRequest,
@@ -18,18 +27,138 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   const body = await req.json();
-  // 只允許更新備註、停損停利、tags
-  const allowed = ["notes", "tags", "stopLoss", "takeProfit"];
-  const data: Record<string, unknown> = {};
-  for (const key of allowed) {
-    if (key in body) data[key] = body[key];
+
+  const existing = await prisma.trade.findUnique({
+    where: { id: params.id },
+    include: { positionLots: true },
+  });
+  if (!existing) {
+    return NextResponse.json({ error: "找不到此交易" }, { status: 404 });
   }
 
-  const trade = await prisma.trade.update({
-    where: { id: params.id },
-    data,
-  });
-  return NextResponse.json(trade);
+  const hasCoreChange = CORE_FIELDS.some(
+    (f) => f in body && body[f] !== (existing as Record<string, unknown>)[f]
+  );
+
+  // Metadata-only update (notes, tags, stopLoss, takeProfit)
+  if (!hasCoreChange) {
+    const data: Record<string, unknown> = {};
+    for (const key of METADATA_FIELDS) {
+      if (key in body) data[key] = body[key];
+    }
+    const trade = await prisma.trade.update({
+      where: { id: params.id },
+      data,
+    });
+    return NextResponse.json(trade);
+  }
+
+  // Core field change — enforce restrictions
+  if (existing.side === "SELL") {
+    return NextResponse.json(
+      { error: "賣出交易不可修改核心欄位，請刪除後重新建立" },
+      { status: 400 }
+    );
+  }
+
+  if (body.side && body.side === "SELL") {
+    return NextResponse.json(
+      { error: "不可將買進改為賣出，請刪除後重新建立" },
+      { status: 400 }
+    );
+  }
+
+  // Check if position lot has been consumed by a SELL trade
+  const lots = existing.positionLots;
+  const isConsumed = lots.some(
+    (l) => !l.isOpen || l.shares < existing.shares
+  );
+  if (isConsumed) {
+    return NextResponse.json(
+      { error: "此買進交易已被配對，無法修改核心欄位" },
+      { status: 400 }
+    );
+  }
+
+  // Full update with fee recalculation
+  const symbol = (body.symbol ?? existing.symbol).toUpperCase();
+  const symbolName = body.symbolName ?? existing.symbolName;
+  const market = body.market ?? existing.market;
+  const side = body.side ?? existing.side;
+  const tradeDate = body.tradeDate ?? existing.tradeDate;
+  const lotType = body.lotType ?? existing.lotType;
+  const isETF = body.isETF ?? existing.isETF;
+  const price = body.price ?? existing.price;
+
+  const newLots = body.lots ?? existing.lots;
+  const rawShares = body.shares ?? existing.shares;
+  const shares = lotType === "ROUND" && newLots ? lotsToShares(newLots) : rawShares;
+
+  if (!shares || shares <= 0) {
+    return NextResponse.json({ error: "股數不正確" }, { status: 400 });
+  }
+
+  const fees = calculateFees({ price, shares, side, isETF });
+  const tradeDateObj = new Date(tradeDate);
+  const settlementDate = calcSettlementDate(tradeDateObj);
+
+  try {
+    const trade = await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
+      // Update metadata fields alongside core fields
+      const stopLoss = "stopLoss" in body ? body.stopLoss : existing.stopLoss;
+      const takeProfit = "takeProfit" in body ? body.takeProfit : existing.takeProfit;
+      const notes = "notes" in body ? body.notes : existing.notes;
+      const tags = "tags" in body ? body.tags : existing.tags;
+
+      const updated = await tx.trade.update({
+        where: { id: params.id },
+        data: {
+          symbol,
+          symbolName,
+          market,
+          side,
+          tradeDate: tradeDateObj,
+          settlementDate,
+          lotType,
+          lots: lotType === "ROUND" ? newLots : null,
+          shares,
+          price,
+          commission: fees.commission,
+          transactionTax: fees.transactionTax,
+          totalFees: fees.totalFees,
+          grossAmount: fees.grossAmount,
+          netAmount: fees.netAmount,
+          isETF,
+          stopLoss,
+          takeProfit,
+          notes,
+          tags,
+        },
+      });
+
+      // Update the associated PositionLot
+      if (lots.length > 0) {
+        await tx.positionLot.update({
+          where: { id: lots[0].id },
+          data: {
+            symbol,
+            market,
+            lotType,
+            openDate: tradeDateObj,
+            shares,
+            costPerShare: fees.netAmount / shares,
+          },
+        });
+      }
+
+      return updated;
+    });
+
+    return NextResponse.json(trade);
+  } catch (error) {
+    console.error("更新交易失敗:", error);
+    return NextResponse.json({ error: "更新交易失敗" }, { status: 500 });
+  }
 }
 
 export async function DELETE(
