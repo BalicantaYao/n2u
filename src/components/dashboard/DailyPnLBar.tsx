@@ -11,13 +11,16 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { formatTWD } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import type { DailyPnL } from "@/types/trade";
 
 export function DailyPnLBar({ data }: { data: DailyPnL[] }) {
+  const { t } = useT();
+
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">
-        尚無資料
+        {t("common.noData")}
       </div>
     );
   }
@@ -39,8 +42,8 @@ export function DailyPnLBar({ data }: { data: DailyPnL[] }) {
           width={45}
         />
         <Tooltip
-          formatter={(v) => [formatTWD(v as number), "當日損益"]}
-          labelFormatter={(l) => `日期：${l}`}
+          formatter={(v) => [formatTWD(v as number), t("chart.dailyPnL")]}
+          labelFormatter={(l) => `${t("chart.datePrefix")}${l}`}
           contentStyle={{ fontSize: 12, borderRadius: 8 }}
         />
         <Bar dataKey="daily" radius={[2, 2, 0, 0]}>

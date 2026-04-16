@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import { formatDate, isMarketOpen } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
+import { LanguageToggle } from "./LanguageToggle";
 
-export function Header({ title }: { title: string }) {
+export function Header({ title, titleKey }: { title?: string; titleKey?: string }) {
   const [marketOpen, setMarketOpen] = useState(false);
   const [today, setToday] = useState("");
+  const { t } = useT();
 
   useEffect(() => {
     setMarketOpen(isMarketOpen());
@@ -16,10 +19,15 @@ export function Header({ title }: { title: string }) {
     return () => clearInterval(id);
   }, []);
 
+  const displayTitle = titleKey ? t(titleKey) : title ?? "";
+
   return (
     <header className="h-14 border-b bg-card flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
-      <h1 className="text-base font-semibold">{title}</h1>
+      <h1 className="text-base font-semibold">{displayTitle}</h1>
       <div className="flex items-center gap-2 md:gap-3 text-sm text-muted-foreground">
+        <div className="md:hidden">
+          <LanguageToggle compact />
+        </div>
         <span className="hidden sm:inline">{today}</span>
         <Badge
           className={cn(
@@ -29,7 +37,7 @@ export function Header({ title }: { title: string }) {
               : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
           )}
         >
-          {marketOpen ? "開盤中" : "已收盤"}
+          {marketOpen ? t("header.marketOpen") : t("header.marketClosed")}
         </Badge>
       </div>
     </header>

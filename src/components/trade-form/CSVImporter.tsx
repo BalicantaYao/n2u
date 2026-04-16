@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n";
 import type { CreateTradeInput } from "@/types/trade";
 
 interface RawRow {
@@ -43,7 +44,7 @@ function deriveLotType(absShares: number): { lotType: "ROUND" | "ODD"; lots?: nu
   return { lotType: "ODD" };
 }
 
-function parseCSV(raw: string): RawRow[] {
+function parseCSV(raw: string, t: (key: string) => string): RawRow[] {
   const lines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const rows: RawRow[] = [];
   let dataIndex = 0;
@@ -51,7 +52,7 @@ function parseCSV(raw: string): RawRow[] {
   for (const line of lines) {
     const cols = line.split(",");
     // Skip header row
-    if (cols[0].trim() === "交易日期") continue;
+    if (cols[0].trim() === "交易日期" || cols[0].trim().toLowerCase() === "trade date") continue;
 
     dataIndex++;
     const tradeDate = cols[0]?.trim() ?? "";
@@ -66,10 +67,10 @@ function parseCSV(raw: string): RawRow[] {
     const notes = notesRaw || undefined;
 
     const errors: string[] = [];
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(tradeDate)) errors.push("日期格式錯誤");
-    if (!symbol) errors.push("代碼空白");
-    if (isNaN(price) || price <= 0) errors.push("價格無效");
-    if (isNaN(rawShares) || rawShares === 0) errors.push("股數無效");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(tradeDate)) errors.push(t("csv.dateFormatError"));
+    if (!symbol) errors.push(t("csv.codeEmpty"));
+    if (isNaN(price) || price <= 0) errors.push(t("csv.priceInvalid"));
+    if (isNaN(rawShares) || rawShares === 0) errors.push(t("csv.sharesInvalid"));
 
     rows.push({
       index: dataIndex,
@@ -79,7 +80,7 @@ function parseCSV(raw: string): RawRow[] {
       rawShares: isNaN(rawShares) ? 0 : rawShares,
       stopLoss,
       notes,
-      parseError: errors.length ? errors.join("；") : undefined,
+      parseError: errors.length ? errors.join(t("csv.errorSeparator")) : undefined,
     });
   }
 
@@ -117,11 +118,12 @@ export function CSVImporter() {
   const [importing, setImporting] = useState(false);
   const [importResults, setImportResults] = useState<ImportResult[]>([]);
   const [importSummary, setImportSummary] = useState({ imported: 0, failed: 0 });
+  const { t } = useT();
 
   async function handleParse() {
-    const rawRows = parseCSV(csvText);
+    const rawRows = parseCSV(csvText, t);
     if (rawRows.length === 0) {
-      toast.error("沒有找到任何資料列");
+      toast.error(t("csv.noDataRows"));
       return;
     }
 
@@ -169,7 +171,7 @@ export function CSVImporter() {
     });
 
     if (validRows.length === 0) {
-      toast.error("沒有可匯入的有效資料");
+      toast.error(t("csv.noValidData"));
       return;
     }
 
@@ -204,7 +206,7 @@ export function CSVImporter() {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.error ?? "匯入失敗");
+        toast.error(data.error ?? t("csv.importFailed"));
         setPhase("preview");
         return;
       }
@@ -214,12 +216,12 @@ export function CSVImporter() {
       setPhase("done");
 
       if (data.failed === 0) {
-        toast.success(`成功匯入 ${data.imported} 筆交易`);
+        toast.success(t("csv.importSuccess", { count: data.imported }));
       } else {
-        toast.warning(`匯入完成：${data.imported} 成功，${data.failed} 失敗`);
+        toast.warning(t("csv.importPartial", { success: data.imported, failed: data.failed }));
       }
     } catch {
-      toast.error("網路錯誤，請重試");
+      toast.error(t("csv.networkError"));
       setPhase("preview");
     } finally {
       setImporting(false);
@@ -247,19 +249,19 @@ export function CSVImporter() {
     return (
       <div className="max-w-3xl space-y-4">
         <p className="text-sm text-muted-foreground">
-          貼上 CSV 資料（需包含標題列）：
+          {t("csv.pasteInstruction")}
           <code className="ml-1 text-xs bg-muted px-1 py-0.5 rounded">
-            交易日期,股票代碼,交易價格,交易股數,預期停損價,價值,Notes
+            {t("csv.csvHeader")}
           </code>
         </p>
         <textarea
           className="w-full h-56 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono resize-y focus:outline-none focus:ring-2 focus:ring-ring"
-          placeholder="貼上 CSV 內容..."
+          placeholder={t("csv.pastePlaceholder")}
           value={csvText}
           onChange={(e) => setCsvText(e.target.value)}
         />
         <Button onClick={handleParse} disabled={!csvText.trim()}>
-          解析預覽
+          {t("csv.parsePreview")}
         </Button>
       </div>
     );
@@ -271,10 +273,10 @@ export function CSVImporter() {
       <div className="max-w-3xl space-y-4">
         <div className="p-4 rounded-lg bg-muted/30 text-sm">
           <p className="font-semibold">
-            匯入完成：
-            <span className="text-green-600 ml-1">{importSummary.imported} 筆成功</span>
+            {t("csv.importComplete")}
+            <span className="text-green-600 ml-1">{t("csv.successCount", { count: importSummary.imported })}</span>
             {importSummary.failed > 0 && (
-              <span className="text-red-600 ml-2">{importSummary.failed} 筆失敗</span>
+              <span className="text-red-600 ml-2">{t("csv.failCount", { count: importSummary.failed })}</span>
             )}
           </p>
         </div>
@@ -284,9 +286,9 @@ export function CSVImporter() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="text-left px-3 py-2">列</th>
-                  <th className="text-left px-3 py-2">狀態</th>
-                  <th className="text-left px-3 py-2">錯誤訊息</th>
+                  <th className="text-left px-3 py-2">{t("csv.row")}</th>
+                  <th className="text-left px-3 py-2">{t("csv.status")}</th>
+                  <th className="text-left px-3 py-2">{t("csv.errorMessage")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -295,7 +297,7 @@ export function CSVImporter() {
                   .map((r) => (
                     <tr key={r.index} className="border-b last:border-0 bg-red-50 dark:bg-red-950/20">
                       <td className="px-3 py-2">{r.index + 1}</td>
-                      <td className="px-3 py-2 text-red-600">失敗</td>
+                      <td className="px-3 py-2 text-red-600">{t("csv.failed")}</td>
                       <td className="px-3 py-2 text-red-600 text-xs">{r.error}</td>
                     </tr>
                   ))}
@@ -306,10 +308,10 @@ export function CSVImporter() {
 
         <div className="flex gap-2">
           <Link href="/journal">
-            <Button>前往日誌</Button>
+            <Button>{t("csv.goToJournal")}</Button>
           </Link>
           <Button variant="outline" onClick={handleReset}>
-            重新開始
+            {t("csv.restart")}
           </Button>
         </div>
       </div>
@@ -321,21 +323,21 @@ export function CSVImporter() {
     <div className="space-y-4">
       <div className="flex items-center gap-4 flex-wrap">
         <p className="text-sm text-muted-foreground">
-          共 <span className="font-semibold text-foreground">{previewRows.length}</span> 列・
-          <span className="text-green-600 font-semibold">{validCount} 筆可匯入</span>
+          {t("csv.totalRows", { count: previewRows.length })}
+          <span className="text-green-600 font-semibold">{t("csv.importable", { count: validCount })}</span>
           {errorCount > 0 && (
-            <span className="text-red-600 font-semibold ml-2">{errorCount} 筆錯誤</span>
+            <span className="text-red-600 font-semibold ml-2">{t("csv.errorRows", { count: errorCount })}</span>
           )}
           {lookupLoading && (
-            <span className="text-muted-foreground ml-2">查詢市場中...</span>
+            <span className="text-muted-foreground ml-2">{t("csv.lookingUpMarket")}</span>
           )}
         </p>
         <div className="ml-auto flex gap-2">
           <Button variant="outline" onClick={handleReset} disabled={importing}>
-            重新貼上
+            {t("csv.rePaste")}
           </Button>
           <Button onClick={handleImport} disabled={!canImport || importing}>
-            {importing ? "匯入中..." : `匯入 ${validCount} 筆`}
+            {importing ? t("csv.importing") : t("csv.importN", { count: validCount })}
           </Button>
         </div>
       </div>
@@ -345,16 +347,16 @@ export function CSVImporter() {
           <thead>
             <tr className="border-b bg-muted/50 text-xs text-muted-foreground">
               <th className="text-left px-3 py-2">#</th>
-              <th className="text-left px-3 py-2">日期</th>
-              <th className="text-left px-3 py-2">代碼</th>
-              <th className="text-left px-3 py-2">方向</th>
-              <th className="text-right px-3 py-2">股數</th>
-              <th className="text-left px-3 py-2">類型</th>
-              <th className="text-right px-3 py-2">價格</th>
-              <th className="text-right px-3 py-2">停損</th>
-              <th className="text-left px-3 py-2">市場</th>
-              <th className="text-left px-3 py-2">備註</th>
-              <th className="text-left px-3 py-2">狀態</th>
+              <th className="text-left px-3 py-2">{t("common.date")}</th>
+              <th className="text-left px-3 py-2">{t("csv.code")}</th>
+              <th className="text-left px-3 py-2">{t("common.direction")}</th>
+              <th className="text-right px-3 py-2">{t("csv.sharesCount")}</th>
+              <th className="text-left px-3 py-2">{t("journal.type")}</th>
+              <th className="text-right px-3 py-2">{t("csv.price")}</th>
+              <th className="text-right px-3 py-2">{t("csv.stopLoss")}</th>
+              <th className="text-left px-3 py-2">{t("trade.market")}</th>
+              <th className="text-left px-3 py-2">{t("common.notes")}</th>
+              <th className="text-left px-3 py-2">{t("csv.status")}</th>
             </tr>
           </thead>
           <tbody>
@@ -375,13 +377,13 @@ export function CSVImporter() {
                           : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                       }`}
                     >
-                      {row.side === "BUY" ? "買進" : "賣出"}
+                      {row.side === "BUY" ? t("common.buy") : t("common.sell")}
                     </span>
                   )}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums">{!row.parseError && row.shares}</td>
                 <td className="px-3 py-2 text-xs text-muted-foreground">
-                  {!row.parseError && (row.lotType === "ROUND" ? `整張 ${row.lots}張` : "零股")}
+                  {!row.parseError && (row.lotType === "ROUND" ? t("csv.roundLotN", { n: row.lots ?? 0 }) : t("common.oddLot"))}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums">{!row.parseError && row.price}</td>
                 <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
@@ -389,7 +391,7 @@ export function CSVImporter() {
                 </td>
                 <td className="px-3 py-2">
                   {row.parseError ? null : row.lookupStatus === "pending" ? (
-                    <span className="text-xs text-muted-foreground">查詢中...</span>
+                    <span className="text-xs text-muted-foreground">{t("csv.lookingUp")}</span>
                   ) : row.lookupStatus === "found" || row.lookupStatus === "manual" ? (
                     <span
                       className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
@@ -398,7 +400,7 @@ export function CSVImporter() {
                           : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
                       }`}
                     >
-                      {(row.marketOverride ?? row.market) === "TWSE" ? "上市" : "上櫃"}
+                      {(row.marketOverride ?? row.market) === "TWSE" ? t("common.twse") : t("common.tpex")}
                     </span>
                   ) : (
                     <select
@@ -415,9 +417,9 @@ export function CSVImporter() {
                         );
                       }}
                     >
-                      <option value="">選擇市場</option>
-                      <option value="TWSE">上市 (TWSE)</option>
-                      <option value="TPEX">上櫃 (TPEX)</option>
+                      <option value="">{t("csv.selectMarket")}</option>
+                      <option value="TWSE">{t("common.twseFull")}</option>
+                      <option value="TPEX">{t("common.tpexFull")}</option>
                     </select>
                   )}
                 </td>

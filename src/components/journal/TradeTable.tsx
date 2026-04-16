@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatTWD, formatDate, formatShares, cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import { ChevronDown, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import type { Trade } from "@/types/trade";
 
@@ -15,6 +16,7 @@ interface TradeTableProps {
 
 export function TradeTable({ trades, onDelete }: TradeTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const { t } = useT();
 
   function toggle(id: string) {
     setExpanded((prev) => {
@@ -27,9 +29,9 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
   if (trades.length === 0) {
     return (
       <div className="text-center py-16 text-muted-foreground">
-        <p className="text-sm">尚無交易記錄</p>
+        <p className="text-sm">{t("journal.noRecords")}</p>
         <a href="/journal/new" className="text-primary underline text-sm mt-1 inline-block">
-          新增第一筆交易
+          {t("journal.addFirstTrade")}
         </a>
       </div>
     );
@@ -39,23 +41,23 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
     <>
       {/* Mobile: card list */}
       <div className="md:hidden divide-y">
-        {trades.map((t) => {
-          const isExp = expanded.has(t.id);
+        {trades.map((tr) => {
+          const isExp = expanded.has(tr.id);
           return (
-            <div key={t.id} className="p-4">
+            <div key={tr.id} className="p-4">
               {/* Row 1: symbol + badge + delete */}
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-base">{t.symbol}</span>
-                  {t.symbolName && (
-                    <span className="text-xs text-muted-foreground">{t.symbolName}</span>
+                  <span className="font-semibold text-base">{tr.symbol}</span>
+                  {tr.symbolName && (
+                    <span className="text-xs text-muted-foreground">{tr.symbolName}</span>
                   )}
-                  <Badge variant={t.market === "TWSE" ? "twse" : "tpex"} className="text-xs py-0">
-                    {t.market === "TWSE" ? "上市" : "上櫃"}
+                  <Badge variant={tr.market === "TWSE" ? "twse" : "tpex"} className="text-xs py-0">
+                    {tr.market === "TWSE" ? t("common.twse") : t("common.tpex")}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <Link href={`/journal/${t.id}/edit`}>
+                  <Link href={`/journal/${tr.id}/edit`}>
                     <Button
                       size="icon"
                       variant="ghost"
@@ -69,7 +71,7 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                     variant="ghost"
                     className="h-8 w-8 text-muted-foreground hover:text-destructive"
                     onClick={() => {
-                      if (confirm("確定要刪除這筆交易？")) onDelete(t.id);
+                      if (confirm(t("common.confirmDelete"))) onDelete(tr.id);
                     }}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -79,36 +81,36 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
 
               {/* Row 2: date + side + shares + price */}
               <div className="flex items-center gap-3 text-sm mb-2">
-                <span className="text-muted-foreground text-xs">{formatDate(t.tradeDate)}</span>
-                <Badge variant={t.side === "BUY" ? "profit" : "loss"} className="text-xs">
-                  {t.side === "BUY" ? "買進" : "賣出"}
+                <span className="text-muted-foreground text-xs">{formatDate(tr.tradeDate)}</span>
+                <Badge variant={tr.side === "BUY" ? "profit" : "loss"} className="text-xs">
+                  {tr.side === "BUY" ? t("common.buy") : t("common.sell")}
                 </Badge>
-                <span className="tabular-nums text-xs">{formatShares(t.shares, t.lotType as "ROUND" | "ODD")}</span>
-                <span className="tabular-nums text-xs">@ {t.price.toLocaleString()}</span>
+                <span className="tabular-nums text-xs">{formatShares(tr.shares, tr.lotType as "ROUND" | "ODD")}</span>
+                <span className="tabular-nums text-xs">@ {tr.price.toLocaleString()}</span>
               </div>
 
               {/* Row 3: PnL + expand toggle */}
               <div className="flex items-center justify-between">
                 <div>
-                  {t.realizedPnL != null ? (
+                  {tr.realizedPnL != null ? (
                     <span
                       className={cn(
                         "font-semibold tabular-nums text-sm",
-                        t.realizedPnL > 0 && "text-green-600 dark:text-green-400",
-                        t.realizedPnL < 0 && "text-red-600 dark:text-red-400"
+                        tr.realizedPnL > 0 && "text-green-600 dark:text-green-400",
+                        tr.realizedPnL < 0 && "text-red-600 dark:text-red-400"
                       )}
                     >
-                      {formatTWD(t.realizedPnL, true)}
+                      {formatTWD(tr.realizedPnL, true)}
                     </span>
                   ) : (
-                    <span className="text-muted-foreground text-xs">持倉中</span>
+                    <span className="text-muted-foreground text-xs">{t("common.inPosition")}</span>
                   )}
                 </div>
                 <button
                   className="flex items-center gap-1 text-xs text-muted-foreground py-1 px-2 rounded"
-                  onClick={() => toggle(t.id)}
+                  onClick={() => toggle(tr.id)}
                 >
-                  <span>{isExp ? "收起" : "詳情"}</span>
+                  <span>{isExp ? t("journal.collapse") : t("journal.details")}</span>
                   <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isExp && "rotate-180")} />
                 </button>
               </div>
@@ -117,53 +119,53 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
               {isExp && (
                 <div className="mt-3 pt-3 border-t grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <p className="text-muted-foreground mb-0.5">手續費</p>
-                    <p className="tabular-nums">{formatTWD(t.commission)}</p>
+                    <p className="text-muted-foreground mb-0.5">{t("common.commission")}</p>
+                    <p className="tabular-nums">{formatTWD(tr.commission)}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground mb-0.5">證交稅</p>
-                    <p className="tabular-nums">{formatTWD(t.transactionTax)}</p>
+                    <p className="text-muted-foreground mb-0.5">{t("common.transactionTax")}</p>
+                    <p className="tabular-nums">{formatTWD(tr.transactionTax)}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground mb-0.5">成交金額</p>
-                    <p className="tabular-nums">{formatTWD(t.grossAmount)}</p>
+                    <p className="text-muted-foreground mb-0.5">{t("journal.grossAmount")}</p>
+                    <p className="tabular-nums">{formatTWD(tr.grossAmount)}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground mb-0.5">淨金額</p>
-                    <p className="tabular-nums">{formatTWD(t.netAmount)}</p>
+                    <p className="text-muted-foreground mb-0.5">{t("journal.netAmount")}</p>
+                    <p className="tabular-nums">{formatTWD(tr.netAmount)}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground mb-0.5">交割日</p>
-                    <p>{t.settlementDate ? formatDate(t.settlementDate) : "—"}</p>
+                    <p className="text-muted-foreground mb-0.5">{t("journal.settlementDate")}</p>
+                    <p>{tr.settlementDate ? formatDate(tr.settlementDate) : "—"}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground mb-0.5">類型</p>
-                    <p>{t.isETF ? "ETF" : "股票"} / {t.lotType === "ROUND" ? "整張" : "零股"}</p>
+                    <p className="text-muted-foreground mb-0.5">{t("journal.type")}</p>
+                    <p>{tr.isETF ? "ETF" : t("common.stock")} / {tr.lotType === "ROUND" ? t("common.roundLot") : t("common.oddLot")}</p>
                   </div>
-                  {t.stopLoss && (
+                  {tr.stopLoss && (
                     <div>
                       <p className="text-muted-foreground mb-0.5 flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3 text-red-500" />停損價
+                        <AlertTriangle className="h-3 w-3 text-red-500" />{t("journal.stopLoss")}
                       </p>
                       <p className="tabular-nums text-red-600 dark:text-red-400 font-medium">
-                        {t.stopLoss.toLocaleString()}
+                        {tr.stopLoss.toLocaleString()}
                       </p>
                     </div>
                   )}
-                  {t.takeProfit && (
+                  {tr.takeProfit && (
                     <div>
                       <p className="text-muted-foreground mb-0.5 flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3 text-green-500" />停利價
+                        <AlertTriangle className="h-3 w-3 text-green-500" />{t("journal.takeProfit")}
                       </p>
                       <p className="tabular-nums text-green-600 dark:text-green-400 font-medium">
-                        {t.takeProfit.toLocaleString()}
+                        {tr.takeProfit.toLocaleString()}
                       </p>
                     </div>
                   )}
-                  {t.notes && (
+                  {tr.notes && (
                     <div className="col-span-2">
-                      <p className="text-muted-foreground mb-0.5">備註</p>
-                      <p className="whitespace-pre-wrap">{t.notes}</p>
+                      <p className="text-muted-foreground mb-0.5">{t("common.notes")}</p>
+                      <p className="whitespace-pre-wrap">{tr.notes}</p>
                     </div>
                   )}
                 </div>
@@ -179,84 +181,84 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
           <thead>
             <tr className="border-b text-xs text-muted-foreground bg-muted/30">
               <th className="text-left py-3 px-4 font-medium w-6"></th>
-              <th className="text-left py-3 pr-4 font-medium">日期</th>
-              <th className="text-left py-3 pr-4 font-medium">代號</th>
-              <th className="text-left py-3 pr-4 font-medium">方向</th>
-              <th className="text-right py-3 pr-4 font-medium">數量</th>
-              <th className="text-right py-3 pr-4 font-medium">均價</th>
-              <th className="text-right py-3 pr-4 font-medium">手續費</th>
-              <th className="text-right py-3 pr-4 font-medium">證交稅</th>
-              <th className="text-right py-3 pr-4 font-medium">損益</th>
-              <th className="text-center py-3 font-medium">操作</th>
+              <th className="text-left py-3 pr-4 font-medium">{t("common.date")}</th>
+              <th className="text-left py-3 pr-4 font-medium">{t("common.symbol")}</th>
+              <th className="text-left py-3 pr-4 font-medium">{t("common.direction")}</th>
+              <th className="text-right py-3 pr-4 font-medium">{t("common.quantity")}</th>
+              <th className="text-right py-3 pr-4 font-medium">{t("common.avgPrice")}</th>
+              <th className="text-right py-3 pr-4 font-medium">{t("common.commission")}</th>
+              <th className="text-right py-3 pr-4 font-medium">{t("common.transactionTax")}</th>
+              <th className="text-right py-3 pr-4 font-medium">{t("common.pnl")}</th>
+              <th className="text-center py-3 font-medium">{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
-            {trades.map((t) => (
+            {trades.map((tr) => (
               <>
                 <tr
-                  key={t.id}
+                  key={tr.id}
                   className="border-b hover:bg-muted/40 cursor-pointer"
-                  onClick={() => toggle(t.id)}
+                  onClick={() => toggle(tr.id)}
                 >
                   <td className="py-3 px-4">
                     <ChevronDown
                       className={cn(
                         "h-3.5 w-3.5 text-muted-foreground transition-transform",
-                        expanded.has(t.id) && "rotate-180"
+                        expanded.has(tr.id) && "rotate-180"
                       )}
                     />
                   </td>
                   <td className="py-3 pr-4 text-muted-foreground whitespace-nowrap">
-                    {formatDate(t.tradeDate)}
+                    {formatDate(tr.tradeDate)}
                   </td>
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium">{t.symbol}</span>
+                      <span className="font-medium">{tr.symbol}</span>
                       <Badge
-                        variant={t.market === "TWSE" ? "twse" : "tpex"}
+                        variant={tr.market === "TWSE" ? "twse" : "tpex"}
                         className="text-xs py-0"
                       >
-                        {t.market === "TWSE" ? "上市" : "上櫃"}
+                        {tr.market === "TWSE" ? t("common.twse") : t("common.tpex")}
                       </Badge>
                     </div>
-                    {t.symbolName && (
-                      <p className="text-xs text-muted-foreground">{t.symbolName}</p>
+                    {tr.symbolName && (
+                      <p className="text-xs text-muted-foreground">{tr.symbolName}</p>
                     )}
                   </td>
                   <td className="py-3 pr-4">
                     <Badge
-                      variant={t.side === "BUY" ? "profit" : "loss"}
+                      variant={tr.side === "BUY" ? "profit" : "loss"}
                       className="text-xs"
                     >
-                      {t.side === "BUY" ? "買進" : "賣出"}
+                      {tr.side === "BUY" ? t("common.buy") : t("common.sell")}
                     </Badge>
                   </td>
                   <td className="py-3 pr-4 text-right tabular-nums">
-                    {formatShares(t.shares, t.lotType as "ROUND" | "ODD")}
+                    {formatShares(tr.shares, tr.lotType as "ROUND" | "ODD")}
                   </td>
                   <td className="py-3 pr-4 text-right tabular-nums">
-                    {t.price.toLocaleString()}
+                    {tr.price.toLocaleString()}
                   </td>
                   <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
-                    {formatTWD(t.commission)}
+                    {formatTWD(tr.commission)}
                   </td>
                   <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
-                    {formatTWD(t.transactionTax)}
+                    {formatTWD(tr.transactionTax)}
                   </td>
                   <td
                     className={cn(
                       "py-3 pr-4 text-right tabular-nums font-medium",
-                      t.realizedPnL != null && t.realizedPnL > 0 && "text-green-600 dark:text-green-400",
-                      t.realizedPnL != null && t.realizedPnL < 0 && "text-red-600 dark:text-red-400"
+                      tr.realizedPnL != null && tr.realizedPnL > 0 && "text-green-600 dark:text-green-400",
+                      tr.realizedPnL != null && tr.realizedPnL < 0 && "text-red-600 dark:text-red-400"
                     )}
                   >
-                    {t.realizedPnL != null
-                      ? formatTWD(t.realizedPnL, true)
-                      : <span className="text-muted-foreground text-xs">持倉中</span>}
+                    {tr.realizedPnL != null
+                      ? formatTWD(tr.realizedPnL, true)
+                      : <span className="text-muted-foreground text-xs">{t("common.inPosition")}</span>}
                   </td>
                   <td className="py-3 text-center" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-center gap-1">
-                      <Link href={`/journal/${t.id}/edit`}>
+                      <Link href={`/journal/${tr.id}/edit`}>
                         <Button
                           size="icon"
                           variant="ghost"
@@ -270,8 +272,8 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                         variant="ghost"
                         className="h-7 w-7 text-muted-foreground hover:text-destructive"
                         onClick={() => {
-                          if (confirm("確定要刪除這筆交易？")) {
-                            onDelete(t.id);
+                          if (confirm(t("common.confirmDelete"))) {
+                            onDelete(tr.id);
                           }
                         }}
                       >
@@ -281,56 +283,56 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                   </td>
                 </tr>
 
-                {expanded.has(t.id) && (
-                  <tr key={`${t.id}-expanded`} className="bg-muted/20 border-b">
+                {expanded.has(tr.id) && (
+                  <tr key={`${tr.id}-expanded`} className="bg-muted/20 border-b">
                     <td colSpan={10} className="px-10 py-3">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                         <div>
-                          <p className="text-muted-foreground mb-0.5">交割日</p>
-                          <p>{t.settlementDate ? formatDate(t.settlementDate) : "—"}</p>
+                          <p className="text-muted-foreground mb-0.5">{t("journal.settlementDate")}</p>
+                          <p>{tr.settlementDate ? formatDate(tr.settlementDate) : "—"}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground mb-0.5">成交金額</p>
-                          <p className="tabular-nums">{formatTWD(t.grossAmount)}</p>
+                          <p className="text-muted-foreground mb-0.5">{t("journal.grossAmount")}</p>
+                          <p className="tabular-nums">{formatTWD(tr.grossAmount)}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground mb-0.5">淨金額</p>
-                          <p className="tabular-nums">{formatTWD(t.netAmount)}</p>
+                          <p className="text-muted-foreground mb-0.5">{t("journal.netAmount")}</p>
+                          <p className="tabular-nums">{formatTWD(tr.netAmount)}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground mb-0.5">類型</p>
-                          <p>{t.isETF ? "ETF" : "股票"} / {t.lotType === "ROUND" ? "整張" : "零股"}</p>
+                          <p className="text-muted-foreground mb-0.5">{t("journal.type")}</p>
+                          <p>{tr.isETF ? "ETF" : t("common.stock")} / {tr.lotType === "ROUND" ? t("common.roundLot") : t("common.oddLot")}</p>
                         </div>
-                        {(t.stopLoss || t.takeProfit) && (
+                        {(tr.stopLoss || tr.takeProfit) && (
                           <>
-                            {t.stopLoss && (
+                            {tr.stopLoss && (
                               <div>
                                 <p className="text-muted-foreground mb-0.5 flex items-center gap-1">
                                   <AlertTriangle className="h-3 w-3 text-red-500" />
-                                  停損價
+                                  {t("journal.stopLoss")}
                                 </p>
                                 <p className="tabular-nums text-red-600 dark:text-red-400 font-medium">
-                                  {t.stopLoss.toLocaleString()} TWD
+                                  {tr.stopLoss.toLocaleString()} TWD
                                 </p>
                               </div>
                             )}
-                            {t.takeProfit && (
+                            {tr.takeProfit && (
                               <div>
                                 <p className="text-muted-foreground mb-0.5 flex items-center gap-1">
                                   <AlertTriangle className="h-3 w-3 text-green-500" />
-                                  停利價
+                                  {t("journal.takeProfit")}
                                 </p>
                                 <p className="tabular-nums text-green-600 dark:text-green-400 font-medium">
-                                  {t.takeProfit.toLocaleString()} TWD
+                                  {tr.takeProfit.toLocaleString()} TWD
                                 </p>
                               </div>
                             )}
                           </>
                         )}
-                        {t.notes && (
+                        {tr.notes && (
                           <div className="col-span-2 md:col-span-4">
-                            <p className="text-muted-foreground mb-0.5">備註</p>
-                            <p className="whitespace-pre-wrap">{t.notes}</p>
+                            <p className="text-muted-foreground mb-0.5">{t("common.notes")}</p>
+                            <p className="whitespace-pre-wrap">{tr.notes}</p>
                           </div>
                         )}
                       </div>

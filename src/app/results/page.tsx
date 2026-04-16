@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
 import { ResultsTable, SellTradeList } from "@/components/results/ResultsTable";
 import { formatTWD } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import type { TradingResultsData } from "@/types/trade";
 
 type Tab = "bySymbol" | "byTrade";
@@ -15,6 +16,7 @@ export default function ResultsPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [tab, setTab] = useState<Tab>("bySymbol");
+  const { t } = useT();
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -44,7 +46,7 @@ export default function ResultsPage() {
 
   return (
     <div>
-      <Header title="交易成果" />
+      <Header titleKey="results.title" />
       <div className="p-4 md:p-6 space-y-4">
 
         {/* Filters */}
@@ -55,7 +57,7 @@ export default function ResultsPage() {
             value={from}
             onChange={(e) => setFrom(e.target.value)}
           />
-          <span className="text-muted-foreground text-sm">至</span>
+          <span className="text-muted-foreground text-sm">{t("common.to")}</span>
           <Input
             type="date"
             className="w-36 md:w-40"
@@ -67,7 +69,7 @@ export default function ResultsPage() {
               className="text-xs text-muted-foreground hover:text-foreground underline"
               onClick={() => { setFrom(""); setTo(""); }}
             >
-              清除
+              {t("common.clear")}
             </button>
           )}
         </div>
@@ -76,7 +78,7 @@ export default function ResultsPage() {
         {summary && (
           <div className="flex flex-wrap gap-4 p-4 rounded-lg bg-muted/30 text-sm">
             <div>
-              <span className="text-muted-foreground">已實現損益：</span>
+              <span className="text-muted-foreground">{t("results.realizedPnL")}</span>
               <span
                 className={`font-semibold tabular-nums ${
                   summary.totalRealized > 0
@@ -90,11 +92,11 @@ export default function ResultsPage() {
               </span>
             </div>
             <div>
-              <span className="text-muted-foreground">交易筆數：</span>
+              <span className="text-muted-foreground">{t("results.tradeCount")}</span>
               <span className="font-semibold">{summary.totalTrades}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">勝率：</span>
+              <span className="text-muted-foreground">{t("results.winRate")}</span>
               <span className="font-semibold">
                 {summary.totalTrades > 0
                   ? `${(summary.winRate * 100).toFixed(1)}%`
@@ -102,19 +104,19 @@ export default function ResultsPage() {
               </span>
             </div>
             <div>
-              <span className="text-muted-foreground">勝/敗：</span>
+              <span className="text-muted-foreground">{t("results.winLossRatio")}</span>
               <span className="font-semibold">
-                <span className="text-green-600 dark:text-green-400">{summary.winCount}勝</span>
+                <span className="text-green-600 dark:text-green-400">{t("results.winCount", { count: summary.winCount })}</span>
                 <span className="text-muted-foreground mx-0.5">/</span>
-                <span className="text-red-600 dark:text-red-400">{summary.lossCount}敗</span>
+                <span className="text-red-600 dark:text-red-400">{t("results.lossCount", { count: summary.lossCount })}</span>
               </span>
             </div>
             <div>
-              <span className="text-muted-foreground">盈虧比：</span>
+              <span className="text-muted-foreground">{t("results.profitLossRatio")}</span>
               <span className="font-semibold">{profitFactor}</span>
             </div>
             <div className="hidden sm:block">
-              <span className="text-muted-foreground">手續費：</span>
+              <span className="text-muted-foreground">{t("results.commission")}</span>
               <span className="font-semibold tabular-nums">
                 {formatTWD(summary.totalCommission + summary.totalTransactionTax)}
               </span>
@@ -132,7 +134,7 @@ export default function ResultsPage() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            個股彙總
+            {t("results.bySymbol")}
           </button>
           <button
             onClick={() => setTab("byTrade")}
@@ -142,14 +144,14 @@ export default function ResultsPage() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            逐筆明細
+            {t("results.byTrade")}
           </button>
         </div>
 
         {/* Table */}
         <div className="rounded-lg border bg-card">
           {isLoading ? (
-            <div className="text-center py-16 text-muted-foreground text-sm">載入中...</div>
+            <div className="text-center py-16 text-muted-foreground text-sm">{t("common.loading")}</div>
           ) : data ? (
             tab === "bySymbol" ? (
               <ResultsTable bySymbol={data.bySymbol} />

@@ -3,6 +3,7 @@
 import { calculateFees, calcSettlementDate, lotsToShares } from "@/lib/taiwan-fees";
 import { formatTWD, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 interface FeePreviewProps {
   price: number;
@@ -23,12 +24,13 @@ export function FeePreview({
   isETF,
   tradeDate,
 }: FeePreviewProps) {
+  const { t } = useT();
   const actualShares = lotType === "ROUND" && lots ? lotsToShares(lots) : shares;
 
   if (!price || actualShares <= 0) {
     return (
       <div className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">
-        請輸入價格與數量以預覽費用
+        {t("fee.enterPriceAndQty")}
       </div>
     );
   }
@@ -39,23 +41,23 @@ export function FeePreview({
     : null;
 
   const rows = [
-    { label: "成交金額", value: formatTWD(fees.grossAmount) },
-    { label: "手續費 (0.1425%)", value: `- ${formatTWD(fees.commission)}` },
+    { label: t("fee.grossAmount"), value: formatTWD(fees.grossAmount) },
+    { label: t("fee.commission"), value: `- ${formatTWD(fees.commission)}` },
     ...(side === "SELL"
       ? [
           {
-            label: `證交稅 (${isETF ? "0.1%" : "0.3%"})`,
+            label: isETF ? t("fee.taxETF") : t("fee.taxStock"),
             value: `- ${formatTWD(fees.transactionTax)}`,
           },
         ]
       : []),
-    { label: "總手續費", value: `- ${formatTWD(fees.totalFees)}` },
+    { label: t("fee.totalFees"), value: `- ${formatTWD(fees.totalFees)}` },
   ];
 
   return (
     <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-        費用預覽
+        {t("fee.preview")}
       </p>
       {rows.map((row) => (
         <div key={row.label} className="flex justify-between text-sm">
@@ -64,7 +66,7 @@ export function FeePreview({
         </div>
       ))}
       <div className="border-t pt-2 mt-2 flex justify-between text-sm font-bold">
-        <span>{side === "BUY" ? "買進總成本" : "賣出淨所得"}</span>
+        <span>{side === "BUY" ? t("fee.buyCost") : t("fee.sellProceeds")}</span>
         <span
           className={cn(
             "tabular-nums",
@@ -76,7 +78,7 @@ export function FeePreview({
       </div>
       {settlementDate && (
         <div className="flex justify-between text-xs text-muted-foreground pt-1">
-          <span>交割日</span>
+          <span>{t("fee.settlementDate")}</span>
           <span>{formatDate(settlementDate)}</span>
         </div>
       )}

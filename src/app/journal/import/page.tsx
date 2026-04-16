@@ -4,7 +4,7 @@ import { CSVImporter } from "@/components/trade-form/CSVImporter";
 export default function ImportPage() {
   return (
     <div>
-      <Header title="批量匯入 CSV" />
+      <Header titleKey="trade.batchImportCsv" />
       <div className="p-4 md:p-6">
         <CSVImporter />
       </div>

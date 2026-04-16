@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatTWD, formatPct, formatDate } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import type { SymbolResult, SellTradeDetail } from "@/types/trade";
 
 interface ResultsTableProps {
@@ -12,6 +13,7 @@ interface ResultsTableProps {
 
 export function ResultsTable({ bySymbol }: ResultsTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const { t } = useT();
 
   function toggle(symbol: string) {
     setExpanded((prev) => {
@@ -25,7 +27,7 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
   if (bySymbol.length === 0) {
     return (
       <div className="text-center py-16 text-muted-foreground text-sm">
-        此期間無已實現損益紀錄
+        {t("results.noRecords")}
       </div>
     );
   }
@@ -36,13 +38,13 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
         <thead>
           <tr className="border-b text-muted-foreground text-xs">
             <th className="text-left py-2.5 px-3 w-6"></th>
-            <th className="text-left py-2.5 px-3">代號</th>
-            <th className="text-right py-2.5 px-3 hidden md:table-cell">次數</th>
-            <th className="text-right py-2.5 px-3 hidden lg:table-cell">買入成本</th>
-            <th className="text-right py-2.5 px-3">已實現損益</th>
-            <th className="text-right py-2.5 px-3 hidden sm:table-cell">報酬率</th>
-            <th className="text-right py-2.5 px-3 hidden md:table-cell">勝/敗</th>
-            <th className="text-right py-2.5 px-3 hidden lg:table-cell">最後交易</th>
+            <th className="text-left py-2.5 px-3">{t("results.symbolHeader")}</th>
+            <th className="text-right py-2.5 px-3 hidden md:table-cell">{t("results.countHeader")}</th>
+            <th className="text-right py-2.5 px-3 hidden lg:table-cell">{t("results.buyCost")}</th>
+            <th className="text-right py-2.5 px-3">{t("results.realizedPnLHeader")}</th>
+            <th className="text-right py-2.5 px-3 hidden sm:table-cell">{t("results.returnHeader")}</th>
+            <th className="text-right py-2.5 px-3 hidden md:table-cell">{t("results.winLossHeader")}</th>
+            <th className="text-right py-2.5 px-3 hidden lg:table-cell">{t("results.lastTrade")}</th>
           </tr>
         </thead>
         <tbody>
@@ -88,9 +90,9 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
                     {formatPct(row.realizedPnLPct)}
                   </td>
                   <td className="py-2.5 px-3 text-right hidden md:table-cell">
-                    <span className="text-green-600 dark:text-green-400">{row.winCount}勝</span>
+                    <span className="text-green-600 dark:text-green-400">{t("results.winCount", { count: row.winCount })}</span>
                     <span className="text-muted-foreground mx-0.5">/</span>
-                    <span className="text-red-600 dark:text-red-400">{row.lossCount}敗</span>
+                    <span className="text-red-600 dark:text-red-400">{t("results.lossCount", { count: row.lossCount })}</span>
                   </td>
                   <td className="py-2.5 px-3 text-right hidden lg:table-cell text-muted-foreground">
                     {formatDate(row.lastTradeDate)}
@@ -114,51 +116,53 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
 }
 
 function ExpandedTrades({ trades }: { trades: SellTradeDetail[] }) {
+  const { t } = useT();
+
   return (
     <div className="pl-10 pr-3 py-2 border-b">
       <table className="w-full text-xs">
         <thead>
           <tr className="text-muted-foreground">
-            <th className="text-left py-1.5 px-2">交易日期</th>
-            <th className="text-right py-1.5 px-2">股數</th>
-            <th className="text-right py-1.5 px-2">賣出均價</th>
-            <th className="text-right py-1.5 px-2 hidden sm:table-cell">買入成本</th>
-            <th className="text-right py-1.5 px-2">已實現損益</th>
-            <th className="text-right py-1.5 px-2 hidden sm:table-cell">報酬率</th>
-            <th className="text-left py-1.5 px-2 hidden md:table-cell">備註</th>
+            <th className="text-left py-1.5 px-2">{t("results.tradeDate")}</th>
+            <th className="text-right py-1.5 px-2">{t("results.sharesHeader")}</th>
+            <th className="text-right py-1.5 px-2">{t("results.sellAvgPrice")}</th>
+            <th className="text-right py-1.5 px-2 hidden sm:table-cell">{t("results.buyCost")}</th>
+            <th className="text-right py-1.5 px-2">{t("results.realizedPnLHeader")}</th>
+            <th className="text-right py-1.5 px-2 hidden sm:table-cell">{t("results.returnHeader")}</th>
+            <th className="text-left py-1.5 px-2 hidden md:table-cell">{t("common.notes")}</th>
           </tr>
         </thead>
         <tbody>
-          {trades.map((t) => {
+          {trades.map((tr) => {
             const pnlColor =
-              t.realizedPnL > 0
+              tr.realizedPnL > 0
                 ? "text-green-600 dark:text-green-400"
-                : t.realizedPnL < 0
+                : tr.realizedPnL < 0
                 ? "text-red-600 dark:text-red-400"
                 : "";
             const sharesLabel =
-              t.lotType === "ROUND"
-                ? `${t.shares / 1000} 張`
-                : `${t.shares} 股`;
+              tr.lotType === "ROUND"
+                ? `${tr.shares / 1000} ${t("common.lots")}`
+                : `${tr.shares} ${t("common.shares")}`;
 
             return (
-              <tr key={t.id} className="border-t border-border/50">
+              <tr key={tr.id} className="border-t border-border/50">
                 <td className="py-1.5 px-2 text-muted-foreground">
-                  {formatDate(t.tradeDate)}
+                  {formatDate(tr.tradeDate)}
                 </td>
                 <td className="py-1.5 px-2 text-right tabular-nums">{sharesLabel}</td>
-                <td className="py-1.5 px-2 text-right tabular-nums">{t.price.toFixed(2)}</td>
+                <td className="py-1.5 px-2 text-right tabular-nums">{tr.price.toFixed(2)}</td>
                 <td className="py-1.5 px-2 text-right hidden sm:table-cell tabular-nums text-muted-foreground">
-                  {formatTWD(t.buyCost)}
+                  {formatTWD(tr.buyCost)}
                 </td>
                 <td className={`py-1.5 px-2 text-right tabular-nums font-medium ${pnlColor}`}>
-                  {formatTWD(t.realizedPnL, true)}
+                  {formatTWD(tr.realizedPnL, true)}
                 </td>
                 <td className={`py-1.5 px-2 text-right hidden sm:table-cell tabular-nums ${pnlColor}`}>
-                  {formatPct(t.realizedPnLPct)}
+                  {formatPct(tr.realizedPnLPct)}
                 </td>
                 <td className="py-1.5 px-2 hidden md:table-cell text-muted-foreground truncate max-w-[200px]">
-                  {t.notes ?? "—"}
+                  {tr.notes ?? "—"}
                 </td>
               </tr>
             );
@@ -175,11 +179,13 @@ interface TradeListProps {
 }
 
 export function SellTradeList({ bySymbol }: TradeListProps) {
+  const { t } = useT();
+
   // Flatten all trades, sort by date desc
   const allTrades = bySymbol
     .flatMap((s) =>
-      s.trades.map((t) => ({
-        ...t,
+      s.trades.map((tr) => ({
+        ...tr,
         symbol: s.symbol,
         symbolName: s.symbolName,
       }))
@@ -189,7 +195,7 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
   if (allTrades.length === 0) {
     return (
       <div className="text-center py-16 text-muted-foreground text-sm">
-        此期間無已實現損益紀錄
+        {t("results.noRecords")}
       </div>
     );
   }
@@ -199,51 +205,51 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-muted-foreground text-xs">
-            <th className="text-left py-2.5 px-3">日期</th>
-            <th className="text-left py-2.5 px-3">代號</th>
-            <th className="text-right py-2.5 px-3">股數</th>
-            <th className="text-right py-2.5 px-3 hidden sm:table-cell">賣出價</th>
-            <th className="text-right py-2.5 px-3 hidden md:table-cell">買入成本</th>
-            <th className="text-right py-2.5 px-3">已實現損益</th>
-            <th className="text-right py-2.5 px-3 hidden sm:table-cell">報酬率</th>
+            <th className="text-left py-2.5 px-3">{t("common.date")}</th>
+            <th className="text-left py-2.5 px-3">{t("results.symbolHeader")}</th>
+            <th className="text-right py-2.5 px-3">{t("results.sharesHeader")}</th>
+            <th className="text-right py-2.5 px-3 hidden sm:table-cell">{t("results.sellPrice")}</th>
+            <th className="text-right py-2.5 px-3 hidden md:table-cell">{t("results.buyCost")}</th>
+            <th className="text-right py-2.5 px-3">{t("results.realizedPnLHeader")}</th>
+            <th className="text-right py-2.5 px-3 hidden sm:table-cell">{t("results.returnHeader")}</th>
           </tr>
         </thead>
         <tbody>
-          {allTrades.map((t) => {
+          {allTrades.map((tr) => {
             const pnlColor =
-              t.realizedPnL > 0
+              tr.realizedPnL > 0
                 ? "text-green-600 dark:text-green-400"
-                : t.realizedPnL < 0
+                : tr.realizedPnL < 0
                 ? "text-red-600 dark:text-red-400"
                 : "";
             const sharesLabel =
-              t.lotType === "ROUND"
-                ? `${t.shares / 1000} 張`
-                : `${t.shares} 股`;
+              tr.lotType === "ROUND"
+                ? `${tr.shares / 1000} ${t("common.lots")}`
+                : `${tr.shares} ${t("common.shares")}`;
 
             return (
-              <tr key={t.id} className="border-b hover:bg-muted/40 transition-colors">
+              <tr key={tr.id} className="border-b hover:bg-muted/40 transition-colors">
                 <td className="py-2.5 px-3 text-muted-foreground">
-                  {formatDate(t.tradeDate)}
+                  {formatDate(tr.tradeDate)}
                 </td>
                 <td className="py-2.5 px-3">
-                  <div className="font-medium">{t.symbol}</div>
-                  {t.symbolName && (
-                    <div className="text-xs text-muted-foreground">{t.symbolName}</div>
+                  <div className="font-medium">{tr.symbol}</div>
+                  {tr.symbolName && (
+                    <div className="text-xs text-muted-foreground">{tr.symbolName}</div>
                   )}
                 </td>
                 <td className="py-2.5 px-3 text-right tabular-nums">{sharesLabel}</td>
                 <td className="py-2.5 px-3 text-right hidden sm:table-cell tabular-nums">
-                  {t.price.toFixed(2)}
+                  {tr.price.toFixed(2)}
                 </td>
                 <td className="py-2.5 px-3 text-right hidden md:table-cell tabular-nums text-muted-foreground">
-                  {formatTWD(t.buyCost)}
+                  {formatTWD(tr.buyCost)}
                 </td>
                 <td className={`py-2.5 px-3 text-right tabular-nums font-semibold ${pnlColor}`}>
-                  {formatTWD(t.realizedPnL, true)}
+                  {formatTWD(tr.realizedPnL, true)}
                 </td>
                 <td className={`py-2.5 px-3 text-right hidden sm:table-cell tabular-nums ${pnlColor}`}>
-                  {formatPct(t.realizedPnLPct)}
+                  {formatPct(tr.realizedPnLPct)}
                 </td>
               </tr>
             );
@@ -256,17 +262,18 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
 
 // Badge helper (re-exported for page use)
 export function PnLBadge({ value }: { value: number }) {
+  const { t } = useT();
   if (value > 0)
     return (
       <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-        獲利
+        {t("results.profit")}
       </Badge>
     );
   if (value < 0)
     return (
       <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-        虧損
+        {t("results.loss")}
       </Badge>
     );
-  return <Badge variant="secondary">持平</Badge>;
+  return <Badge variant="secondary">{t("results.breakeven")}</Badge>;
 }

@@ -4,7 +4,7 @@ import { TradeForm } from "@/components/trade-form/TradeForm";
 export default function NewTradePage() {
   return (
     <div>
-      <Header title="新增交易" />
+      <Header titleKey="trade.newTrade" />
       <div className="p-4 md:p-6">
         <TradeForm />
       </div>

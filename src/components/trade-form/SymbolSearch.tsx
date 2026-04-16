@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Loader2 } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 import type { Market } from "@/types/taiwan";
 
@@ -21,7 +22,9 @@ interface SymbolSearchProps {
   placeholder?: string;
 }
 
-export function SymbolSearch({ value, onChange, placeholder = "搜尋代碼或名稱（如 2330、台積電）" }: SymbolSearchProps) {
+export function SymbolSearch({ value, onChange, placeholder }: SymbolSearchProps) {
+  const { t } = useT();
+  const resolvedPlaceholder = placeholder ?? t("trade.searchPlaceholder");
   const [query, setQuery] = useState(value);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,7 +73,7 @@ export function SymbolSearch({ value, onChange, placeholder = "搜尋代碼或�
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           className="pl-9 pr-9"
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
@@ -106,7 +109,7 @@ export function SymbolSearch({ value, onChange, placeholder = "搜尋代碼或�
                   variant={r.market === "TWSE" ? "twse" : "tpex"}
                   className="text-xs py-0"
                 >
-                  {r.market === "TWSE" ? "上市" : "上櫃"}
+                  {r.market === "TWSE" ? t("common.twse") : t("common.tpex")}
                 </Badge>
               </div>
             </button>

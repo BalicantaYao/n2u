@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTWD, formatPct, cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import {
   Briefcase,
   AlertTriangle,
@@ -19,6 +20,7 @@ interface PositionsTableProps {
 
 export function PositionsTable({ positions }: PositionsTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const { t } = useT();
 
   function toggle(symbol: string) {
     setExpanded((prev) => {
@@ -32,13 +34,13 @@ export function PositionsTable({ positions }: PositionsTableProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold">持倉明細</CardTitle>
+        <CardTitle className="text-sm font-semibold">{t("positions.positionDetail")}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {positions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Briefcase className="h-10 w-10 mb-3 opacity-30" />
-            <p className="text-sm">目前無持倉</p>
+            <p className="text-sm">{t("positions.noPositions")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -46,14 +48,14 @@ export function PositionsTable({ positions }: PositionsTableProps) {
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="w-6 px-1 py-3" />
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">股票</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">股數</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">成本均價</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">現價</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">投入成本</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">市值</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">未實現損益</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">報酬率</th>
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t("positions.stockHeader")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.sharesHeader")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.avgCost")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.currentPrice")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.unrealizedHeader")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.returnHeader")}</th>
                 </tr>
               </thead>
                 {positions.map((pos) => {
@@ -89,12 +91,12 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                               <div className="flex items-center gap-1.5">
                                 <span className="font-semibold tabular-nums">{pos.symbol}</span>
                                 {pos.isStopLossAlert && (
-                                  <span title="觸及停損">
+                                  <span title={t("positions.stopLossAlert")}>
                                     <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
                                   </span>
                                 )}
                                 {pos.isTakeProfitAlert && (
-                                  <span title="觸及停利">
+                                  <span title={t("positions.takeProfitAlert")}>
                                     <Target className="h-3.5 w-3.5 text-green-500" />
                                   </span>
                                 )}
@@ -118,8 +120,8 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         {/* Shares */}
                         <td className="px-4 py-3 text-right tabular-nums">
                           {pos.totalShares >= 1000
-                            ? `${pos.totalShares / 1000} 張`
-                            : `${pos.totalShares} 股`}
+                            ? `${pos.totalShares / 1000} ${t("common.lots")}`
+                            : `${pos.totalShares} ${t("common.shares")}`}
                         </td>
 
                         {/* Avg Cost */}
@@ -142,7 +144,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                                       ? "text-red-600 dark:text-red-400 font-medium"
                                       : "text-muted-foreground"
                                   )}
-                                  title="停損價"
+                                  title={t("positions.stopLossPrice")}
                                 >
                                   <AlertTriangle className="h-3 w-3" />
                                   {pos.stopLoss.toFixed(2)}
@@ -156,7 +158,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                                       ? "text-green-600 dark:text-green-400 font-medium"
                                       : "text-muted-foreground"
                                   )}
-                                  title="停利價"
+                                  title={t("positions.takeProfitPrice")}
                                 >
                                   <Target className="h-3 w-3" />
                                   {pos.takeProfit.toFixed(2)}
@@ -214,7 +216,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         <tr className="bg-muted/20 border-b">
                           <td colSpan={9} className="px-8 py-3">
                             <div className="text-xs space-y-1.5">
-                              <p className="text-muted-foreground font-medium">備註</p>
+                              <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
                               {pos.notes.map((note, i) => (
                                 <p
                                   key={i}
