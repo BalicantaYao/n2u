@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatTWD, formatDate, formatShares, cn } from "@/lib/utils";
-import { ChevronDown, Trash2, AlertTriangle } from "lucide-react";
+import { ChevronDown, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import type { Trade } from "@/types/trade";
 
 interface TradeTableProps {
@@ -53,16 +54,27 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                     {t.market === "TWSE" ? "上市" : "上櫃"}
                   </Badge>
                 </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
-                  onClick={() => {
-                    if (confirm("確定要刪除這筆交易？")) onDelete(t.id);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Link href={`/journal/${t.id}/edit`}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={() => {
+                      if (confirm("確定要刪除這筆交易？")) onDelete(t.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Row 2: date + side + shares + price */}
@@ -243,18 +255,29 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                       : <span className="text-muted-foreground text-xs">持倉中</span>}
                   </td>
                   <td className="py-3 text-center" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      onClick={() => {
-                        if (confirm("確定要刪除這筆交易？")) {
-                          onDelete(t.id);
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex items-center justify-center gap-1">
+                      <Link href={`/journal/${t.id}/edit`}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-muted-foreground hover:text-primary"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      </Link>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                          if (confirm("確定要刪除這筆交易？")) {
+                            onDelete(t.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
 

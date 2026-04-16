@@ -44,6 +44,10 @@ export interface CreateTradeInput {
   tags?: string;
 }
 
+export interface UpdateTradeInput extends Partial<CreateTradeInput> {
+  id: string;
+}
+
 export interface Position {
   symbol: string;
   symbolName?: string;
