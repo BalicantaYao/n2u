@@ -177,6 +177,18 @@ const en = {
     settlementDate: "Settlement Date",
   },
 
+  // ── Max Loss Preview ────────────────────────────────────────
+  maxLoss: {
+    title: "Max Loss Preview",
+    existingPosition: "Holding {{shares}} shares at avg {{avgCost}}",
+    newTradeLoss: "New Trade Loss",
+    existingLoss: "Existing Position Loss",
+    totalMaxLoss: "Total Max Loss",
+    costRatio: "of Total Cost",
+    enterRequired: "Enter buy price, stop loss, and quantity to preview max loss",
+    includeFees: "Incl. commission & tax",
+  },
+
   // ── CSV Importer ───────────────────────────────────────────
   csv: {
     noDataRows: "No data rows found",

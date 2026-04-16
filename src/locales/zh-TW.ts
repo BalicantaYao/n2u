@@ -177,6 +177,18 @@ const zhTW = {
     settlementDate: "交割日",
   },
 
+  // ── Max Loss Preview ────────────────────────────────────────
+  maxLoss: {
+    title: "最大損失預覽",
+    existingPosition: "已持有 {{shares}} 股，均價 {{avgCost}}",
+    newTradeLoss: "本次交易損失",
+    existingLoss: "持倉部分損失",
+    totalMaxLoss: "合計最大損失",
+    costRatio: "佔總成本",
+    enterRequired: "請輸入買入價、停損價與數量以預覽最大損失",
+    includeFees: "已含手續費及證交稅",
+  },
+
   // ── CSV Importer ───────────────────────────────────────────
   csv: {
     noDataRows: "沒有找到任何資料列",
