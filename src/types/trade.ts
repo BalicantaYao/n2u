@@ -59,6 +59,7 @@ export interface Position {
   takeProfit?: number;
   isStopLossAlert?: boolean;
   isTakeProfitAlert?: boolean;
+  notes: string[];
 }
 
 export interface PnLSummary {
