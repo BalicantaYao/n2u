@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { SymbolSearch } from "./SymbolSearch";
 import { FeePreview } from "./FeePreview";
+import { StopLossHelper } from "./StopLossHelper";
 import { cn } from "@/lib/utils";
 import { getTodayTW, formatShares } from "@/lib/utils";
 import { Info } from "lucide-react";
@@ -419,6 +420,18 @@ export function TradeForm({
           )}
         </div>
       </div>
+
+      {/* Stop Loss Helper */}
+      {!metadataOnly && side === "BUY" && (
+        <StopLossHelper
+          symbol={symbol}
+          market={market}
+          entryPrice={priceNum}
+          newShares={lotType === "ROUND" ? lotsNum * 1000 : sharesNum}
+          side={side}
+          onSelectStopLoss={(price) => setStopLoss(String(price))}
+        />
+      )}
 
       {/* Notes */}
       <div className="space-y-2">
