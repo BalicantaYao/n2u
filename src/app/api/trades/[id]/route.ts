@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { calculateFees, calcSettlementDate, lotsToShares } from "@/lib/taiwan-fees";
+import { requireAuth } from "@/lib/api-auth";
 
 const CORE_FIELDS = [
   "symbol", "symbolName", "market", "side", "tradeDate",
@@ -14,11 +15,16 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { userId, error } = await requireAuth();
+  if (error) return error;
+
   const trade = await prisma.trade.findUnique({
     where: { id: params.id },
     include: { positionLots: true },
   });
-  if (!trade) return NextResponse.json({ error: "找不到" }, { status: 404 });
+  if (!trade || trade.userId !== userId) {
+    return NextResponse.json({ error: "找不到" }, { status: 404 });
+  }
   return NextResponse.json(trade);
 }
 
@@ -26,13 +32,16 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { userId, error } = await requireAuth();
+  if (error) return error;
+
   const body = await req.json();
 
   const existing = await prisma.trade.findUnique({
     where: { id: params.id },
     include: { positionLots: true },
   });
-  if (!existing) {
+  if (!existing || existing.userId !== userId) {
     return NextResponse.json({ error: "找不到此交易" }, { status: 404 });
   }
 
@@ -165,6 +174,14 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { userId, error } = await requireAuth();
+  if (error) return error;
+
+  const trade = await prisma.trade.findUnique({ where: { id: params.id } });
+  if (!trade || trade.userId !== userId) {
+    return NextResponse.json({ error: "找不到此交易" }, { status: 404 });
+  }
+
   await prisma.trade.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });
 }

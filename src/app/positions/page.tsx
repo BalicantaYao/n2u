@@ -1,14 +1,16 @@
+import { redirect } from "next/navigation";
 import { PositionsContent } from "@/components/positions/PositionsContent";
 import { prisma } from "@/lib/prisma";
 import { fetchQuotes } from "@/lib/yahoo-finance";
+import { getServerAuthSession } from "@/lib/auth";
 import type { Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";
 
 export const dynamic = "force-dynamic";
 
-async function getOpenPositions(): Promise<Position[]> {
+async function getOpenPositions(userId: string): Promise<Position[]> {
   const lots = await prisma.positionLot.findMany({
-    where: { isOpen: true },
+    where: { isOpen: true, userId },
     include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true, notes: true } } },
   });
 
@@ -85,7 +87,10 @@ async function getOpenPositions(): Promise<Position[]> {
 }
 
 export default async function PositionsPage() {
-  const positions = await getOpenPositions();
+  const session = await getServerAuthSession();
+  if (!session?.user?.id) redirect("/login");
+
+  const positions = await getOpenPositions(session.user.id);
 
   const totalCost = positions.reduce((s, p) => s + p.totalCost, 0);
   const totalMarketValue = positions.reduce(
