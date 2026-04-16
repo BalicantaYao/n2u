@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { SymbolSearch } from "./SymbolSearch";
 import { FeePreview } from "./FeePreview";
 import { StopLossHelper } from "./StopLossHelper";
+import { MaxLossPreview } from "./MaxLossPreview";
 import { cn } from "@/lib/utils";
 import { getTodayTW, formatShares } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -432,6 +433,18 @@ export function TradeForm({
           newShares={lotType === "ROUND" ? lotsNum * 1000 : sharesNum}
           side={side}
           onSelectStopLoss={(price) => setStopLoss(String(price))}
+        />
+      )}
+
+      {/* Max Loss Preview */}
+      {!metadataOnly && side === "BUY" && (
+        <MaxLossPreview
+          symbol={symbol}
+          price={priceNum}
+          shares={lotType === "ROUND" ? lotsNum * 1000 : sharesNum}
+          stopLoss={parseFloat(stopLoss) || 0}
+          side={side}
+          isETF={isETF}
         />
       )}
 
