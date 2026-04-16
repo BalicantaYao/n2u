@@ -4,6 +4,8 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { HtmlLangUpdater } from "@/components/layout/HtmlLangUpdater";
 import { Toaster } from "sonner";
+import { SessionProvider } from "@/components/providers/SessionProvider";
+import { getServerAuthSession } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Nothing 2 You | Taiwan Trading Journal",
@@ -16,21 +18,25 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerAuthSession();
+
   return (
     <html lang="zh-TW">
       <body className="antialiased bg-background text-foreground">
-        <HtmlLangUpdater />
-        <Sidebar />
-        <main className="md:ml-56 min-h-screen pb-safe-bottom md:pb-0">
-          {children}
-        </main>
-        <BottomNav />
-        <Toaster richColors position="top-right" />
+        <SessionProvider session={session}>
+          <HtmlLangUpdater />
+          {session && <Sidebar />}
+          <main className={session ? "md:ml-56 min-h-screen pb-safe-bottom md:pb-0" : "min-h-screen"}>
+            {children}
+          </main>
+          {session && <BottomNav />}
+          <Toaster richColors position="top-right" />
+        </SessionProvider>
       </body>
     </html>
   );

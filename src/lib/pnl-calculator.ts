@@ -19,11 +19,12 @@ export async function matchSellFIFO(params: {
   symbol: string;
   shares: number;
   netSellProceeds: number;
+  userId: string;
 }): Promise<number> {
-  const { symbol, shares: sellShares, netSellProceeds } = params;
+  const { symbol, shares: sellShares, netSellProceeds, userId } = params;
 
   const openLots = await prisma.positionLot.findMany({
-    where: { symbol, isOpen: true },
+    where: { symbol, isOpen: true, userId },
     orderBy: { openDate: "asc" },
   });
 
@@ -60,13 +61,14 @@ export async function matchSellFIFO(params: {
 }
 
 /** 計算所有交易的損益摘要統計 */
-export async function computePnLSummary(): Promise<PnLSummary> {
+export async function computePnLSummary(userId: string): Promise<PnLSummary> {
   const trades = await prisma.trade.findMany({
-    where: { side: "SELL", realizedPnL: { not: null } },
+    where: { userId, side: "SELL", realizedPnL: { not: null } },
     select: { realizedPnL: true, commission: true, transactionTax: true },
   });
 
   const allTrades = await prisma.trade.findMany({
+    where: { userId },
     select: { commission: true, transactionTax: true },
   });
 
@@ -103,7 +105,7 @@ export async function computePnLSummary(): Promise<PnLSummary> {
 
   // Compute total unrealized P&L from open position lots + live quotes
   const openLots = await prisma.positionLot.findMany({
-    where: { isOpen: true },
+    where: { isOpen: true, userId },
     select: { symbol: true, market: true, shares: true, costPerShare: true },
   });
 
@@ -150,8 +152,9 @@ export async function computePnLSummary(): Promise<PnLSummary> {
 }
 
 /** 取得每日損益時序（用於折線圖） */
-export async function getDailyPnL(from?: Date, to?: Date) {
+export async function getDailyPnL(userId: string, from?: Date, to?: Date) {
   const where: Record<string, unknown> = {
+    userId,
     side: "SELL",
     realizedPnL: { not: null },
   };

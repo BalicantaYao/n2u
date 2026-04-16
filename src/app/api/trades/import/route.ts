@@ -3,9 +3,13 @@ import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { calculateFees, calcSettlementDate, lotsToShares } from "@/lib/taiwan-fees";
 import { matchSellFIFO } from "@/lib/pnl-calculator";
+import { requireAuth } from "@/lib/api-auth";
 import type { CreateTradeInput } from "@/types/trade";
 
 export async function POST(req: NextRequest) {
+  const { userId, error } = await requireAuth();
+  if (error) return error;
+
   const body: { trades: CreateTradeInput[] } = await req.json();
   const { trades } = body;
 
@@ -63,11 +67,13 @@ export async function POST(req: NextRequest) {
             symbol: symbol.toUpperCase(),
             shares,
             netSellProceeds: fees.netAmount,
+            userId,
           });
         }
 
         const created = await tx.trade.create({
           data: {
+            userId,
             symbol: symbol.toUpperCase(),
             symbolName,
             market,
@@ -95,6 +101,7 @@ export async function POST(req: NextRequest) {
         if (side === "BUY") {
           await tx.positionLot.create({
             data: {
+              userId,
               symbol: symbol.toUpperCase(),
               market,
               lotType,
