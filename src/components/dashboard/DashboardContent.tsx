@@ -12,7 +12,7 @@ import { useT } from "@/lib/i18n";
 import {
   TrendingUp,
   TrendingDown,
-  Percent,
+  Calculator,
   BarChart2,
   BookOpen,
   Banknote,
@@ -42,7 +42,7 @@ interface DashboardContentProps {
 export function DashboardContent({ summary, dailyPnL, recentTrades }: DashboardContentProps) {
   const { t } = useT();
 
-  const winRateDisplay = `${(summary.winRate * 100).toFixed(1)}%`;
+  const ev = summary.winRate * summary.avgWin - (1 - summary.winRate) * summary.avgLoss;
   const pfDisplay =
     summary.profitFactor === Infinity
       ? "∞"
@@ -67,17 +67,17 @@ export function DashboardContent({ summary, dailyPnL, recentTrades }: DashboardC
             icon={Banknote}
           />
           <StatCard
-            title={t("dashboard.winRate")}
-            value={winRateDisplay}
-            sub={t("dashboard.winLoss", { win: summary.winCount, loss: summary.lossCount })}
-            icon={Percent}
-            trend={
-              summary.winRate >= 0.5
-                ? "positive"
-                : summary.winRate > 0
-                ? "negative"
-                : "neutral"
+            title={t("dashboard.expectedValue")}
+            value={formatTWD(ev, true)}
+            sub={
+              <div className="space-y-0.5">
+                <div>{t("dashboard.evUnrealized", { amount: formatTWD(summary.totalUnrealized, true) })}</div>
+                <div>{t("dashboard.evAvgWin", { amount: formatTWD(summary.avgWin) })}</div>
+                <div>{t("dashboard.evAvgLoss", { amount: formatTWD(summary.avgLoss) })}</div>
+              </div>
             }
+            icon={Calculator}
+            trend={ev > 0 ? "positive" : ev < 0 ? "negative" : "neutral"}
           />
           <StatCard
             title={t("dashboard.profitFactor")}
