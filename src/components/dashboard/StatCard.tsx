@@ -1,3 +1,4 @@
+import type React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -5,7 +6,7 @@ import type { LucideIcon } from "lucide-react";
 interface StatCardProps {
   title: string;
   value: string;
-  sub?: string;
+  sub?: React.ReactNode;
   icon?: LucideIcon;
   trend?: "positive" | "negative" | "neutral";
   className?: string;
@@ -27,7 +28,7 @@ export function StatCard({ title, value, sub, icon: Icon, trend, className }: St
             >
               {value}
             </p>
-            {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+            {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
           </div>
           {Icon && (
             <div className="rounded-md bg-muted p-2">
