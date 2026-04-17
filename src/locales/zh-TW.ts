@@ -1,4 +1,12 @@
 const zhTW = {
+  // ── Auth ────────────────────────────────────────────────────
+  auth: {
+    login: "登入",
+    loginWithGoogle: "使用 Google 登入",
+    logout: "登出",
+    description: "台灣股市交易日誌",
+  },
+
   // ── Navigation ──────────────────────────────────────────────
   nav: {
     dashboard: "總覽",

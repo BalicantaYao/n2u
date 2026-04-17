@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   BookOpen,
@@ -9,6 +11,7 @@ import {
   TrendingUp,
   Briefcase,
   BarChart3,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -25,6 +28,7 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { t } = useT();
+  const { data: session } = useSession();
 
   return (
     <aside className="hidden md:flex fixed left-0 top-0 z-40 h-screen w-56 border-r bg-card flex-col">
@@ -57,14 +61,42 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Language toggle + Footer */}
+      {/* Language toggle */}
       <div className="px-3 pb-2">
         <LanguageToggle />
       </div>
-      <div className="px-5 py-4 border-t text-xs text-muted-foreground">
-        <p>{t("sidebar.footer1")}</p>
-        <p className="mt-0.5">{t("sidebar.footer2")}</p>
-      </div>
+
+      {/* User info + Logout */}
+      {session?.user && (
+        <div className="px-3 py-3 border-t">
+          <div className="flex items-center gap-3 px-2">
+            {session.user.image ? (
+              <Image
+                src={session.user.image}
+                alt=""
+                width={32}
+                height={32}
+                className="rounded-full shrink-0"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary shrink-0">
+                {session.user.name?.charAt(0) ?? "?"}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{session.user.name}</p>
+              <p className="truncate text-xs text-muted-foreground">{session.user.email}</p>
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              title={t("auth.logout")}
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

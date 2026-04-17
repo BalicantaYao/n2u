@@ -1,4 +1,12 @@
 const en = {
+  // ── Auth ────────────────────────────────────────────────────
+  auth: {
+    login: "Sign In",
+    loginWithGoogle: "Sign in with Google",
+    logout: "Sign Out",
+    description: "Taiwan Trading Journal",
+  },
+
   // ── Navigation ──────────────────────────────────────────────
   nav: {
     dashboard: "Overview",

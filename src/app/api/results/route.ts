@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/session";
 import type { TradingResultsData, SymbolResult, SellTradeDetail } from "@/types/trade";
 import type { Market, LotType } from "@/types/taiwan";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
+
   const { searchParams } = req.nextUrl;
   const from = searchParams.get("from");
   const to = searchParams.get("to");
@@ -13,6 +17,7 @@ export async function GET(req: NextRequest) {
   const where: Record<string, unknown> = {
     side: "SELL",
     realizedPnL: { not: null },
+    userId: auth.userId,
   };
 
   if (from || to) {

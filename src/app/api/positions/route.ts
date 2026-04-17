@@ -2,13 +2,17 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/session";
 import { fetchQuotes } from "@/lib/yahoo-finance";
 import type { Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";
 
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
+
   const lots = await prisma.positionLot.findMany({
-    where: { isOpen: true },
+    where: { isOpen: true, userId: auth.userId },
     include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true, notes: true } } },
   });
 
