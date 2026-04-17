@@ -11,6 +11,7 @@ import {
   Target,
   ChevronDown,
   StickyNote,
+  Activity,
 } from "lucide-react";
 import type { Position } from "@/types/trade";
 
@@ -162,6 +163,42 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                                 >
                                   <Target className="h-3 w-3" />
                                   {pos.takeProfit.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {(pos.ma5 != null || pos.ma10 != null) && (
+                            <div className="flex items-center justify-end gap-2 mt-0.5">
+                              {pos.ma5 != null && (
+                                <span
+                                  className={cn(
+                                    "text-[11px] tabular-nums flex items-center gap-0.5",
+                                    pos.currentPrice != null && pos.currentPrice > pos.ma5
+                                      ? "text-green-600 dark:text-green-400"
+                                      : pos.currentPrice != null && pos.currentPrice < pos.ma5
+                                      ? "text-red-600 dark:text-red-400"
+                                      : "text-muted-foreground"
+                                  )}
+                                  title={t("positions.ma5")}
+                                >
+                                  <Activity className="h-3 w-3" />
+                                  5MA {pos.ma5.toFixed(2)}
+                                </span>
+                              )}
+                              {pos.ma10 != null && (
+                                <span
+                                  className={cn(
+                                    "text-[11px] tabular-nums flex items-center gap-0.5",
+                                    pos.currentPrice != null && pos.currentPrice > pos.ma10
+                                      ? "text-green-600 dark:text-green-400"
+                                      : pos.currentPrice != null && pos.currentPrice < pos.ma10
+                                      ? "text-red-600 dark:text-red-400"
+                                      : "text-muted-foreground"
+                                  )}
+                                  title={t("positions.ma10")}
+                                >
+                                  <Activity className="h-3 w-3" />
+                                  10MA {pos.ma10.toFixed(2)}
                                 </span>
                               )}
                             </div>

@@ -258,6 +258,8 @@ const zhTW = {
     takeProfitAlert: "觸及停利",
     stopLossPrice: "停損價",
     takeProfitPrice: "停利價",
+    ma5: "5日均線",
+    ma10: "10日均線",
   },
 
   // ── Results ────────────────────────────────────────────────

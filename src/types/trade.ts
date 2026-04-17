@@ -61,6 +61,8 @@ export interface Position {
   unrealizedPnLPct?: number;
   stopLoss?: number;
   takeProfit?: number;
+  ma5?: number;
+  ma10?: number;
   isStopLossAlert?: boolean;
   isTakeProfitAlert?: boolean;
   notes: string[];

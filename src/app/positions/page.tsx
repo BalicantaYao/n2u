@@ -1,8 +1,10 @@
 import { PositionsContent } from "@/components/positions/PositionsContent";
 import { prisma } from "@/lib/prisma";
-import { fetchQuotes } from "@/lib/yahoo-finance";
+import { fetchQuotes, fetchHistorical } from "@/lib/yahoo-finance";
+import { calculateMA } from "@/lib/stop-loss-calculator";
 import type { Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";
+import type { OHLCVBar } from "@/types/market";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +53,21 @@ async function getOpenPositions(): Promise<Position[]> {
   }
 
   const symbols = Array.from(map.values()).map((p) => ({ symbol: p.symbol, market: p.market }));
-  const quotes = symbols.length > 0 ? await fetchQuotes(symbols) : {};
+
+  const fromDate = new Date();
+  fromDate.setDate(fromDate.getDate() - 25);
+  const toDate = new Date();
+  const historicalBars: Record<string, OHLCVBar[]> = {};
+
+  const [quotes] = await Promise.all([
+    symbols.length > 0 ? fetchQuotes(symbols) : Promise.resolve({} as Record<string, import("@/types/market").Quote>),
+    Promise.allSettled(
+      symbols.map(async ({ symbol, market }) => {
+        const bars = await fetchHistorical(symbol, market, fromDate, toDate, "1d");
+        if (bars.length > 0) historicalBars[symbol] = bars;
+      })
+    ),
+  ]);
 
   return Array.from(map.values()).map((p) => {
     const avgCostPerShare = p.totalShares > 0 ? p.totalCost / p.totalShares : 0;
@@ -61,6 +77,10 @@ async function getOpenPositions(): Promise<Position[]> {
     const unrealizedPnL = marketValue != null ? marketValue - p.totalCost : undefined;
     const unrealizedPnLPct =
       unrealizedPnL != null && p.totalCost > 0 ? unrealizedPnL / p.totalCost : undefined;
+
+    const bars = historicalBars[p.symbol];
+    const ma5 = bars ? calculateMA(bars, 5) ?? undefined : undefined;
+    const ma10 = bars ? calculateMA(bars, 10) ?? undefined : undefined;
 
     return {
       symbol: p.symbol,
@@ -75,6 +95,8 @@ async function getOpenPositions(): Promise<Position[]> {
       unrealizedPnLPct,
       stopLoss: p.stopLoss,
       takeProfit: p.takeProfit,
+      ma5,
+      ma10,
       isStopLossAlert:
         currentPrice != null && p.stopLoss != null ? currentPrice <= p.stopLoss : false,
       isTakeProfitAlert:

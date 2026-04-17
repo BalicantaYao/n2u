@@ -258,6 +258,8 @@ const en = {
     takeProfitAlert: "Take profit triggered",
     stopLossPrice: "Stop Loss",
     takeProfitPrice: "Take Profit",
+    ma5: "MA5",
+    ma10: "MA10",
   },
 
   // ── Results ────────────────────────────────────────────────
