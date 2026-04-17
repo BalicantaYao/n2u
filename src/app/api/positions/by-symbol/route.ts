@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
+
   const symbol = req.nextUrl.searchParams.get("symbol")?.toUpperCase();
 
   if (!symbol) {
@@ -11,7 +15,7 @@ export async function GET(req: NextRequest) {
   }
 
   const lots = await prisma.positionLot.findMany({
-    where: { symbol, isOpen: true },
+    where: { symbol, isOpen: true, userId: auth.userId },
     select: { shares: true, costPerShare: true },
   });
 
