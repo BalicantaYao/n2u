@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { PositionsTable } from "@/components/positions/PositionsTable";
-import { formatTWD, formatPct } from "@/lib/utils";
+import { formatTWD, formatPct, isMarketOpen } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import {
   Briefcase,
@@ -32,6 +34,28 @@ export function PositionsContent({
   hasQuotes,
 }: PositionsContentProps) {
   const { t } = useT();
+  const router = useRouter();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const scheduleRefresh = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    let currentMs = isMarketOpen() ? 30_000 : 300_000;
+    intervalRef.current = setInterval(() => {
+      router.refresh();
+      const newMs = isMarketOpen() ? 30_000 : 300_000;
+      if (newMs !== currentMs) {
+        currentMs = newMs;
+        scheduleRefresh();
+      }
+    }, currentMs);
+  }, [router]);
+
+  useEffect(() => {
+    scheduleRefresh();
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [scheduleRefresh]);
 
   return (
     <div>
