@@ -53,6 +53,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.sharesHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.avgCost")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.currentPrice")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.unrealizedHeader")}</th>
@@ -130,41 +131,25 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                           {pos.avgCostPerShare.toFixed(2)}
                         </td>
 
-                        {/* Current Price + Stop-loss / Take-profit */}
+                        {/* Current Price + Take-profit */}
                         <td className="px-4 py-3 text-right">
                           <div className="tabular-nums">
                             {pos.currentPrice != null ? pos.currentPrice.toFixed(2) : "—"}
                           </div>
-                          {(pos.stopLoss != null || pos.takeProfit != null) && (
+                          {pos.takeProfit != null && (
                             <div className="flex items-center justify-end gap-2 mt-0.5">
-                              {pos.stopLoss != null && (
-                                <span
-                                  className={cn(
-                                    "text-[11px] tabular-nums flex items-center gap-0.5",
-                                    pos.isStopLossAlert
-                                      ? "text-red-600 dark:text-red-400 font-medium"
-                                      : "text-muted-foreground"
-                                  )}
-                                  title={t("positions.stopLossPrice")}
-                                >
-                                  <AlertTriangle className="h-3 w-3" />
-                                  {pos.stopLoss.toFixed(2)}
-                                </span>
-                              )}
-                              {pos.takeProfit != null && (
-                                <span
-                                  className={cn(
-                                    "text-[11px] tabular-nums flex items-center gap-0.5",
-                                    pos.isTakeProfitAlert
-                                      ? "text-green-600 dark:text-green-400 font-medium"
-                                      : "text-muted-foreground"
-                                  )}
-                                  title={t("positions.takeProfitPrice")}
-                                >
-                                  <Target className="h-3 w-3" />
-                                  {pos.takeProfit.toFixed(2)}
-                                </span>
-                              )}
+                              <span
+                                className={cn(
+                                  "text-[11px] tabular-nums flex items-center gap-0.5",
+                                  pos.isTakeProfitAlert
+                                    ? "text-green-600 dark:text-green-400 font-medium"
+                                    : "text-muted-foreground"
+                                )}
+                                title={t("positions.takeProfitPrice")}
+                              >
+                                <Target className="h-3 w-3" />
+                                {pos.takeProfit.toFixed(2)}
+                              </span>
                             </div>
                           )}
                           {(pos.ma5 != null || pos.ma10 != null) && (
@@ -202,6 +187,53 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                                 </span>
                               )}
                             </div>
+                          )}
+                        </td>
+
+                        {/* Stop Loss + distance % */}
+                        <td className="px-4 py-3 text-right">
+                          {pos.stopLoss == null ? (
+                            <div className="tabular-nums text-muted-foreground">—</div>
+                          ) : (
+                            (() => {
+                              const distance =
+                                pos.currentPrice != null
+                                  ? (pos.currentPrice - pos.stopLoss) / pos.stopLoss
+                                  : null;
+                              const priceColor = pos.isStopLossAlert
+                                ? "text-red-600 dark:text-red-400 font-medium"
+                                : distance != null && distance < 0.03
+                                ? "text-amber-600 dark:text-amber-400"
+                                : "";
+                              const distanceColor = pos.isStopLossAlert
+                                ? "text-red-600 dark:text-red-400 font-medium"
+                                : distance != null && distance < 0.03
+                                ? "text-amber-600 dark:text-amber-400"
+                                : "text-muted-foreground";
+                              return (
+                                <>
+                                  <div
+                                    className={cn(
+                                      "tabular-nums flex items-center justify-end gap-1",
+                                      priceColor
+                                    )}
+                                  >
+                                    {pos.isStopLossAlert && (
+                                      <AlertTriangle className="h-3.5 w-3.5" />
+                                    )}
+                                    {pos.stopLoss.toFixed(2)}
+                                  </div>
+                                  <div
+                                    className={cn(
+                                      "text-[11px] tabular-nums mt-0.5",
+                                      distanceColor
+                                    )}
+                                  >
+                                    {distance != null ? formatPct(distance) : "—"}
+                                  </div>
+                                </>
+                              );
+                            })()
                           )}
                         </td>
 
@@ -251,7 +283,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                       {/* Expanded notes sub-row */}
                       {isExp && hasNotes && (
                         <tr className="bg-muted/20 border-b">
-                          <td colSpan={9} className="px-8 py-3">
+                          <td colSpan={10} className="px-8 py-3">
                             <div className="text-xs space-y-1.5">
                               <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
                               {pos.notes.map((note, i) => (
