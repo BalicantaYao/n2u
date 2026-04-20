@@ -268,6 +268,7 @@ const en = {
     takeProfitPrice: "Take Profit",
     ma5: "MA5",
     ma10: "MA10",
+    refresh: "Refresh",
   },
 
   // ── Results ────────────────────────────────────────────────
