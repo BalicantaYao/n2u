@@ -59,6 +59,10 @@ export interface StopLossHelperResponse {
     totalCost: number;
   } | null;
   editingMode: boolean;
+  /** 此次回應實際採用的基準模式。若請求 market 但市價無法取得則會退回 entry。 */
+  baseMode: "entry" | "market";
+  /** 此次回應實際採用的基準價格。 */
+  referencePrice: number;
   quote: {
     price: number;
     prevClose: number;

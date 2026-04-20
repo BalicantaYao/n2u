@@ -47,6 +47,7 @@ export function StopLossHelper({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [appliedStrategy, setAppliedStrategy] = useState<string | null>(null);
+  const [baseMode, setBaseMode] = useState<"entry" | "market">("entry");
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -71,6 +72,7 @@ export function StopLossHelper({
         market,
         entryPrice: String(entryPrice),
         newShares: String(newShares || 0),
+        baseMode,
       });
       if (editingTradeId) params.set("excludeTradeId", editingTradeId);
 
@@ -96,12 +98,17 @@ export function StopLossHelper({
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (abortRef.current) abortRef.current.abort();
     };
-  }, [isOpen, symbol, market, entryPrice, newShares, canFetch, editingTradeId]);
+  }, [isOpen, symbol, market, entryPrice, newShares, canFetch, editingTradeId, baseMode]);
 
   // Reset applied strategy when symbol or price changes
   useEffect(() => {
     setAppliedStrategy(null);
   }, [symbol, entryPrice]);
+
+  // Reset to entry basis when switching symbols
+  useEffect(() => {
+    setBaseMode("entry");
+  }, [symbol]);
 
   if (!canFetch) {
     return (
@@ -132,6 +139,16 @@ export function StopLossHelper({
   const hasExistingPosition =
     data?.existingPosition != null && data.existingPosition.totalShares > 0;
   const isEditingMode = !!data?.editingMode;
+  const marketPrice = data?.quote?.price ?? 0;
+  const hasMarketPrice = marketPrice > 0;
+  const effectiveBaseMode = data?.baseMode ?? baseMode;
+  const basisLabel = effectiveBaseMode === "market" ? "市價" : "進場價";
+  const basisPrice =
+    effectiveBaseMode === "market" ? marketPrice : entryPrice;
+  const marketVsEntryPct =
+    hasMarketPrice && entryPrice > 0
+      ? ((marketPrice - entryPrice) / entryPrice) * 100
+      : null;
 
   return (
     <div className="rounded-lg border bg-muted/30 overflow-hidden">
@@ -171,6 +188,65 @@ export function StopLossHelper({
           {/* Data loaded */}
           {data && !loading && (
             <>
+              {/* 建議基準切換：進場價 vs 市價 */}
+              {hasMarketPrice && (
+                <div className="flex flex-col gap-1.5 rounded-lg border bg-background/50 p-2.5 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground shrink-0">建議基準</span>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setBaseMode("entry")}
+                        className={cn(
+                          "px-2 py-1 rounded-md border transition-colors tabular-nums",
+                          effectiveBaseMode === "entry"
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background hover:bg-accent"
+                        )}
+                      >
+                        進場價 {formatTWD(entryPrice)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBaseMode("market")}
+                        className={cn(
+                          "px-2 py-1 rounded-md border transition-colors tabular-nums",
+                          effectiveBaseMode === "market"
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background hover:bg-accent"
+                        )}
+                      >
+                        市價 {formatTWD(marketPrice)}
+                      </button>
+                    </div>
+                  </div>
+                  {marketVsEntryPct != null &&
+                    Math.abs(marketVsEntryPct) >= 0.01 && (
+                      <p className="text-muted-foreground text-[11px]">
+                        市價較進場價{" "}
+                        <span
+                          className={cn(
+                            "tabular-nums font-medium",
+                            marketVsEntryPct >= 0
+                              ? "text-green-600"
+                              : "text-red-500"
+                          )}
+                        >
+                          {marketVsEntryPct >= 0 ? "+" : ""}
+                          {marketVsEntryPct.toFixed(2)}%
+                        </span>
+                        {isEditingMode &&
+                          Math.abs(marketVsEntryPct) >= 10 &&
+                          effectiveBaseMode === "entry" && (
+                            <span className="ml-1">
+                              — 建議改以市價計算更貼近現況
+                            </span>
+                          )}
+                      </p>
+                    )}
+                </div>
+              )}
+
               {/* Position impact banner — 加碼情境 */}
               {!isEditingMode && hasExistingPosition && positionImpact && (
                 <div className="flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-3 text-sm text-amber-800 dark:text-amber-200">
@@ -191,7 +267,8 @@ export function StopLossHelper({
                     </span>
                   </div>
                   <p className="text-xs ml-6 mt-1 opacity-80">
-                    以下建議以本筆進場價 {formatTWD(entryPrice)} 為基準（不採加碼後新均價）
+                    以下建議以{basisLabel} {formatTWD(basisPrice)} 為基準
+                    {effectiveBaseMode === "entry" && "（不採加碼後新均價）"}
                   </p>
                 </div>
               )}
@@ -211,7 +288,7 @@ export function StopLossHelper({
                     </span>
                   </div>
                   <p className="text-xs ml-6 mt-1 opacity-80">
-                    以下建議以本筆進場價 {formatTWD(entryPrice)} 為基準
+                    以下建議以{basisLabel} {formatTWD(basisPrice)} 為基準
                   </p>
                 </div>
               )}
@@ -219,7 +296,7 @@ export function StopLossHelper({
               {/* Position impact banner — 編輯模式但無其他筆 */}
               {isEditingMode && !hasExistingPosition && (
                 <p className="text-xs text-muted-foreground">
-                  編輯模式：以本筆進場價 {formatTWD(entryPrice)} 為基準
+                  編輯模式：以{basisLabel} {formatTWD(basisPrice)} 為基準
                 </p>
               )}
 

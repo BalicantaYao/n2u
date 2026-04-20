@@ -18,6 +18,9 @@ export async function GET(req: NextRequest) {
   const entryPrice = parseFloat(searchParams.get("entryPrice") ?? "0");
   const newShares = parseInt(searchParams.get("newShares") ?? "0", 10);
   const excludeTradeId = searchParams.get("excludeTradeId") ?? undefined;
+  const baseModeParam = searchParams.get("baseMode");
+  const requestedBaseMode: "entry" | "market" =
+    baseModeParam === "market" ? "market" : "entry";
 
   if (!symbol || !entryPrice || entryPrice <= 0) {
     return NextResponse.json(
@@ -67,6 +70,14 @@ export async function GET(req: NextRequest) {
   const prevClose = quote?.prevClose ?? 0;
   const mode: "scale-in" | "edit" = excludeTradeId ? "edit" : "scale-in";
 
+  // 若使用者選擇以市價為基準，但市價不可用，退回進場價
+  const marketPrice = quote?.price ?? 0;
+  const effectiveBaseMode: "entry" | "market" =
+    requestedBaseMode === "market" && marketPrice > 0 ? "market" : "entry";
+  const referencePrice =
+    effectiveBaseMode === "market" ? marketPrice : entryPrice;
+  const referenceLabel = effectiveBaseMode === "market" ? "市價" : "進場價";
+
   const input = {
     entryPrice,
     bars,
@@ -74,6 +85,8 @@ export async function GET(req: NextRequest) {
     existingPosition,
     newShares: newShares || 0,
     mode,
+    referencePrice,
+    referenceLabel,
   };
 
   const suggestions = suggestStopLossLevels(input);
@@ -84,6 +97,8 @@ export async function GET(req: NextRequest) {
     positionImpact,
     existingPosition: existingPosition ?? null,
     editingMode: mode === "edit",
+    baseMode: effectiveBaseMode,
+    referencePrice,
     quote: quote
       ? {
           price: quote.price,
