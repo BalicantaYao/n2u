@@ -176,8 +176,17 @@ export function MaxLossPreview({
         )}
       >
         <span>{t("maxLoss.totalMaxLoss")}</span>
-        <span className="tabular-nums text-red-600 dark:text-red-400">
-          -{formatTWD(Math.abs(totalMaxLoss))} ({maxLossPct.toFixed(2)}%)
+        <span
+          className={cn(
+            "tabular-nums",
+            totalMaxLoss > 0
+              ? "text-red-600 dark:text-red-400"
+              : "text-green-600 dark:text-green-400"
+          )}
+        >
+          {totalMaxLoss > 0 ? "-" : "+"}
+          {formatTWD(Math.abs(totalMaxLoss))} ({totalMaxLoss > 0 ? "-" : "+"}
+          {Math.abs(maxLossPct).toFixed(2)}%)
         </span>
       </div>
 
