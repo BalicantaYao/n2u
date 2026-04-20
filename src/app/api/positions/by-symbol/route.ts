@@ -9,13 +9,20 @@ export async function GET(req: NextRequest) {
   if (auth.error) return auth.error;
 
   const symbol = req.nextUrl.searchParams.get("symbol")?.toUpperCase();
+  const excludeTradeId =
+    req.nextUrl.searchParams.get("excludeTradeId") ?? undefined;
 
   if (!symbol) {
     return NextResponse.json({ error: "Missing symbol" }, { status: 400 });
   }
 
   const lots = await prisma.positionLot.findMany({
-    where: { symbol, isOpen: true, userId: auth.userId },
+    where: {
+      symbol,
+      isOpen: true,
+      userId: auth.userId,
+      ...(excludeTradeId ? { openTradeId: { not: excludeTradeId } } : {}),
+    },
     select: { shares: true, costPerShare: true },
   });
 

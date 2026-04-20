@@ -55,10 +55,44 @@ export async function PUT(
     for (const key of METADATA_FIELDS) {
       if (key in body) data[key] = body[key];
     }
-    const trade = await prisma.trade.update({
-      where: { id: params.id },
-      data,
-    });
+
+    // 整體部位停損／停利：若 stopLoss 或 takeProfit 有變化，同步到該部位其他仍有開倉 lot 的 BUY trades
+    const stopLossChanged =
+      "stopLoss" in body && body.stopLoss !== existing.stopLoss;
+    const takeProfitChanged =
+      "takeProfit" in body && body.takeProfit !== existing.takeProfit;
+
+    const trade = await prisma.$transaction(
+      async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
+        const updated = await tx.trade.update({
+          where: { id: params.id },
+          data,
+        });
+
+        if (
+          existing.side === "BUY" &&
+          (stopLossChanged || takeProfitChanged)
+        ) {
+          const propagate: Record<string, unknown> = {};
+          if (stopLossChanged) propagate.stopLoss = body.stopLoss ?? null;
+          if (takeProfitChanged) propagate.takeProfit = body.takeProfit ?? null;
+
+          await tx.trade.updateMany({
+            where: {
+              userId: auth.userId,
+              symbol: existing.symbol,
+              side: "BUY",
+              id: { not: existing.id },
+              positionLots: { some: { isOpen: true } },
+            },
+            data: propagate,
+          });
+        }
+
+        return updated;
+      }
+    );
+
     return NextResponse.json(trade);
   }
 
@@ -158,6 +192,29 @@ export async function PUT(
             costPerShare: fees.netAmount / shares,
           },
         });
+      }
+
+      // 整體部位停損／停利：若 symbol 未變動且 stopLoss / takeProfit 變了，同步給其他仍有開倉的 BUY trades
+      const symbolUnchanged = symbol === existing.symbol;
+      if (side === "BUY" && symbolUnchanged) {
+        const stopLossChanged = stopLoss !== existing.stopLoss;
+        const takeProfitChanged = takeProfit !== existing.takeProfit;
+        if (stopLossChanged || takeProfitChanged) {
+          const propagate: Record<string, unknown> = {};
+          if (stopLossChanged) propagate.stopLoss = stopLoss ?? null;
+          if (takeProfitChanged) propagate.takeProfit = takeProfit ?? null;
+
+          await tx.trade.updateMany({
+            where: {
+              userId: auth.userId,
+              symbol,
+              side: "BUY",
+              id: { not: existing.id },
+              positionLots: { some: { isOpen: true } },
+            },
+            data: propagate,
+          });
+        }
       }
 
       return updated;

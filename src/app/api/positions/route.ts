@@ -38,6 +38,8 @@ export async function GET() {
       existing.totalShares += lot.shares;
       existing.totalCost += lot.shares * lot.costPerShare;
       if (lot.openTrade.isETF) existing.isETF = true;
+      // invariant: 同 symbol 所有開倉中 BUY trades 的 stopLoss / takeProfit 會在寫入時同步（PUT /api/trades/[id]），
+      // 所以這裡取「最後一筆非空值」的結果對所有進場筆都一致。
       if (lot.openTrade.stopLoss != null) existing.stopLoss = lot.openTrade.stopLoss;
       if (lot.openTrade.takeProfit != null) existing.takeProfit = lot.openTrade.takeProfit;
       if (lot.openTrade.notes && !existing.notes.includes(lot.openTrade.notes)) {

@@ -475,26 +475,40 @@ export function TradeForm({
       </div>
 
       {/* Stop Loss Helper */}
-      {!metadataOnly && side === "BUY" && (
+      {side === "BUY" && (
         <StopLossHelper
           symbol={symbol}
           market={market}
-          entryPrice={priceNum}
-          newShares={lotType === "ROUND" ? lotsNum * 1000 : sharesNum}
+          entryPrice={metadataOnly ? initialData?.price ?? priceNum : priceNum}
+          newShares={
+            metadataOnly
+              ? initialData?.shares ?? 0
+              : lotType === "ROUND"
+              ? lotsNum * 1000
+              : sharesNum
+          }
           side={side}
           onSelectStopLoss={(price) => setStopLoss(String(price))}
+          editingTradeId={isEdit ? initialData?.id : undefined}
         />
       )}
 
       {/* Max Loss Preview */}
-      {!metadataOnly && side === "BUY" && (
+      {side === "BUY" && (
         <MaxLossPreview
           symbol={symbol}
-          price={priceNum}
-          shares={lotType === "ROUND" ? lotsNum * 1000 : sharesNum}
+          price={metadataOnly ? initialData?.price ?? priceNum : priceNum}
+          shares={
+            metadataOnly
+              ? initialData?.shares ?? 0
+              : lotType === "ROUND"
+              ? lotsNum * 1000
+              : sharesNum
+          }
           stopLoss={parseFloat(stopLoss) || 0}
           side={side}
           isETF={isETF}
+          editingTradeId={isEdit ? initialData?.id : undefined}
         />
       )}
 

@@ -22,6 +22,12 @@ export interface StopLossCalcInput {
     totalCost: number;
   };
   newShares: number;
+  /**
+   * scale-in: 新增交易/加碼，referencePrice 用加權後新均價
+   * edit: 編輯既有交易的停損，existingPosition 應已排除被編輯的那筆，
+   *       referencePrice 用「剩下其他筆的均價」；若無其他筆則退回 entryPrice
+   */
+  mode?: "scale-in" | "edit";
 }
 
 /** 計算 Average True Range */
@@ -57,13 +63,14 @@ export function findRecentLow(bars: OHLCVBar[], period: number): number | null {
   return Math.min(...sliced.map((b) => b.low));
 }
 
-/** 計算加碼後的倉位影響 */
+/** 計算加碼後／編輯中的倉位影響 */
 export function calculatePositionImpact(
   input: StopLossCalcInput
 ): PositionImpact | null {
   if (input.newShares <= 0) return null;
 
   const { entryPrice, existingPosition, newShares } = input;
+  const mode = input.mode ?? "scale-in";
   const addedCost = newShares * entryPrice;
 
   if (existingPosition && existingPosition.totalShares > 0) {
@@ -71,17 +78,22 @@ export function calculatePositionImpact(
     const newTotalCost = existingPosition.totalCost + addedCost;
     const newAvgCost = newTotalCost / newTotalShares;
 
+    // 編輯模式下 existingPosition 已排除被編輯的那筆，參考價改用剩下其他筆的均價
+    const referencePrice =
+      mode === "edit" ? existingPosition.avgCostPerShare : newAvgCost;
+
     return {
       currentAvgCost: existingPosition.avgCostPerShare,
       currentShares: existingPosition.totalShares,
       newAvgCost,
       newTotalShares,
       newTotalCost,
-      referencePrice: newAvgCost,
+      referencePrice,
+      mode,
     };
   }
 
-  // 無既有持倉
+  // 無既有持倉（或編輯唯一一筆後沒有其他筆）
   return {
     currentAvgCost: 0,
     currentShares: 0,
@@ -89,6 +101,7 @@ export function calculatePositionImpact(
     newTotalShares: newShares,
     newTotalCost: addedCost,
     referencePrice: entryPrice,
+    mode,
   };
 }
 
@@ -98,9 +111,15 @@ export function suggestStopLossLevels(
 ): StopLossSuggestion[] {
   const impact = calculatePositionImpact(input);
   const refPrice = impact?.referencePrice ?? input.entryPrice;
-  const isAddingToPosition =
+  const mode = input.mode ?? "scale-in";
+  const hasExistingPosition =
     input.existingPosition != null && input.existingPosition.totalShares > 0;
-  const refLabel = isAddingToPosition ? "新均價" : "進場價";
+  const refLabel =
+    hasExistingPosition
+      ? mode === "edit"
+        ? "其他筆均價"
+        : "新均價"
+      : "進場價";
 
   const suggestions: StopLossSuggestion[] = [];
 

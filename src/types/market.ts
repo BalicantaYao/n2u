@@ -47,6 +47,7 @@ export interface PositionImpact {
   newTotalShares: number;
   newTotalCost: number;
   referencePrice: number;
+  mode: "scale-in" | "edit";
 }
 
 export interface StopLossHelperResponse {
@@ -57,6 +58,7 @@ export interface StopLossHelperResponse {
     totalShares: number;
     totalCost: number;
   } | null;
+  editingMode: boolean;
   quote: {
     price: number;
     prevClose: number;

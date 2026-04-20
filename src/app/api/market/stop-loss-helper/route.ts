@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
   const market = (searchParams.get("market") ?? "TWSE") as Market;
   const entryPrice = parseFloat(searchParams.get("entryPrice") ?? "0");
   const newShares = parseInt(searchParams.get("newShares") ?? "0", 10);
+  const excludeTradeId = searchParams.get("excludeTradeId") ?? undefined;
 
   if (!symbol || !entryPrice || entryPrice <= 0) {
     return NextResponse.json(
@@ -34,7 +35,12 @@ export async function GET(req: NextRequest) {
     fetchQuote(symbol, market),
     prisma.positionLot
       .findMany({
-        where: { symbol, isOpen: true, userId: auth.userId },
+        where: {
+          symbol,
+          isOpen: true,
+          userId: auth.userId,
+          ...(excludeTradeId ? { openTradeId: { not: excludeTradeId } } : {}),
+        },
         select: { shares: true, costPerShare: true },
       })
       .catch(() => [] as { shares: number; costPerShare: number }[]),
@@ -59,6 +65,7 @@ export async function GET(req: NextRequest) {
   }
 
   const prevClose = quote?.prevClose ?? 0;
+  const mode: "scale-in" | "edit" = excludeTradeId ? "edit" : "scale-in";
 
   const input = {
     entryPrice,
@@ -66,6 +73,7 @@ export async function GET(req: NextRequest) {
     prevClose,
     existingPosition,
     newShares: newShares || 0,
+    mode,
   };
 
   const suggestions = suggestStopLossLevels(input);
@@ -75,6 +83,7 @@ export async function GET(req: NextRequest) {
     suggestions,
     positionImpact,
     existingPosition: existingPosition ?? null,
+    editingMode: mode === "edit",
     quote: quote
       ? {
           price: quote.price,

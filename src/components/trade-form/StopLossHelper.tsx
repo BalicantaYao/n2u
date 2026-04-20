@@ -13,6 +13,8 @@ interface StopLossHelperProps {
   newShares: number;
   side: Side;
   onSelectStopLoss: (price: number) => void;
+  /** 編輯既有交易時傳入該交易 id，API 會排除其 lots，避免把自己當成既有部位重複計算 */
+  editingTradeId?: string;
 }
 
 const CATEGORY_LABELS: Record<StopLossSuggestion["category"], string> = {
@@ -38,6 +40,7 @@ export function StopLossHelper({
   newShares,
   side,
   onSelectStopLoss,
+  editingTradeId,
 }: StopLossHelperProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState<StopLossHelperResponse | null>(null);
@@ -69,6 +72,7 @@ export function StopLossHelper({
         entryPrice: String(entryPrice),
         newShares: String(newShares || 0),
       });
+      if (editingTradeId) params.set("excludeTradeId", editingTradeId);
 
       fetch(`/api/market/stop-loss-helper?${params}`, {
         signal: controller.signal,
@@ -92,7 +96,7 @@ export function StopLossHelper({
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (abortRef.current) abortRef.current.abort();
     };
-  }, [isOpen, symbol, market, entryPrice, newShares, canFetch]);
+  }, [isOpen, symbol, market, entryPrice, newShares, canFetch, editingTradeId]);
 
   // Reset applied strategy when symbol or price changes
   useEffect(() => {
@@ -127,6 +131,7 @@ export function StopLossHelper({
   const positionImpact = data?.positionImpact;
   const hasExistingPosition =
     data?.existingPosition != null && data.existingPosition.totalShares > 0;
+  const isEditingMode = !!data?.editingMode;
 
   return (
     <div className="rounded-lg border bg-muted/30 overflow-hidden">
@@ -166,8 +171,8 @@ export function StopLossHelper({
           {/* Data loaded */}
           {data && !loading && (
             <>
-              {/* Position impact banner */}
-              {hasExistingPosition && positionImpact && (
+              {/* Position impact banner — 加碼情境 */}
+              {!isEditingMode && hasExistingPosition && positionImpact && (
                 <div className="flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-3 text-sm text-amber-800 dark:text-amber-200">
                   <div className="flex items-center gap-2 font-medium">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -189,6 +194,34 @@ export function StopLossHelper({
                     以下建議依據新均價計算
                   </p>
                 </div>
+              )}
+
+              {/* Position impact banner — 編輯既有交易情境 */}
+              {isEditingMode && hasExistingPosition && (
+                <div className="flex flex-col gap-1.5 rounded-lg border border-sky-200 bg-sky-50 dark:border-sky-900 dark:bg-sky-950/30 p-3 text-sm text-sky-800 dark:text-sky-200">
+                  <div className="flex items-center gap-2 font-medium">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    編輯模式：此部位還有其他筆
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs ml-6">
+                    <span>其他筆合計</span>
+                    <span className="tabular-nums text-right">
+                      {data.existingPosition!.totalShares.toLocaleString()} 股 / 均價{" "}
+                      {formatTWD(data.existingPosition!.avgCostPerShare)}
+                    </span>
+                  </div>
+                  <p className="text-xs ml-6 mt-1 opacity-80">
+                    以下建議以剩下其他筆的均價{" "}
+                    {formatTWD(data.existingPosition!.avgCostPerShare)} 為基準
+                  </p>
+                </div>
+              )}
+
+              {/* Position impact banner — 編輯模式但無其他筆 */}
+              {isEditingMode && !hasExistingPosition && (
+                <p className="text-xs text-muted-foreground">
+                  編輯模式：以本筆進場價 {formatTWD(entryPrice)} 為基準
+                </p>
               )}
 
               {/* No historical data notice */}
