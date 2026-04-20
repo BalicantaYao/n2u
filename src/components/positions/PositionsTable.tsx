@@ -57,6 +57,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.avgCost")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.currentPrice")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossHeader")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossPnLHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.unrealizedHeader")}</th>
@@ -241,6 +242,33 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                           )}
                         </td>
 
+                        {/* Hypothetical P&L @ Stop-Loss */}
+                        <td
+                          className={cn(
+                            "px-4 py-3 text-right tabular-nums",
+                            pos.pnlAtStopLoss == null
+                              ? "text-muted-foreground"
+                              : pos.pnlAtStopLoss >= 0
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-red-600 dark:text-red-400"
+                          )}
+                        >
+                          {pos.pnlAtStopLoss != null ? (
+                            <>
+                              <div className="font-medium">
+                                {formatTWD(pos.pnlAtStopLoss, true)}
+                              </div>
+                              {pos.pnlAtStopLossPct != null && (
+                                <div className="text-[11px] mt-0.5">
+                                  {formatPct(pos.pnlAtStopLossPct)}
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+
                         {/* Total Cost */}
                         <td className="px-4 py-3 text-right tabular-nums">
                           {formatTWD(pos.totalCost)}
@@ -318,7 +346,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                       {/* Expanded notes sub-row */}
                       {isExp && hasNotes && (
                         <tr className="bg-muted/20 border-b">
-                          <td colSpan={11} className="px-8 py-3">
+                          <td colSpan={12} className="px-8 py-3">
                             <div className="text-xs space-y-1.5">
                               <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
                               {pos.notes.map((note, i) => (

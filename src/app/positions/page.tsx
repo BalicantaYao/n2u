@@ -81,6 +81,10 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
     const unrealizedPnL = marketValue != null ? marketValue - p.totalCost : undefined;
     const unrealizedPnLPct =
       unrealizedPnL != null && p.totalCost > 0 ? unrealizedPnL / p.totalCost : undefined;
+    const pnlAtStopLoss =
+      p.stopLoss != null ? p.stopLoss * p.totalShares - p.totalCost : undefined;
+    const pnlAtStopLossPct =
+      pnlAtStopLoss != null && p.totalCost > 0 ? pnlAtStopLoss / p.totalCost : undefined;
 
     const bars = historicalBars[p.symbol];
     const ma5 = bars ? calculateMA(bars, 5) ?? undefined : undefined;
@@ -99,6 +103,8 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       unrealizedPnL,
       unrealizedPnLPct,
       stopLoss: p.stopLoss,
+      pnlAtStopLoss,
+      pnlAtStopLossPct,
       takeProfit: p.takeProfit,
       ma5,
       ma10,

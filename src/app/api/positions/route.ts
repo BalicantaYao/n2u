@@ -76,6 +76,12 @@ export async function GET() {
       unrealizedPnL != null && p.totalCost > 0
         ? unrealizedPnL / p.totalCost
         : undefined;
+    const pnlAtStopLoss =
+      p.stopLoss != null ? p.stopLoss * p.totalShares - p.totalCost : undefined;
+    const pnlAtStopLossPct =
+      pnlAtStopLoss != null && p.totalCost > 0
+        ? pnlAtStopLoss / p.totalCost
+        : undefined;
 
     return {
       symbol: p.symbol,
@@ -90,6 +96,8 @@ export async function GET() {
       unrealizedPnL,
       unrealizedPnLPct,
       stopLoss: p.stopLoss,
+      pnlAtStopLoss,
+      pnlAtStopLossPct,
       takeProfit: p.takeProfit,
       isStopLossAlert:
         currentPrice != null && p.stopLoss != null

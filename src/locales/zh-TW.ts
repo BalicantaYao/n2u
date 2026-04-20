@@ -263,6 +263,7 @@ const zhTW = {
     unrealizedHeader: "未實現損益",
     returnHeader: "報酬率",
     stopLossHeader: "停損價",
+    stopLossPnLHeader: "停損試算損益",
     stopLossAlert: "觸及停損",
     takeProfitAlert: "觸及停利",
     stopLossPrice: "停損價",

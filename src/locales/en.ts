@@ -263,6 +263,7 @@ const en = {
     unrealizedHeader: "Unrealized P&L",
     returnHeader: "Return",
     stopLossHeader: "Stop Loss",
+    stopLossPnLHeader: "P&L @ Stop",
     stopLossAlert: "Stop loss triggered",
     takeProfitAlert: "Take profit triggered",
     stopLossPrice: "Stop Loss",
