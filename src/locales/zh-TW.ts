@@ -173,6 +173,10 @@ const zhTW = {
     invalidLots: "請輸入整張數量",
     invalidShares: "請輸入零股股數",
     searchPlaceholder: "搜尋代碼或名稱（如 2330、台積電）",
+    fetchPrice: "抓取現價",
+    fetchPriceSuccess: "已更新為最新現價",
+    fetchPriceFailed: "取得現價失敗，請稍後再試",
+    selectSymbolFirst: "請先選擇標的",
   },
 
   // ── Fee Preview ────────────────────────────────────────────

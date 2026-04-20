@@ -173,6 +173,10 @@ const en = {
     invalidLots: "Please enter lot quantity",
     invalidShares: "Please enter share quantity",
     searchPlaceholder: "Search symbol or name (e.g. 2330)",
+    fetchPrice: "Fetch current price",
+    fetchPriceSuccess: "Price updated to latest quote",
+    fetchPriceFailed: "Failed to fetch current price",
+    selectSymbolFirst: "Please select a symbol first",
   },
 
   // ── Fee Preview ────────────────────────────────────────────

@@ -15,7 +15,7 @@ import { MaxLossPreview } from "./MaxLossPreview";
 import { cn } from "@/lib/utils";
 import { getTodayTW, formatShares } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
-import { Info } from "lucide-react";
+import { Info, RefreshCw } from "lucide-react";
 import type { Trade } from "@/types/trade";
 import type { Market, Side, LotType } from "@/types/taiwan";
 
@@ -39,6 +39,7 @@ export function TradeForm({
 }: TradeFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [fetchingPrice, setFetchingPrice] = useState(false);
   const { t } = useT();
 
   const isEdit = mode === "edit";
@@ -87,6 +88,32 @@ export function TradeForm({
   const priceNum = parseFloat(price) || 0;
   const lotsNum = parseInt(lots) || 0;
   const sharesNum = parseInt(shares) || 0;
+
+  async function handleFetchPrice() {
+    if (!symbol) {
+      toast.error(t("trade.selectSymbolFirst"));
+      return;
+    }
+    setFetchingPrice(true);
+    try {
+      const res = await fetch(
+        `/api/market/quote?symbols=${encodeURIComponent(symbol)}:${market}`
+      );
+      if (!res.ok) throw new Error();
+      const data: Record<string, { price?: number }> = await res.json();
+      const quote = data[symbol];
+      if (!quote || quote.price == null) {
+        toast.error(t("trade.fetchPriceFailed"));
+        return;
+      }
+      setPrice(String(quote.price));
+      toast.success(t("trade.fetchPriceSuccess"));
+    } catch {
+      toast.error(t("trade.fetchPriceFailed"));
+    } finally {
+      setFetchingPrice(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -375,17 +402,31 @@ export function TradeForm({
         {metadataOnly ? (
           <p className="text-sm tabular-nums">{initialData?.price?.toLocaleString()}</p>
         ) : (
-          <Input
-            id="price"
-            type="number"
-            min={0.01}
-            step={0.01}
-            placeholder="e.g. 810.00"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="max-w-xs"
-            required
-          />
+          <div className="flex gap-2 max-w-xs">
+            <Input
+              id="price"
+              type="number"
+              min={0.01}
+              step={0.01}
+              placeholder="e.g. 810.00"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              required
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleFetchPrice}
+              disabled={fetchingPrice || !symbol}
+              title={t("trade.fetchPrice")}
+            >
+              <RefreshCw
+                className={cn("h-4 w-4", fetchingPrice && "animate-spin")}
+              />
+              <span className="ml-2 hidden sm:inline">{t("trade.fetchPrice")}</span>
+            </Button>
+          </div>
         )}
       </div>
 
