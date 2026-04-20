@@ -42,8 +42,10 @@ export interface StopLossSuggestion {
 
 export interface PositionImpact {
   currentAvgCost: number;
+  currentAvgPrice: number;
   currentShares: number;
   newAvgCost: number;
+  newAvgPrice: number;
   newTotalShares: number;
   newTotalCost: number;
   referencePrice: number;
@@ -54,6 +56,7 @@ export interface StopLossHelperResponse {
   positionImpact: PositionImpact | null;
   existingPosition: {
     avgCostPerShare: number;
+    avgPricePerShare: number;
     totalShares: number;
     totalCost: number;
   } | null;

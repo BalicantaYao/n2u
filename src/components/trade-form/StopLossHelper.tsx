@@ -177,12 +177,12 @@ export function StopLossHelper({
                     <span>目前持有</span>
                     <span className="tabular-nums text-right">
                       {data.existingPosition!.totalShares.toLocaleString()} 股 / 均價{" "}
-                      {formatTWD(data.existingPosition!.avgCostPerShare)}
+                      {data.existingPosition!.avgPricePerShare.toFixed(2)}
                     </span>
                     <span>加碼後</span>
                     <span className="tabular-nums text-right">
                       {positionImpact.newTotalShares.toLocaleString()} 股 / 新均價{" "}
-                      {formatTWD(positionImpact.newAvgCost)}
+                      {positionImpact.newAvgPrice.toFixed(2)}
                     </span>
                   </div>
                   <p className="text-xs ml-6 mt-1 opacity-80">

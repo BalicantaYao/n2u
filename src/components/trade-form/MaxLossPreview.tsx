@@ -21,6 +21,7 @@ interface ExistingPosition {
   totalShares: number;
   totalCost: number;
   avgCostPerShare: number;
+  avgPricePerShare: number;
 }
 
 export function MaxLossPreview({
@@ -127,7 +128,7 @@ export function MaxLossPreview({
           <span>
             {t("maxLoss.existingPosition", {
               shares: position.totalShares.toLocaleString(),
-              avgCost: formatTWD(position.avgCostPerShare),
+              avgCost: position.avgPricePerShare.toFixed(2),
             })}
           </span>
         </div>

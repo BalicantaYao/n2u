@@ -31,26 +31,55 @@ export async function GET(req: NextRequest) {
     prisma.positionLot
       .findMany({
         where: { symbol, isOpen: true },
-        select: { shares: true, costPerShare: true },
+        select: {
+          shares: true,
+          costPerShare: true,
+          openTrade: { select: { price: true } },
+        },
       })
-      .catch(() => [] as { shares: number; costPerShare: number }[]),
+      .catch(
+        () =>
+          [] as {
+            shares: number;
+            costPerShare: number;
+            openTrade: { price: number };
+          }[]
+      ),
   ]);
 
   // Aggregate existing position
   let existingPosition:
-    | { avgCostPerShare: number; totalShares: number; totalCost: number }
+    | {
+        avgCostPerShare: number;
+        avgPricePerShare: number;
+        totalShares: number;
+        totalCost: number;
+      }
     | undefined;
 
   if (openLots.length > 0) {
-    const totalShares = openLots.reduce((sum: number, lot: { shares: number }) => sum + lot.shares, 0);
+    type LotRow = {
+      shares: number;
+      costPerShare: number;
+      openTrade: { price: number };
+    };
+    const totalShares = openLots.reduce(
+      (sum: number, lot: LotRow) => sum + lot.shares,
+      0
+    );
     const totalCost = openLots.reduce(
-      (sum: number, lot: { shares: number; costPerShare: number }) => sum + lot.shares * lot.costPerShare,
+      (sum: number, lot: LotRow) => sum + lot.shares * lot.costPerShare,
+      0
+    );
+    const totalGross = openLots.reduce(
+      (sum: number, lot: LotRow) => sum + lot.shares * lot.openTrade.price,
       0
     );
     existingPosition = {
       totalShares,
       totalCost,
       avgCostPerShare: totalShares > 0 ? totalCost / totalShares : 0,
+      avgPricePerShare: totalShares > 0 ? totalGross / totalShares : 0,
     };
   }
 

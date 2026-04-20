@@ -18,6 +18,7 @@ export interface StopLossCalcInput {
   prevClose: number;
   existingPosition?: {
     avgCostPerShare: number;
+    avgPricePerShare: number;
     totalShares: number;
     totalCost: number;
   };
@@ -70,11 +71,17 @@ export function calculatePositionImpact(
     const newTotalShares = existingPosition.totalShares + newShares;
     const newTotalCost = existingPosition.totalCost + addedCost;
     const newAvgCost = newTotalCost / newTotalShares;
+    const newAvgPrice =
+      (existingPosition.avgPricePerShare * existingPosition.totalShares +
+        entryPrice * newShares) /
+      newTotalShares;
 
     return {
       currentAvgCost: existingPosition.avgCostPerShare,
+      currentAvgPrice: existingPosition.avgPricePerShare,
       currentShares: existingPosition.totalShares,
       newAvgCost,
+      newAvgPrice,
       newTotalShares,
       newTotalCost,
       referencePrice: newAvgCost,
@@ -84,8 +91,10 @@ export function calculatePositionImpact(
   // 無既有持倉
   return {
     currentAvgCost: 0,
+    currentAvgPrice: 0,
     currentShares: 0,
     newAvgCost: entryPrice,
+    newAvgPrice: entryPrice,
     newTotalShares: newShares,
     newTotalCost: addedCost,
     referencePrice: entryPrice,
