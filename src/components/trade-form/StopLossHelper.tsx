@@ -191,7 +191,7 @@ export function StopLossHelper({
                     </span>
                   </div>
                   <p className="text-xs ml-6 mt-1 opacity-80">
-                    以下建議依據新均價計算
+                    以下建議以本筆進場價 {formatTWD(entryPrice)} 為基準（不採加碼後新均價）
                   </p>
                 </div>
               )}
@@ -211,8 +211,7 @@ export function StopLossHelper({
                     </span>
                   </div>
                   <p className="text-xs ml-6 mt-1 opacity-80">
-                    以下建議以剩下其他筆的均價{" "}
-                    {formatTWD(data.existingPosition!.avgCostPerShare)} 為基準
+                    以下建議以本筆進場價 {formatTWD(entryPrice)} 為基準
                   </p>
                 </div>
               )}

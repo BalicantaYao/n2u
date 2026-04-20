@@ -23,9 +23,10 @@ export interface StopLossCalcInput {
   };
   newShares: number;
   /**
-   * scale-in: 新增交易/加碼，referencePrice 用加權後新均價
-   * edit: 編輯既有交易的停損，existingPosition 應已排除被編輯的那筆，
-   *       referencePrice 用「剩下其他筆的均價」；若無其他筆則退回 entryPrice
+   * scale-in: 新增交易/加碼
+   * edit: 編輯既有交易的停損（existingPosition 應已排除被編輯的那筆）
+   * 兩種模式的 referencePrice 皆以本筆成交價 (entryPrice) 為基準，
+   * 不使用加權均價或其他筆均價，避免既有部位的平均成本扭曲本次停損判斷。
    */
   mode?: "scale-in" | "edit";
 }
@@ -78,17 +79,14 @@ export function calculatePositionImpact(
     const newTotalCost = existingPosition.totalCost + addedCost;
     const newAvgCost = newTotalCost / newTotalShares;
 
-    // 編輯模式下 existingPosition 已排除被編輯的那筆，參考價改用剩下其他筆的均價
-    const referencePrice =
-      mode === "edit" ? existingPosition.avgCostPerShare : newAvgCost;
-
+    // 停損建議一律以本筆成交價為基準，既有部位僅用於顯示加碼影響
     return {
       currentAvgCost: existingPosition.avgCostPerShare,
       currentShares: existingPosition.totalShares,
       newAvgCost,
       newTotalShares,
       newTotalCost,
-      referencePrice,
+      referencePrice: entryPrice,
       mode,
     };
   }
@@ -111,15 +109,7 @@ export function suggestStopLossLevels(
 ): StopLossSuggestion[] {
   const impact = calculatePositionImpact(input);
   const refPrice = impact?.referencePrice ?? input.entryPrice;
-  const mode = input.mode ?? "scale-in";
-  const hasExistingPosition =
-    input.existingPosition != null && input.existingPosition.totalShares > 0;
-  const refLabel =
-    hasExistingPosition
-      ? mode === "edit"
-        ? "其他筆均價"
-        : "新均價"
-      : "進場價";
+  const refLabel = "進場價";
 
   const suggestions: StopLossSuggestion[] = [];
 
