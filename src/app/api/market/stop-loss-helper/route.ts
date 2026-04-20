@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/session";
 import { fetchQuote, fetchHistorical } from "@/lib/fugle-api";
 import {
   suggestStopLossLevels,
@@ -8,6 +9,9 @@ import {
 import type { Market } from "@/types/taiwan";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
+
   const { searchParams } = req.nextUrl;
   const symbol = searchParams.get("symbol")?.toUpperCase();
   const market = (searchParams.get("market") ?? "TWSE") as Market;
@@ -30,7 +34,7 @@ export async function GET(req: NextRequest) {
     fetchQuote(symbol, market),
     prisma.positionLot
       .findMany({
-        where: { symbol, isOpen: true },
+        where: { symbol, isOpen: true, userId: auth.userId },
         select: { shares: true, costPerShare: true },
       })
       .catch(() => [] as { shares: number; costPerShare: number }[]),
