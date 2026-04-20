@@ -25,10 +25,17 @@ export interface StopLossCalcInput {
   /**
    * scale-in: 新增交易/加碼
    * edit: 編輯既有交易的停損（existingPosition 應已排除被編輯的那筆）
-   * 兩種模式的 referencePrice 皆以本筆成交價 (entryPrice) 為基準，
+   * 兩種模式預設皆以本筆成交價 (entryPrice) 為基準，
    * 不使用加權均價或其他筆均價，避免既有部位的平均成本扭曲本次停損判斷。
    */
   mode?: "scale-in" | "edit";
+  /**
+   * 建議基準價的覆寫值。若提供則以此為基準計算停損建議；
+   * 典型用途：編輯交易時，進場價已遠離市價，改以市價為基準取得更有意義的建議。
+   */
+  referencePrice?: number;
+  /** 基準價的顯示標籤，如「進場價」、「市價」。預設為「進場價」。 */
+  referenceLabel?: string;
 }
 
 /** 計算 Average True Range */
@@ -108,8 +115,11 @@ export function suggestStopLossLevels(
   input: StopLossCalcInput
 ): StopLossSuggestion[] {
   const impact = calculatePositionImpact(input);
-  const refPrice = impact?.referencePrice ?? input.entryPrice;
-  const refLabel = "進場價";
+  const refPrice =
+    input.referencePrice && input.referencePrice > 0
+      ? input.referencePrice
+      : impact?.referencePrice ?? input.entryPrice;
+  const refLabel = input.referenceLabel ?? "進場價";
 
   const suggestions: StopLossSuggestion[] = [];
 
