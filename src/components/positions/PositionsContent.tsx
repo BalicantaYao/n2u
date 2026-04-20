@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { PositionsTable } from "@/components/positions/PositionsTable";
-import { formatTWD, formatPct, isMarketOpen } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { formatTWD, formatPct, cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import {
   Briefcase,
@@ -13,6 +14,7 @@ import {
   TrendingDown,
   Banknote,
   Percent,
+  RefreshCw,
 } from "lucide-react";
 import type { Position } from "@/types/trade";
 
@@ -35,32 +37,30 @@ export function PositionsContent({
 }: PositionsContentProps) {
   const { t } = useT();
   const router = useRouter();
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const scheduleRefresh = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    let currentMs = isMarketOpen() ? 30_000 : 300_000;
-    intervalRef.current = setInterval(() => {
-      router.refresh();
-      const newMs = isMarketOpen() ? 30_000 : 300_000;
-      if (newMs !== currentMs) {
-        currentMs = newMs;
-        scheduleRefresh();
-      }
-    }, currentMs);
-  }, [router]);
-
-  useEffect(() => {
-    scheduleRefresh();
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [scheduleRefresh]);
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    router.refresh();
+    setTimeout(() => setIsRefreshing(false), 800);
+  };
 
   return (
     <div>
       <Header titleKey="positions.title" />
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
+            {t("positions.refresh")}
+          </Button>
+        </div>
         {/* Summary KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
