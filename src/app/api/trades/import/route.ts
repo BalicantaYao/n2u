@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/session";
 import { calculateFees, calcSettlementDate, lotsToShares } from "@/lib/taiwan-fees";
 import { matchSellFIFO } from "@/lib/pnl-calculator";
 import type { CreateTradeInput } from "@/types/trade";
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
+
   const body: { trades: CreateTradeInput[] } = await req.json();
   const { trades } = body;
 
@@ -63,6 +67,7 @@ export async function POST(req: NextRequest) {
             symbol: symbol.toUpperCase(),
             shares,
             netSellProceeds: fees.netAmount,
+            userId: auth.userId,
           });
         }
 
@@ -89,6 +94,7 @@ export async function POST(req: NextRequest) {
             takeProfit,
             notes,
             tags,
+            userId: auth.userId,
           },
         });
 
@@ -103,6 +109,7 @@ export async function POST(req: NextRequest) {
               shares,
               costPerShare: fees.netAmount / shares,
               isOpen: true,
+              userId: auth.userId,
             },
           });
         }

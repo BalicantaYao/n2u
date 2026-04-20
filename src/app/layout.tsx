@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { BottomNav } from "@/components/layout/BottomNav";
 import { HtmlLangUpdater } from "@/components/layout/HtmlLangUpdater";
+import { AppShell } from "@/components/layout/AppShell";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
@@ -24,13 +24,11 @@ export default function RootLayout({
   return (
     <html lang="zh-TW">
       <body className="antialiased bg-background text-foreground">
-        <HtmlLangUpdater />
-        <Sidebar />
-        <main className="md:ml-56 min-h-screen pb-safe-bottom md:pb-0">
-          {children}
-        </main>
-        <BottomNav />
-        <Toaster richColors position="top-right" />
+        <SessionProvider>
+          <HtmlLangUpdater />
+          <AppShell>{children}</AppShell>
+          <Toaster richColors position="top-right" />
+        </SessionProvider>
       </body>
     </html>
   );
