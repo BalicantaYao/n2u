@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { fetchQuote, fetchHistorical } from "@/lib/yahoo-finance";
+import { fetchQuote, fetchHistorical } from "@/lib/fugle-api";
 import {
   suggestStopLossLevels,
   calculatePositionImpact,

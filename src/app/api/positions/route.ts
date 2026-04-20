@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
-import { fetchQuotes } from "@/lib/yahoo-finance";
+import { fetchQuotes } from "@/lib/fugle-api";
 import type { Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";
 

@@ -5,7 +5,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { fetchQuotes } from "@/lib/yahoo-finance";
+import { fetchQuotes } from "@/lib/fugle-api";
 
 import type { PnLSummary } from "@/types/trade";
 import type { Market } from "@/types/taiwan";
