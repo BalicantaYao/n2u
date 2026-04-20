@@ -1,5 +1,6 @@
 import { PositionsContent } from "@/components/positions/PositionsContent";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/session";
 import { fetchQuotes, fetchHistorical } from "@/lib/fugle-api";
 import { calculateMA } from "@/lib/stop-loss-calculator";
 import type { Market } from "@/types/taiwan";
@@ -8,9 +9,9 @@ import type { OHLCVBar } from "@/types/market";
 
 export const dynamic = "force-dynamic";
 
-async function getOpenPositions(): Promise<Position[]> {
+async function getOpenPositions(userId: string): Promise<Position[]> {
   const lots = await prisma.positionLot.findMany({
-    where: { isOpen: true },
+    where: { isOpen: true, userId },
     include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true, notes: true } } },
   });
 
@@ -107,7 +108,9 @@ async function getOpenPositions(): Promise<Position[]> {
 }
 
 export default async function PositionsPage() {
-  const positions = await getOpenPositions();
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
+  const positions = await getOpenPositions(auth.userId);
 
   const totalCost = positions.reduce((s, p) => s + p.totalCost, 0);
   const totalMarketValue = positions.reduce(
