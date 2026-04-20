@@ -15,6 +15,8 @@ interface MaxLossPreviewProps {
   stopLoss: number;
   side: Side;
   isETF: boolean;
+  /** 編輯既有交易時傳入，API 會排除該交易的 lots，避免把自己當成既有部位重複計算 */
+  editingTradeId?: string;
 }
 
 interface ExistingPosition {
@@ -30,6 +32,7 @@ export function MaxLossPreview({
   stopLoss,
   side,
   isETF,
+  editingTradeId,
 }: MaxLossPreviewProps) {
   const { t } = useT();
   const [position, setPosition] = useState<ExistingPosition | null>(null);
@@ -53,7 +56,10 @@ export function MaxLossPreview({
       const controller = new AbortController();
       abortRef.current = controller;
 
-      fetch(`/api/positions/by-symbol?symbol=${encodeURIComponent(symbol)}`, {
+      const params = new URLSearchParams({ symbol });
+      if (editingTradeId) params.set("excludeTradeId", editingTradeId);
+
+      fetch(`/api/positions/by-symbol?${params}`, {
         signal: controller.signal,
       })
         .then((res) => res.json())
@@ -70,7 +76,7 @@ export function MaxLossPreview({
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (abortRef.current) abortRef.current.abort();
     };
-  }, [symbol, canShow]);
+  }, [symbol, canShow, editingTradeId]);
 
   if (!canShow) {
     return null;
