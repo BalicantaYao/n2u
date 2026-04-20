@@ -18,7 +18,9 @@ export interface TPEXStock {
 }
 
 const TWSE_BASE = "https://openapi.twse.com.tw/v1";
-const TPEX_BASE = "https://www.tpex.org.tw/openapi/v1";
+// TPEX OpenAPI (`www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O`) 於 2024 網站改版後
+// 已失效（回 403）。改用 TWSE ISIN 清冊（strMode=4 = 上櫃），為 Big5 編碼 HTML。
+const TPEX_ISIN_URL = "https://isin.twse.com.tw/isin/C_public.jsp?strMode=4";
 
 // In-memory cache with TTL
 const cache = new Map<string, { data: unknown; expiresAt: number }>();
@@ -45,7 +47,10 @@ export async function fetchTWSEStocks(): Promise<TWSEStock[]> {
     const res = await fetch(`${TWSE_BASE}/opendata/t187ap03_L`, {
       next: { revalidate: 86400 },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.error(`[twse-api] TWSE stocks HTTP ${res.status}`);
+      return [];
+    }
     const data = await res.json();
     const stocks: TWSEStock[] = (Array.isArray(data) ? data : [])
       .filter((item: Record<string, string>) => item["公司代號"] && item["公司簡稱"])
@@ -56,7 +61,8 @@ export async function fetchTWSEStocks(): Promise<TWSEStock[]> {
       }));
     setCache(cacheKey, stocks, 24 * 60 * 60 * 1000);
     return stocks;
-  } catch {
+  } catch (err) {
+    console.error("[twse-api] TWSE stocks fetch failed:", err);
     return [];
   }
 }
@@ -68,21 +74,34 @@ export async function fetchTPEXStocks(): Promise<TPEXStock[]> {
   if (cached) return cached;
 
   try {
-    const res = await fetch(`${TPEX_BASE}/mopsfin_t187ap03_O`, {
-      next: { revalidate: 86400 },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const stocks: TPEXStock[] = (Array.isArray(data) ? data : [])
-      .filter((item: Record<string, string>) => item["公司代號"] && item["公司簡稱"])
-      .map((item: Record<string, string>) => ({
-        symbol: item["公司代號"].trim(),
-        name: item["公司簡稱"].trim(),
-        market: "TPEX" as const,
-      }));
+    const res = await fetch(TPEX_ISIN_URL, { next: { revalidate: 86400 } });
+    if (!res.ok) {
+      console.error(`[twse-api] TPEX ISIN HTTP ${res.status}`);
+      return [];
+    }
+    const buf = await res.arrayBuffer();
+    const html = new TextDecoder("big5").decode(buf);
+
+    // ISIN 頁面第一欄格式為「<代號>　<名稱>」（全形空白 U+3000）。
+    // 只取 4 碼數字代號的普通股票（排除 ETN、權證、TDR、特別股等非 4 碼代號）。
+    const re = /<td[^>]*>\s*(\d{4})\u3000([^<]+?)\s*<\/td>/g;
+    const seen = new Set<string>();
+    const stocks: TPEXStock[] = [];
+    for (const m of html.matchAll(re)) {
+      const symbol = m[1];
+      const name = m[2].trim();
+      if (!symbol || !name || seen.has(symbol)) continue;
+      seen.add(symbol);
+      stocks.push({ symbol, name, market: "TPEX" });
+    }
+
+    if (stocks.length === 0) {
+      console.error("[twse-api] TPEX ISIN parsed 0 stocks (page format may have changed)");
+    }
     setCache(cacheKey, stocks, 24 * 60 * 60 * 1000);
     return stocks;
-  } catch {
+  } catch (err) {
+    console.error("[twse-api] TPEX ISIN fetch failed:", err);
     return [];
   }
 }
