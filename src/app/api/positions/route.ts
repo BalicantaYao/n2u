@@ -13,7 +13,7 @@ export async function GET() {
 
   const lots = await prisma.positionLot.findMany({
     where: { isOpen: true, userId: auth.userId },
-    include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true, notes: true } } },
+    include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true, notes: true, isETF: true } } },
   });
 
   // group by symbol
@@ -23,6 +23,7 @@ export async function GET() {
       symbol: string;
       market: Market;
       symbolName?: string;
+      isETF?: boolean;
       totalShares: number;
       totalCost: number;
       stopLoss?: number;
@@ -36,6 +37,7 @@ export async function GET() {
     if (existing) {
       existing.totalShares += lot.shares;
       existing.totalCost += lot.shares * lot.costPerShare;
+      if (lot.openTrade.isETF) existing.isETF = true;
       if (lot.openTrade.stopLoss != null) existing.stopLoss = lot.openTrade.stopLoss;
       if (lot.openTrade.takeProfit != null) existing.takeProfit = lot.openTrade.takeProfit;
       if (lot.openTrade.notes && !existing.notes.includes(lot.openTrade.notes)) {
@@ -46,6 +48,7 @@ export async function GET() {
         symbol: lot.symbol,
         market: lot.market as Market,
         symbolName: lot.openTrade.symbolName ?? undefined,
+        isETF: lot.openTrade.isETF,
         totalShares: lot.shares,
         totalCost: lot.shares * lot.costPerShare,
         stopLoss: lot.openTrade.stopLoss ?? undefined,
@@ -78,6 +81,7 @@ export async function GET() {
       symbol: p.symbol,
       symbolName: p.symbolName ?? quote?.symbolName,
       market: p.market,
+      isETF: p.isETF,
       totalShares: p.totalShares,
       avgCostPerShare,
       totalCost: p.totalCost,

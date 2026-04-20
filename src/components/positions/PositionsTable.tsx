@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTWD, formatPct, cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -12,6 +14,7 @@ import {
   ChevronDown,
   StickyNote,
   Activity,
+  Plus,
 } from "lucide-react";
 import type { Position } from "@/types/trade";
 
@@ -58,6 +61,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.unrealizedHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.returnHeader")}</th>
+                  <th className="w-12 px-2 py-3" />
                 </tr>
               </thead>
                 {positions.map((pos) => {
@@ -278,12 +282,43 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                             ? formatPct(pos.unrealizedPnLPct)
                             : "—"}
                         </td>
+
+                        {/* Add Trade Record */}
+                        <td
+                          className="px-2 py-3 text-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2"
+                          >
+                            <Link
+                              href={{
+                                pathname: "/journal/new",
+                                query: {
+                                  symbol: pos.symbol,
+                                  ...(pos.symbolName
+                                    ? { symbolName: pos.symbolName }
+                                    : {}),
+                                  market: pos.market,
+                                  ...(pos.isETF ? { isETF: "1" } : {}),
+                                },
+                              }}
+                              aria-label={t("positions.addTradeRecord")}
+                              title={t("positions.addTradeRecord")}
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </Link>
+                          </Button>
+                        </td>
                       </tr>
 
                       {/* Expanded notes sub-row */}
                       {isExp && hasNotes && (
                         <tr className="bg-muted/20 border-b">
-                          <td colSpan={10} className="px-8 py-3">
+                          <td colSpan={11} className="px-8 py-3">
                             <div className="text-xs space-y-1.5">
                               <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
                               {pos.notes.map((note, i) => (

@@ -52,6 +52,7 @@ export interface Position {
   symbol: string;
   symbolName?: string;
   market: Market;
+  isETF?: boolean;
   totalShares: number;
   avgCostPerShare: number;
   totalCost: number;

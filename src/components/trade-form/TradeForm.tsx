@@ -23,12 +23,19 @@ interface TradeFormProps {
   mode?: "create" | "edit";
   initialData?: Trade;
   editableFields?: "all" | "metadata-only";
+  defaults?: {
+    symbol?: string;
+    symbolName?: string;
+    market?: Market;
+    isETF?: boolean;
+  };
 }
 
 export function TradeForm({
   mode = "create",
   initialData,
   editableFields = "all",
+  defaults,
 }: TradeFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -37,13 +44,15 @@ export function TradeForm({
   const isEdit = mode === "edit";
   const metadataOnly = editableFields === "metadata-only";
 
-  // Form state — initialized from initialData when editing
-  const [symbol, setSymbol] = useState(initialData?.symbol ?? "");
-  const [symbolName, setSymbolName] = useState(initialData?.symbolName ?? "");
-  const [market, setMarket] = useState<Market>(
-    (initialData?.market as Market) ?? "TWSE"
+  // Form state — initialized from initialData when editing, falling back to defaults
+  const [symbol, setSymbol] = useState(initialData?.symbol ?? defaults?.symbol ?? "");
+  const [symbolName, setSymbolName] = useState(
+    initialData?.symbolName ?? defaults?.symbolName ?? ""
   );
-  const [isETF, setIsETF] = useState(initialData?.isETF ?? false);
+  const [market, setMarket] = useState<Market>(
+    (initialData?.market as Market) ?? defaults?.market ?? "TWSE"
+  );
+  const [isETF, setIsETF] = useState(initialData?.isETF ?? defaults?.isETF ?? false);
   const [side, setSide] = useState<Side>(
     (initialData?.side as Side) ?? "BUY"
   );
