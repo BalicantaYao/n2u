@@ -1,6 +1,6 @@
 import { PositionsContent } from "@/components/positions/PositionsContent";
 import { prisma } from "@/lib/prisma";
-import { fetchQuotes, fetchHistorical } from "@/lib/yahoo-finance";
+import { fetchQuotes, fetchHistorical } from "@/lib/fugle-api";
 import { calculateMA } from "@/lib/stop-loss-calculator";
 import type { Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";

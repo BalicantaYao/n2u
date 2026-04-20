@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchTaiwanStocks } from "@/lib/twse-api";
-import { searchSymbols } from "@/lib/yahoo-finance";
+import { searchSymbols } from "@/lib/fugle-api";
 
 // GET /api/market/search?q=台積電
 export async function GET(req: NextRequest) {
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(localResults);
   }
 
-  // fallback: yahoo-finance2 search
-  const yahooResults = await searchSymbols(q);
-  return NextResponse.json(yahooResults);
+  // fallback: Fugle tickers search
+  const fugleResults = await searchSymbols(q);
+  return NextResponse.json(fugleResults);
 }

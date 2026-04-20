@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchHistorical } from "@/lib/yahoo-finance";
+import { fetchHistorical } from "@/lib/fugle-api";
 import type { Market } from "@/types/taiwan";
 
 // GET /api/market/historical?symbol=2330&market=TWSE&interval=1d&from=2024-01-01&to=2025-01-01

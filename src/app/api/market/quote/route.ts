@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchQuotes } from "@/lib/yahoo-finance";
+import { fetchQuotes } from "@/lib/fugle-api";
 import type { Market } from "@/types/taiwan";
 
 // GET /api/market/quote?symbols=2330:TWSE,3008:TPEX
