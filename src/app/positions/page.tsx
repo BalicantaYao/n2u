@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 async function getOpenPositions(userId: string): Promise<Position[]> {
   const lots = await prisma.positionLot.findMany({
     where: { isOpen: true, userId },
-    include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true, notes: true } } },
+    include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true, notes: true, isETF: true } } },
   });
 
   const map = new Map<
@@ -21,6 +21,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       symbol: string;
       market: Market;
       symbolName?: string;
+      isETF?: boolean;
       totalShares: number;
       totalCost: number;
       stopLoss?: number;
@@ -34,6 +35,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
     if (existing) {
       existing.totalShares += lot.shares;
       existing.totalCost += lot.shares * lot.costPerShare;
+      if (lot.openTrade.isETF) existing.isETF = true;
       if (lot.openTrade.stopLoss != null) existing.stopLoss = lot.openTrade.stopLoss;
       if (lot.openTrade.takeProfit != null) existing.takeProfit = lot.openTrade.takeProfit;
       if (lot.openTrade.notes && !existing.notes.includes(lot.openTrade.notes)) {
@@ -44,6 +46,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
         symbol: lot.symbol,
         market: lot.market as Market,
         symbolName: lot.openTrade.symbolName ?? undefined,
+        isETF: lot.openTrade.isETF,
         totalShares: lot.shares,
         totalCost: lot.shares * lot.costPerShare,
         stopLoss: lot.openTrade.stopLoss ?? undefined,
@@ -87,6 +90,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       symbol: p.symbol,
       symbolName: p.symbolName ?? quote?.symbolName,
       market: p.market,
+      isETF: p.isETF,
       totalShares: p.totalShares,
       avgCostPerShare,
       totalCost: p.totalCost,
