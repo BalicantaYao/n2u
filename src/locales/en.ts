@@ -177,6 +177,9 @@ const en = {
     fetchPriceSuccess: "Price updated to latest quote",
     fetchPriceFailed: "Failed to fetch current price",
     selectSymbolFirst: "Please select a symbol first",
+    currentPriceRef: "Current price",
+    currentPriceUnavailable: "Current price unavailable",
+    useCurrentPrice: "Click to use current price",
   },
 
   // ── Fee Preview ────────────────────────────────────────────

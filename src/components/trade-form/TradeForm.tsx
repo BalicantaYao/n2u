@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,11 @@ export function TradeForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [fetchingPrice, setFetchingPrice] = useState(false);
+  const [currentQuote, setCurrentQuote] = useState<{
+    price: number;
+    changePct: number;
+  } | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const { t } = useT();
 
   const isEdit = mode === "edit";
@@ -89,6 +94,45 @@ export function TradeForm({
   const lotsNum = parseInt(lots) || 0;
   const sharesNum = parseInt(shares) || 0;
 
+  async function fetchQuoteForReference(
+    sym: string,
+    mkt: Market,
+    signal?: AbortSignal
+  ): Promise<{ price: number; changePct: number } | null> {
+    const res = await fetch(
+      `/api/market/quote?symbols=${encodeURIComponent(sym)}:${mkt}`,
+      { signal }
+    );
+    if (!res.ok) return null;
+    const data: Record<string, { price?: number; changePct?: number }> =
+      await res.json();
+    const q = data[sym];
+    if (!q || q.price == null) return null;
+    return { price: q.price, changePct: q.changePct ?? 0 };
+  }
+
+  const quoteReqId = useRef(0);
+  useEffect(() => {
+    if (metadataOnly || !symbol) {
+      setCurrentQuote(null);
+      return;
+    }
+    const reqId = ++quoteReqId.current;
+    const controller = new AbortController();
+    setQuoteLoading(true);
+    fetchQuoteForReference(symbol, market, controller.signal)
+      .then((q) => {
+        if (reqId === quoteReqId.current) setCurrentQuote(q);
+      })
+      .catch(() => {
+        if (reqId === quoteReqId.current) setCurrentQuote(null);
+      })
+      .finally(() => {
+        if (reqId === quoteReqId.current) setQuoteLoading(false);
+      });
+    return () => controller.abort();
+  }, [symbol, market, metadataOnly]);
+
   async function handleFetchPrice() {
     if (!symbol) {
       toast.error(t("trade.selectSymbolFirst"));
@@ -96,17 +140,13 @@ export function TradeForm({
     }
     setFetchingPrice(true);
     try {
-      const res = await fetch(
-        `/api/market/quote?symbols=${encodeURIComponent(symbol)}:${market}`
-      );
-      if (!res.ok) throw new Error();
-      const data: Record<string, { price?: number }> = await res.json();
-      const quote = data[symbol];
-      if (!quote || quote.price == null) {
+      const q = await fetchQuoteForReference(symbol, market);
+      if (!q) {
         toast.error(t("trade.fetchPriceFailed"));
         return;
       }
-      setPrice(String(quote.price));
+      setCurrentQuote(q);
+      setPrice(String(q.price));
       toast.success(t("trade.fetchPriceSuccess"));
     } catch {
       toast.error(t("trade.fetchPriceFailed"));
@@ -402,31 +442,67 @@ export function TradeForm({
         {metadataOnly ? (
           <p className="text-sm tabular-nums">{initialData?.price?.toLocaleString()}</p>
         ) : (
-          <div className="flex gap-2 max-w-xs">
-            <Input
-              id="price"
-              type="number"
-              min={0.01}
-              step={0.01}
-              placeholder="e.g. 810.00"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              required
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleFetchPrice}
-              disabled={fetchingPrice || !symbol}
-              title={t("trade.fetchPrice")}
-            >
-              <RefreshCw
-                className={cn("h-4 w-4", fetchingPrice && "animate-spin")}
+          <>
+            <div className="flex gap-2 max-w-xs">
+              <Input
+                id="price"
+                type="number"
+                min={0.01}
+                step={0.01}
+                placeholder="e.g. 810.00"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
               />
-              <span className="ml-2 hidden sm:inline">{t("trade.fetchPrice")}</span>
-            </Button>
-          </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleFetchPrice}
+                disabled={fetchingPrice || !symbol}
+                title={t("trade.fetchPrice")}
+              >
+                <RefreshCw
+                  className={cn("h-4 w-4", fetchingPrice && "animate-spin")}
+                />
+                <span className="ml-2 hidden sm:inline">{t("trade.fetchPrice")}</span>
+              </Button>
+            </div>
+            {symbol && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>{t("trade.currentPriceRef")}:</span>
+                {quoteLoading && !currentQuote ? (
+                  <span>{t("common.loading")}</span>
+                ) : currentQuote ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setPrice(String(currentQuote.price))}
+                      title={t("trade.useCurrentPrice")}
+                      className="font-semibold tabular-nums text-foreground underline-offset-2 hover:underline"
+                    >
+                      {currentQuote.price.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </button>
+                    <span
+                      className={cn(
+                        "tabular-nums",
+                        currentQuote.changePct > 0 && "text-green-600",
+                        currentQuote.changePct < 0 && "text-red-600"
+                      )}
+                    >
+                      {currentQuote.changePct > 0 ? "+" : ""}
+                      {(currentQuote.changePct * 100).toFixed(2)}%
+                    </span>
+                  </>
+                ) : (
+                  <span>{t("trade.currentPriceUnavailable")}</span>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 

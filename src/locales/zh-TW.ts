@@ -177,6 +177,9 @@ const zhTW = {
     fetchPriceSuccess: "已更新為最新現價",
     fetchPriceFailed: "取得現價失敗，請稍後再試",
     selectSymbolFirst: "請先選擇標的",
+    currentPriceRef: "現價參考",
+    currentPriceUnavailable: "無法取得現價",
+    useCurrentPrice: "點擊以套用現價",
   },
 
   // ── Fee Preview ────────────────────────────────────────────
