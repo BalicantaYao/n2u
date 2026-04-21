@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { formatTWD, formatDate, formatShares } from "@/lib/utils";
+import { formatTWD, formatDate, formatShares, tradingViewUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import type { Trade } from "@/types/trade";
@@ -37,7 +37,15 @@ export function RecentTrades({ trades }: { trades: Trade[] }) {
                 {formatDate(tr.tradeDate)}
               </td>
               <td className="py-2.5 pr-4">
-                <span className="font-medium">{tr.symbol}</span>
+                <a
+                  href={tradingViewUrl(tr.symbol, tr.market)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium hover:text-primary hover:underline"
+                  title="View on TradingView"
+                >
+                  {tr.symbol}
+                </a>
                 {tr.symbolName && (
                   <span className="text-muted-foreground ml-1.5 text-xs">{tr.symbolName}</span>
                 )}

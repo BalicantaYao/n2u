@@ -7,7 +7,6 @@ import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   BookOpen,
-  LineChart,
   TrendingUp,
   Briefcase,
   BarChart3,
@@ -22,7 +21,6 @@ const navItems = [
   { href: "/journal", labelKey: "nav.journal", icon: BookOpen },
   { href: "/positions", labelKey: "nav.positions", icon: Briefcase },
   { href: "/results", labelKey: "nav.results", icon: BarChart3 },
-  { href: "/charts", labelKey: "nav.charts", icon: LineChart },
 ];
 
 export function Sidebar() {

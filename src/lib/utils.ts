@@ -61,3 +61,8 @@ export function getTodayTW(): string {
   return new Date()
     .toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
 }
+
+/** 組出 TradingView 上台股頁面的 URL，例如 2330 TWSE → https://www.tradingview.com/symbols/TWSE-2330/ */
+export function tradingViewUrl(symbol: string, market: "TWSE" | "TPEX"): string {
+  return `https://www.tradingview.com/symbols/${market}-${symbol}/`;
+}

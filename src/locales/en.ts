@@ -16,7 +16,6 @@ const en = {
     positionsShort: "Positions",
     results: "Results",
     resultsShort: "Results",
-    charts: "Charts",
   },
 
   // ── Sidebar / Footer ───────────────────────────────────────
@@ -302,36 +301,6 @@ const en = {
     profit: "Profit",
     loss: "Loss",
     breakeven: "Break Even",
-  },
-
-  // ── Charts ─────────────────────────────────────────────────
-  charts: {
-    title: "Charts",
-    searchPlaceholder: "Enter stock symbol or name...",
-    change: "Change",
-    open: "Open",
-    high: "High",
-    low: "Low",
-    prevClose: "Prev Close",
-    volume: "Volume",
-    volumeUnit: "lots",
-    range1m: "1M",
-    range3m: "3M",
-    range6m: "6M",
-    range1y: "1Y",
-    range3y: "3Y",
-    daily: "D",
-    weekly: "W",
-    monthly: "M",
-    searchToShow: "Search a stock symbol to display the chart",
-    close: "Close: ",
-    openTooltip: "Open: ",
-    highTooltip: "High: ",
-    lowTooltip: "Low: ",
-    limitUp: "Limit Up",
-    limitDown: "Limit Down",
-    volumeTooltip: "Volume",
-    kShares: "K shares",
   },
 } as const;
 
