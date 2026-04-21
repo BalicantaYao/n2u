@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatTWD, formatDate, formatShares, cn } from "@/lib/utils";
+import { formatTWD, formatDate, formatShares, cn, tradingViewUrl } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { ChevronDown, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import type { Trade } from "@/types/trade";
@@ -48,7 +48,16 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
               {/* Row 1: symbol + badge + delete */}
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-base">{tr.symbol}</span>
+                  <a
+                    href={tradingViewUrl(tr.symbol, tr.market)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="font-semibold text-base hover:text-primary hover:underline"
+                    title="View on TradingView"
+                  >
+                    {tr.symbol}
+                  </a>
                   {tr.symbolName && (
                     <span className="text-xs text-muted-foreground">{tr.symbolName}</span>
                   )}
@@ -203,7 +212,16 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                   </td>
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium">{tr.symbol}</span>
+                      <a
+                        href={tradingViewUrl(tr.symbol, tr.market)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="font-medium hover:text-primary hover:underline"
+                        title="View on TradingView"
+                      >
+                        {tr.symbol}
+                      </a>
                       <Badge
                         variant={tr.market === "TWSE" ? "twse" : "tpex"}
                         className="text-xs py-0"

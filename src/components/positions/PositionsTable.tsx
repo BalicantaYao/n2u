@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatTWD, formatPct, cn } from "@/lib/utils";
+import { formatTWD, formatPct, cn, tradingViewUrl } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import {
   Briefcase,
@@ -95,7 +95,16 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                           <div className="flex items-center gap-2">
                             <div>
                               <div className="flex items-center gap-1.5">
-                                <span className="font-semibold tabular-nums">{pos.symbol}</span>
+                                <a
+                                  href={tradingViewUrl(pos.symbol, pos.market)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="font-semibold tabular-nums hover:text-primary hover:underline"
+                                  title="View on TradingView"
+                                >
+                                  {pos.symbol}
+                                </a>
                                 {pos.isStopLossAlert && (
                                   <span title={t("positions.stopLossAlert")}>
                                     <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
