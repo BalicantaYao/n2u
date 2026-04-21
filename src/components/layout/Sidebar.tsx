@@ -10,6 +10,7 @@ import {
   TrendingUp,
   Briefcase,
   BarChart3,
+  StickyNote,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/journal", labelKey: "nav.journal", icon: BookOpen },
   { href: "/positions", labelKey: "nav.positions", icon: Briefcase },
   { href: "/results", labelKey: "nav.results", icon: BarChart3 },
+  { href: "/memos", labelKey: "nav.memos", icon: StickyNote },
 ];
 
 export function Sidebar() {
