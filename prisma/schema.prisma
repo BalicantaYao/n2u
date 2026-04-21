@@ -71,7 +71,6 @@ model Trade {
   isETF          Boolean  @default(false)
 
   stopLoss       Float?
-  takeProfit     Float?
   notes          String?
   tags           String?
 

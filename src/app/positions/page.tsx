@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 async function getOpenPositions(userId: string): Promise<Position[]> {
   const lots = await prisma.positionLot.findMany({
     where: { isOpen: true, userId },
-    include: { openTrade: { select: { stopLoss: true, takeProfit: true, symbolName: true, notes: true, isETF: true } } },
+    include: { openTrade: { select: { stopLoss: true, symbolName: true, notes: true, isETF: true } } },
   });
 
   const map = new Map<
@@ -25,7 +25,6 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       totalShares: number;
       totalCost: number;
       stopLoss?: number;
-      takeProfit?: number;
       notes: string[];
       latestOpenBuyTradeId?: string;
       latestOpenDate?: Date;
@@ -38,10 +37,9 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       existing.totalShares += lot.shares;
       existing.totalCost += lot.shares * lot.costPerShare;
       if (lot.openTrade.isETF) existing.isETF = true;
-      // invariant: 同 symbol 所有開倉中 BUY trades 的 stopLoss / takeProfit 會在寫入時同步（PUT /api/trades/[id]），
+      // invariant: 同 symbol 所有開倉中 BUY trades 的 stopLoss 會在寫入時同步（PUT /api/trades/[id]），
       // 所以這裡取「最後一筆非空值」的結果對所有進場筆都一致。
       if (lot.openTrade.stopLoss != null) existing.stopLoss = lot.openTrade.stopLoss;
-      if (lot.openTrade.takeProfit != null) existing.takeProfit = lot.openTrade.takeProfit;
       if (lot.openTrade.notes && !existing.notes.includes(lot.openTrade.notes)) {
         existing.notes.push(lot.openTrade.notes);
       }
@@ -58,7 +56,6 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
         totalShares: lot.shares,
         totalCost: lot.shares * lot.costPerShare,
         stopLoss: lot.openTrade.stopLoss ?? undefined,
-        takeProfit: lot.openTrade.takeProfit ?? undefined,
         notes: lot.openTrade.notes ? [lot.openTrade.notes] : [],
         latestOpenBuyTradeId: lot.openTradeId,
         latestOpenDate: lot.openDate,
@@ -116,13 +113,10 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       pnlAtStopLoss,
       pnlAtStopLossPct,
       latestOpenBuyTradeId: p.latestOpenBuyTradeId,
-      takeProfit: p.takeProfit,
       ma5,
       ma10,
       isStopLossAlert:
         currentPrice != null && p.stopLoss != null ? currentPrice <= p.stopLoss : false,
-      isTakeProfitAlert:
-        currentPrice != null && p.takeProfit != null ? currentPrice >= p.takeProfit : false,
       notes: p.notes,
     };
   });

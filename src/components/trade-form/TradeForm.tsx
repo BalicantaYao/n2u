@@ -80,9 +80,6 @@ export function TradeForm({
   const [stopLoss, setStopLoss] = useState<string>(
     initialData?.stopLoss != null ? String(initialData.stopLoss) : ""
   );
-  const [takeProfit, setTakeProfit] = useState<string>(
-    initialData?.takeProfit != null ? String(initialData.takeProfit) : ""
-  );
   const [notes, setNotes] = useState(initialData?.notes ?? "");
 
   const priceNum = parseFloat(price) || 0;
@@ -127,7 +124,6 @@ export function TradeForm({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             stopLoss: stopLoss ? parseFloat(stopLoss) : null,
-            takeProfit: takeProfit ? parseFloat(takeProfit) : null,
             notes: notes || null,
           }),
         });
@@ -165,7 +161,6 @@ export function TradeForm({
         price: priceNum,
         isETF,
         stopLoss: stopLoss ? parseFloat(stopLoss) : undefined,
-        takeProfit: takeProfit ? parseFloat(takeProfit) : undefined,
         notes: notes || undefined,
       };
 
@@ -430,48 +425,26 @@ export function TradeForm({
         )}
       </div>
 
-      {/* Stop Loss & Take Profit */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="stopLoss">
-            {t("trade.stopLoss")}
-            <span className="ml-1 text-xs text-muted-foreground">{t("common.optional")}</span>
-          </Label>
-          <Input
-            id="stopLoss"
-            type="number"
-            min={0.01}
-            step={0.01}
-            placeholder="e.g. 750.00"
-            value={stopLoss}
-            onChange={(e) => setStopLoss(e.target.value)}
-          />
-          {stopLoss && priceNum > 0 && (
-            <p className="text-xs text-red-500">
-              {t("trade.stopLossDistance", { pct: (((parseFloat(stopLoss) - priceNum) / priceNum) * 100).toFixed(2) })}
-            </p>
-          )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="takeProfit">
-            {t("trade.takeProfit")}
-            <span className="ml-1 text-xs text-muted-foreground">{t("common.optional")}</span>
-          </Label>
-          <Input
-            id="takeProfit"
-            type="number"
-            min={0.01}
-            step={0.01}
-            placeholder="e.g. 900.00"
-            value={takeProfit}
-            onChange={(e) => setTakeProfit(e.target.value)}
-          />
-          {takeProfit && priceNum > 0 && (
-            <p className="text-xs text-green-600">
-              {t("trade.takeProfitDistance", { pct: (((parseFloat(takeProfit) - priceNum) / priceNum) * 100).toFixed(2) })}
-            </p>
-          )}
-        </div>
+      {/* Stop Loss */}
+      <div className="space-y-2">
+        <Label htmlFor="stopLoss">
+          {t("trade.stopLoss")}
+          <span className="ml-1 text-xs text-muted-foreground">{t("common.optional")}</span>
+        </Label>
+        <Input
+          id="stopLoss"
+          type="number"
+          min={0.01}
+          step={0.01}
+          placeholder="e.g. 750.00"
+          value={stopLoss}
+          onChange={(e) => setStopLoss(e.target.value)}
+        />
+        {stopLoss && priceNum > 0 && (
+          <p className="text-xs text-red-500">
+            {t("trade.stopLossDistance", { pct: (((parseFloat(stopLoss) - priceNum) / priceNum) * 100).toFixed(2) })}
+          </p>
+        )}
       </div>
 
       {/* Stop Loss Helper */}

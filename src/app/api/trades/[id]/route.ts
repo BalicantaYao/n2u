@@ -10,7 +10,7 @@ const CORE_FIELDS = [
   "lotType", "lots", "shares", "price", "isETF",
 ];
 
-const METADATA_FIELDS = ["notes", "tags", "stopLoss", "takeProfit"];
+const METADATA_FIELDS = ["notes", "tags", "stopLoss"];
 
 export async function GET(
   _req: NextRequest,
@@ -50,18 +50,16 @@ export async function PUT(
     (f) => f in body && body[f] !== (existing as Record<string, unknown>)[f]
   );
 
-  // Metadata-only update (notes, tags, stopLoss, takeProfit)
+  // Metadata-only update (notes, tags, stopLoss)
   if (!hasCoreChange) {
     const data: Record<string, unknown> = {};
     for (const key of METADATA_FIELDS) {
       if (key in body) data[key] = body[key];
     }
 
-    // 整體部位停損／停利：若 stopLoss 或 takeProfit 有變化，同步到該部位其他仍有開倉 lot 的 BUY trades
+    // 整體部位停損：若 stopLoss 有變化，同步到該部位其他仍有開倉 lot 的 BUY trades
     const stopLossChanged =
       "stopLoss" in body && body.stopLoss !== existing.stopLoss;
-    const takeProfitChanged =
-      "takeProfit" in body && body.takeProfit !== existing.takeProfit;
 
     const trade = await prisma.$transaction(
       async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
@@ -70,14 +68,7 @@ export async function PUT(
           data,
         });
 
-        if (
-          existing.side === "BUY" &&
-          (stopLossChanged || takeProfitChanged)
-        ) {
-          const propagate: Record<string, unknown> = {};
-          if (stopLossChanged) propagate.stopLoss = body.stopLoss ?? null;
-          if (takeProfitChanged) propagate.takeProfit = body.takeProfit ?? null;
-
+        if (existing.side === "BUY" && stopLossChanged) {
           await tx.trade.updateMany({
             where: {
               userId: auth.userId,
@@ -86,7 +77,7 @@ export async function PUT(
               id: { not: existing.id },
               positionLots: { some: { isOpen: true } },
             },
-            data: propagate,
+            data: { stopLoss: body.stopLoss ?? null },
           });
         }
 
@@ -154,7 +145,6 @@ export async function PUT(
     const trade = await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
       // Update metadata fields alongside core fields
       const stopLoss = "stopLoss" in body ? body.stopLoss : existing.stopLoss;
-      const takeProfit = "takeProfit" in body ? body.takeProfit : existing.takeProfit;
       const notes = "notes" in body ? body.notes : existing.notes;
       const tags = "tags" in body ? body.tags : existing.tags;
 
@@ -178,7 +168,6 @@ export async function PUT(
           netAmount: fees.netAmount,
           isETF,
           stopLoss,
-          takeProfit,
           notes,
           tags,
         },
@@ -199,27 +188,19 @@ export async function PUT(
         });
       }
 
-      // 整體部位停損／停利：若 symbol 未變動且 stopLoss / takeProfit 變了，同步給其他仍有開倉的 BUY trades
+      // 整體部位停損：若 symbol 未變動且 stopLoss 變了，同步給其他仍有開倉的 BUY trades
       const symbolUnchanged = symbol === existing.symbol;
-      if (side === "BUY" && symbolUnchanged) {
-        const stopLossChanged = stopLoss !== existing.stopLoss;
-        const takeProfitChanged = takeProfit !== existing.takeProfit;
-        if (stopLossChanged || takeProfitChanged) {
-          const propagate: Record<string, unknown> = {};
-          if (stopLossChanged) propagate.stopLoss = stopLoss ?? null;
-          if (takeProfitChanged) propagate.takeProfit = takeProfit ?? null;
-
-          await tx.trade.updateMany({
-            where: {
-              userId: auth.userId,
-              symbol,
-              side: "BUY",
-              id: { not: existing.id },
-              positionLots: { some: { isOpen: true } },
-            },
-            data: propagate,
-          });
-        }
+      if (side === "BUY" && symbolUnchanged && stopLoss !== existing.stopLoss) {
+        await tx.trade.updateMany({
+          where: {
+            userId: auth.userId,
+            symbol,
+            side: "BUY",
+            id: { not: existing.id },
+            positionLots: { some: { isOpen: true } },
+          },
+          data: { stopLoss: stopLoss ?? null },
+        });
       }
 
       return updated;

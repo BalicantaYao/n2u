@@ -152,16 +152,6 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                       </p>
                     </div>
                   )}
-                  {tr.takeProfit && (
-                    <div>
-                      <p className="text-muted-foreground mb-0.5 flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3 text-green-500" />{t("journal.takeProfit")}
-                      </p>
-                      <p className="tabular-nums text-green-600 dark:text-green-400 font-medium">
-                        {tr.takeProfit.toLocaleString()}
-                      </p>
-                    </div>
-                  )}
                   {tr.notes && (
                     <div className="col-span-2">
                       <p className="text-muted-foreground mb-0.5">{t("common.notes")}</p>
@@ -303,31 +293,16 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                           <p className="text-muted-foreground mb-0.5">{t("journal.type")}</p>
                           <p>{tr.isETF ? "ETF" : t("common.stock")} / {tr.lotType === "ROUND" ? t("common.roundLot") : t("common.oddLot")}</p>
                         </div>
-                        {(tr.stopLoss || tr.takeProfit) && (
-                          <>
-                            {tr.stopLoss && (
-                              <div>
-                                <p className="text-muted-foreground mb-0.5 flex items-center gap-1">
-                                  <AlertTriangle className="h-3 w-3 text-red-500" />
-                                  {t("journal.stopLoss")}
-                                </p>
-                                <p className="tabular-nums text-red-600 dark:text-red-400 font-medium">
-                                  {tr.stopLoss.toLocaleString()} TWD
-                                </p>
-                              </div>
-                            )}
-                            {tr.takeProfit && (
-                              <div>
-                                <p className="text-muted-foreground mb-0.5 flex items-center gap-1">
-                                  <AlertTriangle className="h-3 w-3 text-green-500" />
-                                  {t("journal.takeProfit")}
-                                </p>
-                                <p className="tabular-nums text-green-600 dark:text-green-400 font-medium">
-                                  {tr.takeProfit.toLocaleString()} TWD
-                                </p>
-                              </div>
-                            )}
-                          </>
+                        {tr.stopLoss && (
+                          <div>
+                            <p className="text-muted-foreground mb-0.5 flex items-center gap-1">
+                              <AlertTriangle className="h-3 w-3 text-red-500" />
+                              {t("journal.stopLoss")}
+                            </p>
+                            <p className="tabular-nums text-red-600 dark:text-red-400 font-medium">
+                              {tr.stopLoss.toLocaleString()} TWD
+                            </p>
+                          </div>
                         )}
                         {tr.notes && (
                           <div className="col-span-2 md:col-span-4">
