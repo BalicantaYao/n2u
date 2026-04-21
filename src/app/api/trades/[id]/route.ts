@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
@@ -92,6 +93,10 @@ export async function PUT(
         return updated;
       }
     );
+
+    revalidatePath("/positions");
+    revalidatePath("/journal");
+    revalidatePath(`/journal/${params.id}/edit`);
 
     return NextResponse.json(trade);
   }
@@ -219,6 +224,10 @@ export async function PUT(
 
       return updated;
     });
+
+    revalidatePath("/positions");
+    revalidatePath("/journal");
+    revalidatePath(`/journal/${params.id}/edit`);
 
     return NextResponse.json(trade);
   } catch (error) {
