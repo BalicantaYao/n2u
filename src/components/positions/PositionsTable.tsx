@@ -196,26 +196,29 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         </td>
 
                         {/* Stop Loss + distance % */}
-                        <td className="px-4 py-3 text-right">
-                          {pos.stopLoss == null ? (
-                            <div className="tabular-nums text-muted-foreground">—</div>
-                          ) : (
-                            (() => {
-                              const distance =
-                                pos.currentPrice != null
-                                  ? (pos.currentPrice - pos.stopLoss) / pos.stopLoss
-                                  : null;
-                              const priceColor = pos.isStopLossAlert
-                                ? "text-red-600 dark:text-red-400 font-medium"
-                                : distance != null && distance < 0.03
-                                ? "text-amber-600 dark:text-amber-400"
-                                : "";
-                              const distanceColor = pos.isStopLossAlert
-                                ? "text-red-600 dark:text-red-400 font-medium"
-                                : distance != null && distance < 0.03
-                                ? "text-amber-600 dark:text-amber-400"
-                                : "text-muted-foreground";
-                              return (
+                        <td
+                          className="px-4 py-3 text-right"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {(() => {
+                            const distance =
+                              pos.stopLoss != null && pos.currentPrice != null
+                                ? (pos.currentPrice - pos.stopLoss) / pos.stopLoss
+                                : null;
+                            const priceColor = pos.isStopLossAlert
+                              ? "text-red-600 dark:text-red-400 font-medium"
+                              : distance != null && distance < 0.03
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "";
+                            const distanceColor = pos.isStopLossAlert
+                              ? "text-red-600 dark:text-red-400 font-medium"
+                              : distance != null && distance < 0.03
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-muted-foreground";
+                            const content =
+                              pos.stopLoss == null ? (
+                                <div className="tabular-nums text-muted-foreground">—</div>
+                              ) : (
                                 <>
                                   <div
                                     className={cn(
@@ -238,8 +241,20 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                                   </div>
                                 </>
                               );
-                            })()
-                          )}
+
+                            if (!pos.latestOpenBuyTradeId) return content;
+
+                            return (
+                              <Link
+                                href={`/journal/${pos.latestOpenBuyTradeId}/edit`}
+                                title={t("positions.editStopLoss")}
+                                aria-label={t("positions.editStopLoss")}
+                                className="block -mx-2 -my-1 px-2 py-1 rounded hover:bg-muted/60 transition-colors"
+                              >
+                                {content}
+                              </Link>
+                            );
+                          })()}
                         </td>
 
                         {/* Hypothetical P&L @ Stop-Loss */}
