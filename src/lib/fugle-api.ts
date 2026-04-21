@@ -202,7 +202,11 @@ export async function searchSymbols(query: string): Promise<SearchResult[]> {
   if (!q) return [];
 
   return tickers
-    .filter((t) => t.symbol.includes(q) || t.name.toLowerCase().includes(q))
+    .filter((t) => {
+      const symbol = t.symbol ?? "";
+      const name = t.name ?? "";
+      return symbol.includes(q) || name.toLowerCase().includes(q);
+    })
     .slice(0, 10)
     .map((t) => ({
       symbol: t.symbol,

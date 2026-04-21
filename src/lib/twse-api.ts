@@ -115,10 +115,10 @@ export async function searchTaiwanStocks(query: string) {
   const all = [...twse, ...tpex];
   const q = query.toLowerCase().trim();
   return all
-    .filter(
-      (s) =>
-        s.symbol.includes(q) ||
-        s.name.toLowerCase().includes(q)
-    )
+    .filter((s) => {
+      const symbol = s.symbol ?? "";
+      const name = s.name ?? "";
+      return symbol.includes(q) || name.toLowerCase().includes(q);
+    })
     .slice(0, 10);
 }
