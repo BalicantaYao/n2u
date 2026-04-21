@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatTWD, formatPct, formatDate } from "@/lib/utils";
+import { formatTWD, formatPct, formatDate, tradingViewUrl } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import type { SymbolResult, SellTradeDetail } from "@/types/trade";
 
@@ -72,7 +72,16 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
                     )}
                   </td>
                   <td className="py-2.5 px-3">
-                    <div className="font-medium">{row.symbol}</div>
+                    <a
+                      href={tradingViewUrl(row.symbol, row.market)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="font-medium hover:text-primary hover:underline"
+                      title="View on TradingView"
+                    >
+                      {row.symbol}
+                    </a>
                     {row.symbolName && (
                       <div className="text-xs text-muted-foreground">{row.symbolName}</div>
                     )}
@@ -188,6 +197,7 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
         ...tr,
         symbol: s.symbol,
         symbolName: s.symbolName,
+        market: s.market,
       }))
     )
     .sort((a, b) => (b.tradeDate > a.tradeDate ? 1 : -1));
@@ -233,7 +243,15 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
                   {formatDate(tr.tradeDate)}
                 </td>
                 <td className="py-2.5 px-3">
-                  <div className="font-medium">{tr.symbol}</div>
+                  <a
+                    href={tradingViewUrl(tr.symbol, tr.market)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium hover:text-primary hover:underline"
+                    title="View on TradingView"
+                  >
+                    {tr.symbol}
+                  </a>
                   {tr.symbolName && (
                     <div className="text-xs text-muted-foreground">{tr.symbolName}</div>
                   )}
