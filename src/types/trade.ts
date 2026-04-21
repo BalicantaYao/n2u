@@ -63,6 +63,7 @@ export interface Position {
   stopLoss?: number;
   pnlAtStopLoss?: number;
   pnlAtStopLossPct?: number;
+  latestOpenBuyTradeId?: string;
   takeProfit?: number;
   ma5?: number;
   ma10?: number;

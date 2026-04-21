@@ -27,6 +27,8 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       stopLoss?: number;
       takeProfit?: number;
       notes: string[];
+      latestOpenBuyTradeId?: string;
+      latestOpenDate?: Date;
     }
   >();
 
@@ -43,6 +45,10 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       if (lot.openTrade.notes && !existing.notes.includes(lot.openTrade.notes)) {
         existing.notes.push(lot.openTrade.notes);
       }
+      if (!existing.latestOpenDate || lot.openDate > existing.latestOpenDate) {
+        existing.latestOpenDate = lot.openDate;
+        existing.latestOpenBuyTradeId = lot.openTradeId;
+      }
     } else {
       map.set(lot.symbol, {
         symbol: lot.symbol,
@@ -54,6 +60,8 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
         stopLoss: lot.openTrade.stopLoss ?? undefined,
         takeProfit: lot.openTrade.takeProfit ?? undefined,
         notes: lot.openTrade.notes ? [lot.openTrade.notes] : [],
+        latestOpenBuyTradeId: lot.openTradeId,
+        latestOpenDate: lot.openDate,
       });
     }
   }
@@ -107,6 +115,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       stopLoss: p.stopLoss,
       pnlAtStopLoss,
       pnlAtStopLossPct,
+      latestOpenBuyTradeId: p.latestOpenBuyTradeId,
       takeProfit: p.takeProfit,
       ma5,
       ma10,

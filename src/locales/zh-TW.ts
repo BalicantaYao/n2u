@@ -276,6 +276,7 @@ const zhTW = {
     ma10: "10日均線",
     refresh: "刷新報價",
     addTradeRecord: "新增交易",
+    editStopLoss: "編輯最新一筆的停損價",
   },
 
   // ── Results ────────────────────────────────────────────────

@@ -276,6 +276,7 @@ const en = {
     ma10: "MA10",
     refresh: "Refresh",
     addTradeRecord: "Add Trade",
+    editStopLoss: "Edit stop loss on latest entry",
   },
 
   // ── Results ────────────────────────────────────────────────
