@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { formatTWD, formatDate, formatShares, tradingViewUrl } from "@/lib/utils";
+import { formatCurrency, formatDate, formatShares, tradingViewUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import type { Trade } from "@/types/trade";
@@ -56,7 +56,7 @@ export function RecentTrades({ trades }: { trades: Trade[] }) {
                 </Badge>
               </td>
               <td className="py-2.5 pr-4 text-right tabular-nums">
-                {formatShares(tr.shares, tr.lotType as "ROUND" | "ODD")}
+                {formatShares(tr.shares, tr.lotType as "ROUND" | "ODD", tr.market)}
               </td>
               <td className="py-2.5 pr-4 text-right tabular-nums">
                 {tr.price.toLocaleString()}
@@ -67,7 +67,7 @@ export function RecentTrades({ trades }: { trades: Trade[] }) {
                 tr.realizedPnL != null && tr.realizedPnL < 0 && "text-red-600 dark:text-red-400"
               )}>
                 {tr.realizedPnL != null
-                  ? formatTWD(tr.realizedPnL, true)
+                  ? formatCurrency(tr.realizedPnL, tr.currency, true)
                   : <span className="text-muted-foreground">—</span>}
               </td>
             </tr>

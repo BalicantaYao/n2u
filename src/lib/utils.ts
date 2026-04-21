@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { Currency, Market } from "@/types/taiwan";
+import { isUSMarket } from "@/types/taiwan";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -22,14 +24,53 @@ export function formatTWD(amount: number, showSign = false): string {
   return amount < 0 ? `-${formatted}` : formatted;
 }
 
+/** 格式化美元金額，例如 1234.56 → "$1,234.56" */
+export function formatUSD(amount: number, showSign = false): string {
+  const abs = Math.abs(amount);
+  const formatted = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(abs);
+
+  if (showSign) {
+    if (amount > 0) return `+${formatted}`;
+    if (amount < 0) return `-${formatted}`;
+  }
+  return amount < 0 ? `-${formatted}` : formatted;
+}
+
+/** 依幣別派發到 formatTWD / formatUSD */
+export function formatCurrency(
+  amount: number,
+  currency: Currency | undefined,
+  showSign = false,
+): string {
+  return currency === "USD"
+    ? formatUSD(amount, showSign)
+    : formatTWD(amount, showSign);
+}
+
 /** 格式化百分比，例如 0.1234 → "+12.34%" */
 export function formatPct(value: number, digits = 2): string {
   const sign = value >= 0 ? "+" : "";
   return `${sign}${(value * 100).toFixed(digits)}%`;
 }
 
-/** 格式化數量：整張顯示「N 張」，零股顯示「N 股」 */
-export function formatShares(shares: number, lotType: "ROUND" | "ODD"): string {
+/** 格式化數量：
+ *  - 台股 ROUND：顯示「N 張」
+ *  - 台股 ODD：顯示「N 股」
+ *  - 美股：一律顯示「N 股」
+ */
+export function formatShares(
+  shares: number,
+  lotType: "ROUND" | "ODD",
+  market?: Market,
+): string {
+  if (market && isUSMarket(market)) {
+    return `${shares.toLocaleString()} 股`;
+  }
   if (lotType === "ROUND") {
     return `${shares / 1000} 張`;
   }
@@ -62,7 +103,8 @@ export function getTodayTW(): string {
     .toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
 }
 
-/** 組出 TradingView 上台股頁面的 URL，例如 2330 TWSE → https://www.tradingview.com/symbols/TWSE-2330/ */
-export function tradingViewUrl(symbol: string, market: "TWSE" | "TPEX"): string {
-  return `https://www.tradingview.com/symbols/${market}-${symbol}/`;
+/** 組出 TradingView 頁面的 URL。台股：TWSE-2330；美股：NASDAQ-AAPL、NYSE-IBM */
+export function tradingViewUrl(symbol: string, market: Market): string {
+  const upper = isUSMarket(market) ? symbol.toUpperCase() : symbol;
+  return `https://www.tradingview.com/symbols/${market}-${upper}/`;
 }

@@ -15,6 +15,8 @@ const badgeVariants = cva(
         loss: "border-transparent bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
         twse: "border-transparent bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
         tpex: "border-transparent bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+        nyse: "border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+        nasdaq: "border-transparent bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
       },
     },
     defaultVariants: { variant: "default" },

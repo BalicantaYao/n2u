@@ -1,8 +1,9 @@
 import { PositionsContent } from "@/components/positions/PositionsContent";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
-import { fetchQuotes, fetchHistorical } from "@/lib/fugle-api";
+import { fetchQuotes, fetchHistorical } from "@/lib/market-api";
 import { calculateMA } from "@/lib/stop-loss-calculator";
+import { marketToCurrency } from "@/types/taiwan";
 import type { Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";
 import type { OHLCVBar } from "@/types/market";
@@ -101,6 +102,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       symbol: p.symbol,
       symbolName: p.symbolName ?? quote?.symbolName,
       market: p.market,
+      currency: marketToCurrency(p.market),
       isETF: p.isETF,
       totalShares: p.totalShares,
       avgCostPerShare,
@@ -127,23 +129,5 @@ export default async function PositionsPage() {
   if (auth.error) return auth.error;
   const positions = await getOpenPositions(auth.userId);
 
-  const totalCost = positions.reduce((s, p) => s + p.totalCost, 0);
-  const totalMarketValue = positions.reduce(
-    (s, p) => s + (p.marketValue ?? p.totalCost),
-    0
-  );
-  const totalUnrealized = positions.reduce((s, p) => s + (p.unrealizedPnL ?? 0), 0);
-  const overallReturn = totalCost > 0 ? totalUnrealized / totalCost : 0;
-  const hasQuotes = positions.some((p) => p.currentPrice != null);
-
-  return (
-    <PositionsContent
-      positions={positions}
-      totalCost={totalCost}
-      totalMarketValue={totalMarketValue}
-      totalUnrealized={totalUnrealized}
-      overallReturn={overallReturn}
-      hasQuotes={hasQuotes}
-    />
-  );
+  return <PositionsContent positions={positions} />;
 }

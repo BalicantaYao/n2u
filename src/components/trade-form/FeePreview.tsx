@@ -1,11 +1,15 @@
 "use client";
 
-import { calculateFees, calcSettlementDate, lotsToShares } from "@/lib/taiwan-fees";
-import { formatTWD, formatDate } from "@/lib/utils";
+import { calculateFees, calcSettlementDate } from "@/lib/fees";
+import { lotsToShares } from "@/lib/taiwan-fees";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
+import { marketToCurrency, isUSMarket } from "@/types/taiwan";
+import type { Market } from "@/types/taiwan";
 
 interface FeePreviewProps {
+  market: Market;
   price: number;
   shares: number;
   lotType: "ROUND" | "ODD";
@@ -13,9 +17,11 @@ interface FeePreviewProps {
   side: "BUY" | "SELL";
   isETF: boolean;
   tradeDate: string;
+  commission?: number;
 }
 
 export function FeePreview({
+  market,
   price,
   shares,
   lotType,
@@ -23,9 +29,17 @@ export function FeePreview({
   side,
   isETF,
   tradeDate,
+  commission,
 }: FeePreviewProps) {
   const { t } = useT();
-  const actualShares = lotType === "ROUND" && lots ? lotsToShares(lots) : shares;
+  const isUS = isUSMarket(market);
+  const currency = marketToCurrency(market);
+
+  const actualShares = isUS
+    ? shares
+    : lotType === "ROUND" && lots
+      ? lotsToShares(lots)
+      : shares;
 
   if (!price || actualShares <= 0) {
     return (
@@ -35,24 +49,34 @@ export function FeePreview({
     );
   }
 
-  const fees = calculateFees({ price, shares: actualShares, side, isETF });
+  const fees = calculateFees(market, {
+    price,
+    shares: actualShares,
+    side,
+    isETF,
+    commission,
+  });
   const settlementDate = tradeDate
-    ? calcSettlementDate(new Date(tradeDate))
+    ? calcSettlementDate(market, new Date(tradeDate))
     : null;
 
-  const rows = [
-    { label: t("fee.grossAmount"), value: formatTWD(fees.grossAmount) },
-    { label: t("fee.commission"), value: `- ${formatTWD(fees.commission)}` },
-    ...(side === "SELL"
-      ? [
-          {
-            label: isETF ? t("fee.taxETF") : t("fee.taxStock"),
-            value: `- ${formatTWD(fees.transactionTax)}`,
-          },
-        ]
-      : []),
-    { label: t("fee.totalFees"), value: `- ${formatTWD(fees.totalFees)}` },
+  const rows: Array<{ label: string; value: string }> = [
+    { label: t("fee.grossAmount"), value: formatCurrency(fees.grossAmount, currency) },
+    {
+      label: isUS ? t("fee.commissionUS") : t("fee.commission"),
+      value: `- ${formatCurrency(fees.commission, currency)}`,
+    },
   ];
+  if (!isUS && side === "SELL") {
+    rows.push({
+      label: isETF ? t("fee.taxETF") : t("fee.taxStock"),
+      value: `- ${formatCurrency(fees.transactionTax, currency)}`,
+    });
+  }
+  rows.push({
+    label: t("fee.totalFees"),
+    value: `- ${formatCurrency(fees.totalFees, currency)}`,
+  });
 
   return (
     <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
@@ -73,7 +97,7 @@ export function FeePreview({
             side === "BUY" ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
           )}
         >
-          {formatTWD(fees.netAmount)}
+          {formatCurrency(fees.netAmount, currency)}
         </span>
       </div>
       {settlementDate && (

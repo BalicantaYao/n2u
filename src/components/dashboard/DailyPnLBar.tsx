@@ -10,11 +10,18 @@ import {
   Cell,
   ResponsiveContainer,
 } from "recharts";
-import { formatTWD } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import type { DailyPnL } from "@/types/trade";
+import type { Currency } from "@/types/taiwan";
 
-export function DailyPnLBar({ data }: { data: DailyPnL[] }) {
+export function DailyPnLBar({
+  data,
+  currency = "TWD",
+}: {
+  data: DailyPnL[];
+  currency?: Currency;
+}) {
   const { t } = useT();
 
   if (data.length === 0) {
@@ -42,7 +49,7 @@ export function DailyPnLBar({ data }: { data: DailyPnL[] }) {
           width={45}
         />
         <Tooltip
-          formatter={(v) => [formatTWD(v as number), t("chart.dailyPnL")]}
+          formatter={(v) => [formatCurrency(v as number, currency), t("chart.dailyPnL")]}
           labelFormatter={(l) => `${t("chart.datePrefix")}${l}`}
           contentStyle={{ fontSize: 12, borderRadius: 8 }}
         />

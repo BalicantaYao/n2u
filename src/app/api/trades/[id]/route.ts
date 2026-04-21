@@ -3,11 +3,13 @@ import { revalidatePath } from "next/cache";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
-import { calculateFees, calcSettlementDate, lotsToShares } from "@/lib/taiwan-fees";
+import { calculateFees, calcSettlementDate } from "@/lib/fees";
+import { lotsToShares } from "@/lib/taiwan-fees";
+import { marketToCurrency, isUSMarket } from "@/types/taiwan";
 
 const CORE_FIELDS = [
   "symbol", "symbolName", "market", "side", "tradeDate",
-  "lotType", "lots", "shares", "price", "isETF",
+  "lotType", "lots", "shares", "price", "commission", "isETF",
 ];
 
 const METADATA_FIELDS = ["notes", "tags", "stopLoss"];
@@ -122,24 +124,40 @@ export async function PUT(
   // Full update with fee recalculation
   const symbol = (body.symbol ?? existing.symbol).toUpperCase();
   const symbolName = body.symbolName ?? existing.symbolName;
-  const market = body.market ?? existing.market;
+  const market = (body.market ?? existing.market) as import("@/types/taiwan").Market;
   const side = body.side ?? existing.side;
   const tradeDate = body.tradeDate ?? existing.tradeDate;
-  const lotType = body.lotType ?? existing.lotType;
   const isETF = body.isETF ?? existing.isETF;
   const price = body.price ?? existing.price;
+  const commission = body.commission;
+
+  // 美股一律 ROUND，且以 shares 本身計算（不乘 1000）
+  const lotType = isUSMarket(market)
+    ? "ROUND"
+    : (body.lotType ?? existing.lotType);
+  const currency = marketToCurrency(market);
 
   const newLots = body.lots ?? existing.lots;
   const rawShares = body.shares ?? existing.shares;
-  const shares = lotType === "ROUND" && newLots ? lotsToShares(newLots) : rawShares;
+  const shares = isUSMarket(market)
+    ? rawShares
+    : lotType === "ROUND" && newLots
+      ? lotsToShares(newLots)
+      : rawShares;
 
   if (!shares || shares <= 0) {
     return NextResponse.json({ error: "股數不正確" }, { status: 400 });
   }
 
-  const fees = calculateFees({ price, shares, side, isETF });
+  const fees = calculateFees(market, {
+    price,
+    shares,
+    side,
+    isETF,
+    commission,
+  });
   const tradeDateObj = new Date(tradeDate);
-  const settlementDate = calcSettlementDate(tradeDateObj);
+  const settlementDate = calcSettlementDate(market, tradeDateObj);
 
   try {
     const trade = await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
@@ -154,11 +172,12 @@ export async function PUT(
           symbol,
           symbolName,
           market,
+          currency,
           side,
           tradeDate: tradeDateObj,
           settlementDate,
           lotType,
-          lots: lotType === "ROUND" ? newLots : null,
+          lots: !isUSMarket(market) && lotType === "ROUND" ? newLots : null,
           shares,
           price,
           commission: fees.commission,
@@ -180,6 +199,7 @@ export async function PUT(
           data: {
             symbol,
             market,
+            currency,
             lotType,
             openDate: tradeDateObj,
             shares,

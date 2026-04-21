@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
-import { fetchQuotes } from "@/lib/fugle-api";
-import type { Market } from "@/types/taiwan";
+import { fetchQuotes } from "@/lib/market-api";
+import { marketToCurrency } from "@/types/taiwan";
+import type { Currency, Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";
 
 export async function GET() {
@@ -86,6 +87,7 @@ export async function GET() {
       symbol: p.symbol,
       symbolName: p.symbolName ?? quote?.symbolName,
       market: p.market,
+      currency: marketToCurrency(p.market) as Currency,
       isETF: p.isETF,
       totalShares: p.totalShares,
       avgCostPerShare,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
-import { fetchQuote, fetchHistorical } from "@/lib/fugle-api";
+import { fetchQuote, fetchHistorical } from "@/lib/market-api";
 import {
   suggestStopLossLevels,
   calculatePositionImpact,

@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
-import { calculateFees, calcSettlementDate, lotsToShares } from "@/lib/taiwan-fees";
+import { calculateFees, calcSettlementDate } from "@/lib/fees";
+import { lotsToShares } from "@/lib/taiwan-fees";
 import { matchSellFIFO } from "@/lib/pnl-calculator";
+import { marketToCurrency, isUSMarket } from "@/types/taiwan";
 import type { CreateTradeInput } from "@/types/trade";
 
 export async function POST(req: NextRequest) {
@@ -33,6 +35,7 @@ export async function POST(req: NextRequest) {
       lots,
       shares: rawShares,
       price,
+      commission,
       isETF = false,
       stopLoss,
       notes,
@@ -45,7 +48,12 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
-    const shares = lotType === "ROUND" && lots ? lotsToShares(lots) : rawShares;
+    const effectiveLotType = isUSMarket(market) ? "ROUND" : lotType;
+    const shares = isUSMarket(market)
+      ? rawShares
+      : effectiveLotType === "ROUND" && lots
+        ? lotsToShares(lots)
+        : rawShares;
 
     if (!shares || shares <= 0) {
       results.push({ index: i, success: false, error: "股數不正確" });
@@ -53,8 +61,15 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
-    const fees = calculateFees({ price, shares, side, isETF });
-    const settlementDate = calcSettlementDate(new Date(tradeDate));
+    const currency = marketToCurrency(market);
+    const fees = calculateFees(market, {
+      price,
+      shares,
+      side,
+      isETF,
+      commission,
+    });
+    const settlementDate = calcSettlementDate(market, new Date(tradeDate));
 
     try {
       const trade = await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
@@ -75,11 +90,12 @@ export async function POST(req: NextRequest) {
             symbol: symbol.toUpperCase(),
             symbolName,
             market,
+            currency,
             side,
             tradeDate: new Date(tradeDate),
             settlementDate,
-            lotType,
-            lots: lotType === "ROUND" ? lots : null,
+            lotType: effectiveLotType,
+            lots: !isUSMarket(market) && effectiveLotType === "ROUND" ? lots : null,
             shares,
             price,
             commission: fees.commission,
@@ -101,7 +117,8 @@ export async function POST(req: NextRequest) {
             data: {
               symbol: symbol.toUpperCase(),
               market,
-              lotType,
+              currency,
+              lotType: effectiveLotType,
               openTradeId: created.id,
               openDate: new Date(tradeDate),
               shares,

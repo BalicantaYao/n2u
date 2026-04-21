@@ -53,6 +53,7 @@ model Trade {
   symbol         String
   symbolName     String?
   market         String
+  currency       String   @default("TWD")
   side           String
   tradeDate      DateTime
   settlementDate DateTime?
@@ -90,6 +91,7 @@ model PositionLot {
   id           String   @id @default(cuid())
   symbol       String
   market       String
+  currency     String   @default("TWD")
   lotType      String
   openTradeId  String
   openTrade    Trade    @relation(fields: [openTradeId], references: [id], onDelete: Cascade)

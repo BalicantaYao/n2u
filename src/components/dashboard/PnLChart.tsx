@@ -9,15 +9,17 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { formatTWD } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import type { DailyPnL } from "@/types/trade";
+import type { Currency } from "@/types/taiwan";
 
 interface PnLChartProps {
   data: DailyPnL[];
+  currency?: Currency;
 }
 
-export function PnLChart({ data }: PnLChartProps) {
+export function PnLChart({ data, currency = "TWD" }: PnLChartProps) {
   const { t } = useT();
 
   if (data.length === 0) {
@@ -61,7 +63,7 @@ export function PnLChart({ data }: PnLChartProps) {
           width={50}
         />
         <Tooltip
-          formatter={(value) => [formatTWD(value as number), t("chart.cumulativePnL")]}
+          formatter={(value) => [formatCurrency(value as number, currency), t("chart.cumulativePnL")]}
           labelFormatter={(label) => `${t("chart.datePrefix")}${label}`}
           contentStyle={{
             fontSize: 12,

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { formatTWD, cn } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { ChevronDown, Loader2, AlertTriangle, TrendingDown } from "lucide-react";
 import type { Market, Side } from "@/types/taiwan";
+import { marketToCurrency } from "@/types/taiwan";
 import type { StopLossHelperResponse, StopLossSuggestion } from "@/types/market";
 
 interface StopLossHelperProps {
@@ -42,6 +43,7 @@ export function StopLossHelper({
   onSelectStopLoss,
   editingTradeId,
 }: StopLossHelperProps) {
+  const currency = marketToCurrency(market);
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState<StopLossHelperResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -204,7 +206,7 @@ export function StopLossHelper({
                             : "bg-background hover:bg-accent"
                         )}
                       >
-                        進場價 {formatTWD(entryPrice)}
+                        進場價 {formatCurrency(entryPrice, currency)}
                       </button>
                       <button
                         type="button"
@@ -216,7 +218,7 @@ export function StopLossHelper({
                             : "bg-background hover:bg-accent"
                         )}
                       >
-                        市價 {formatTWD(marketPrice)}
+                        市價 {formatCurrency(marketPrice, currency)}
                       </button>
                     </div>
                   </div>
@@ -258,16 +260,16 @@ export function StopLossHelper({
                     <span>目前持有</span>
                     <span className="tabular-nums text-right">
                       {data.existingPosition!.totalShares.toLocaleString()} 股 / 均價{" "}
-                      {formatTWD(data.existingPosition!.avgCostPerShare)}
+                      {formatCurrency(data.existingPosition!.avgCostPerShare, currency)}
                     </span>
                     <span>加碼後</span>
                     <span className="tabular-nums text-right">
                       {positionImpact.newTotalShares.toLocaleString()} 股 / 新均價{" "}
-                      {formatTWD(positionImpact.newAvgCost)}
+                      {formatCurrency(positionImpact.newAvgCost, currency)}
                     </span>
                   </div>
                   <p className="text-xs ml-6 mt-1 opacity-80">
-                    以下建議以{basisLabel} {formatTWD(basisPrice)} 為基準
+                    以下建議以{basisLabel} {formatCurrency(basisPrice, currency)} 為基準
                     {effectiveBaseMode === "entry" && "（不採加碼後新均價）"}
                   </p>
                 </div>
@@ -284,11 +286,11 @@ export function StopLossHelper({
                     <span>其他筆合計</span>
                     <span className="tabular-nums text-right">
                       {data.existingPosition!.totalShares.toLocaleString()} 股 / 均價{" "}
-                      {formatTWD(data.existingPosition!.avgCostPerShare)}
+                      {formatCurrency(data.existingPosition!.avgCostPerShare, currency)}
                     </span>
                   </div>
                   <p className="text-xs ml-6 mt-1 opacity-80">
-                    以下建議以{basisLabel} {formatTWD(basisPrice)} 為基準
+                    以下建議以{basisLabel} {formatCurrency(basisPrice, currency)} 為基準
                   </p>
                 </div>
               )}
@@ -296,7 +298,7 @@ export function StopLossHelper({
               {/* Position impact banner — 編輯模式但無其他筆 */}
               {isEditingMode && !hasExistingPosition && (
                 <p className="text-xs text-muted-foreground">
-                  編輯模式：以{basisLabel} {formatTWD(basisPrice)} 為基準
+                  編輯模式：以{basisLabel} {formatCurrency(basisPrice, currency)} 為基準
                 </p>
               )}
 
@@ -331,7 +333,7 @@ export function StopLossHelper({
                       </span>
                       <span className="flex items-center gap-3">
                         <span className="tabular-nums font-medium">
-                          {formatTWD(s.price)}
+                          {formatCurrency(s.price, currency)}
                         </span>
                         <span className="tabular-nums text-xs text-red-500 w-[56px] text-right">
                           {s.distancePct.toFixed(2)}%

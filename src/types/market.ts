@@ -22,10 +22,12 @@ export interface OHLCVBar {
   adjClose?: number;
 }
 
+import type { Market } from "./taiwan";
+
 export interface SearchResult {
   symbol: string;
   symbolName?: string;
-  market: "TWSE" | "TPEX";
+  market: Market;
   isETF: boolean;
 }
 

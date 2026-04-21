@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
 import { ResultsTable, SellTradeList } from "@/components/results/ResultsTable";
-import { formatTWD } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import type { TradingResultsData } from "@/types/trade";
+import type { Currency } from "@/types/taiwan";
 
 type Tab = "bySymbol" | "byTrade";
 
@@ -44,6 +45,16 @@ export default function ResultsPage() {
       ? "∞"
       : "—";
 
+  // 依幣別拆分 realized P&L（從 bySymbol 推回來）
+  const pnlByCurrency: Record<Currency, number> = { TWD: 0, USD: 0 };
+  if (data) {
+    for (const g of data.bySymbol) {
+      const c = (g.currency ?? "TWD") as Currency;
+      pnlByCurrency[c] += g.totalRealizedPnL;
+    }
+  }
+  const hasUSD = data?.bySymbol.some((g) => g.currency === "USD") ?? false;
+
   return (
     <div>
       <Header titleKey="results.title" />
@@ -77,19 +88,32 @@ export default function ResultsPage() {
         {/* Stats bar */}
         {summary && (
           <div className="flex flex-wrap gap-4 p-4 rounded-lg bg-muted/30 text-sm">
-            <div>
+            <div className="flex items-center gap-2">
               <span className="text-muted-foreground">{t("results.realizedPnL")}</span>
               <span
                 className={`font-semibold tabular-nums ${
-                  summary.totalRealized > 0
+                  pnlByCurrency.TWD > 0
                     ? "text-green-600 dark:text-green-400"
-                    : summary.totalRealized < 0
+                    : pnlByCurrency.TWD < 0
                     ? "text-red-600 dark:text-red-400"
                     : ""
                 }`}
               >
-                {formatTWD(summary.totalRealized, true)}
+                {formatCurrency(pnlByCurrency.TWD, "TWD", true)}
               </span>
+              {hasUSD && (
+                <span
+                  className={`font-semibold tabular-nums border-l pl-2 ${
+                    pnlByCurrency.USD > 0
+                      ? "text-green-600 dark:text-green-400"
+                      : pnlByCurrency.USD < 0
+                      ? "text-red-600 dark:text-red-400"
+                      : ""
+                  }`}
+                >
+                  {formatCurrency(pnlByCurrency.USD, "USD", true)}
+                </span>
+              )}
             </div>
             <div>
               <span className="text-muted-foreground">{t("results.tradeCount")}</span>
@@ -118,7 +142,10 @@ export default function ResultsPage() {
             <div className="hidden sm:block">
               <span className="text-muted-foreground">{t("results.commission")}</span>
               <span className="font-semibold tabular-nums">
-                {formatTWD(summary.totalCommission + summary.totalTransactionTax)}
+                {formatCurrency(
+                  summary.totalCommission + summary.totalTransactionTax,
+                  hasUSD && pnlByCurrency.TWD === 0 ? "USD" : "TWD",
+                )}
               </span>
             </div>
           </div>

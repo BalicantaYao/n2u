@@ -1,20 +1,23 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { calculateFees } from "@/lib/taiwan-fees";
-import { formatTWD } from "@/lib/utils";
+import { calculateFees } from "@/lib/fees";
+import { formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { ShieldAlert, AlertTriangle } from "lucide-react";
-import type { Side } from "@/types/taiwan";
+import { marketToCurrency } from "@/types/taiwan";
+import type { Market, Side } from "@/types/taiwan";
 
 interface MaxLossPreviewProps {
   symbol: string;
+  market: Market;
   price: number;
   shares: number;
   stopLoss: number;
   side: Side;
   isETF: boolean;
+  commission?: number;
   /** 編輯既有交易時傳入，API 會排除該交易的 lots，避免把自己當成既有部位重複計算 */
   editingTradeId?: string;
 }
@@ -27,14 +30,17 @@ interface ExistingPosition {
 
 export function MaxLossPreview({
   symbol,
+  market,
   price,
   shares,
   stopLoss,
   side,
   isETF,
+  commission,
   editingTradeId,
 }: MaxLossPreviewProps) {
   const { t } = useT();
+  const currency = marketToCurrency(market);
   const [position, setPosition] = useState<ExistingPosition | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -85,15 +91,22 @@ export function MaxLossPreview({
   // -- Calculation --
 
   // New trade buy cost (incl. commission)
-  const newBuyFees = calculateFees({ price, shares, side: "BUY", isETF });
+  const newBuyFees = calculateFees(market, {
+    price,
+    shares,
+    side: "BUY",
+    isETF,
+    commission,
+  });
   const newBuyCost = newBuyFees.netAmount;
 
   // New trade sell proceeds at stop loss
-  const newSellFees = calculateFees({
+  const newSellFees = calculateFees(market, {
     price: stopLoss,
     shares,
     side: "SELL",
     isETF,
+    commission,
   });
   const newTradeLoss = newBuyCost - newSellFees.netAmount;
 
@@ -105,11 +118,12 @@ export function MaxLossPreview({
 
   if (hasPosition) {
     // Existing position sell proceeds at stop loss
-    const existingSellFees = calculateFees({
+    const existingSellFees = calculateFees(market, {
       price: stopLoss,
       shares: position.totalShares,
       side: "SELL",
       isETF,
+      commission,
     });
     existingLoss = position.totalCost - existingSellFees.netAmount;
 
@@ -133,7 +147,7 @@ export function MaxLossPreview({
           <span>
             {t("maxLoss.existingPosition", {
               shares: position.totalShares.toLocaleString(),
-              avgCost: formatTWD(position.avgCostPerShare),
+              avgCost: formatCurrency(position.avgCostPerShare, currency),
             })}
           </span>
         </div>
@@ -150,7 +164,7 @@ export function MaxLossPreview({
               : "text-green-600 dark:text-green-400"
           )}
         >
-          -{formatTWD(Math.abs(newTradeLoss))}
+          -{formatCurrency(Math.abs(newTradeLoss), currency)}
         </span>
       </div>
 
@@ -169,7 +183,7 @@ export function MaxLossPreview({
             )}
           >
             {existingLoss > 0 ? "-" : "+"}
-            {formatTWD(Math.abs(existingLoss))}
+            {formatCurrency(Math.abs(existingLoss), currency)}
           </span>
         </div>
       )}
@@ -191,7 +205,7 @@ export function MaxLossPreview({
           )}
         >
           {totalMaxLoss > 0 ? "-" : "+"}
-          {formatTWD(Math.abs(totalMaxLoss))} ({totalMaxLoss > 0 ? "-" : "+"}
+          {formatCurrency(Math.abs(totalMaxLoss), currency)} ({totalMaxLoss > 0 ? "-" : "+"}
           {Math.abs(maxLossPct).toFixed(2)}%)
         </span>
       </div>

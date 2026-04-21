@@ -16,6 +16,19 @@ interface SearchResult {
   isETF: boolean;
 }
 
+function marketToBadgeVariant(m: Market): "twse" | "tpex" | "nyse" | "nasdaq" {
+  if (m === "NYSE") return "nyse";
+  if (m === "NASDAQ") return "nasdaq";
+  if (m === "TPEX") return "tpex";
+  return "twse";
+}
+
+function marketToLabel(m: Market, t: (k: string) => string): string {
+  if (m === "NYSE") return "NYSE";
+  if (m === "NASDAQ") return "NASDAQ";
+  return m === "TPEX" ? t("common.tpex") : t("common.twse");
+}
+
 interface SymbolSearchProps {
   value: string;
   onChange: (symbol: string, symbolName: string, market: Market, isETF: boolean) => void;
@@ -106,10 +119,10 @@ export function SymbolSearch({ value, onChange, placeholder }: SymbolSearchProps
                   <Badge variant="secondary" className="text-xs py-0">ETF</Badge>
                 )}
                 <Badge
-                  variant={r.market === "TWSE" ? "twse" : "tpex"}
+                  variant={marketToBadgeVariant(r.market)}
                   className="text-xs py-0"
                 >
-                  {r.market === "TWSE" ? t("common.twse") : t("common.tpex")}
+                  {marketToLabel(r.market, t)}
                 </Badge>
               </div>
             </button>

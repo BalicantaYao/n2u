@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatTWD, formatPct, formatDate, tradingViewUrl } from "@/lib/utils";
+import { formatCurrency, formatPct, formatDate, tradingViewUrl } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import type { SymbolResult, SellTradeDetail } from "@/types/trade";
+import type { Currency } from "@/types/taiwan";
 
 interface ResultsTableProps {
   bySymbol: SymbolResult[];
@@ -90,10 +91,10 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
                     {row.tradeCount}
                   </td>
                   <td className="py-2.5 px-3 text-right hidden lg:table-cell tabular-nums text-muted-foreground">
-                    {formatTWD(row.totalBuyCost)}
+                    {formatCurrency(row.totalBuyCost, row.currency)}
                   </td>
                   <td className={`py-2.5 px-3 text-right tabular-nums font-semibold ${pnlColor}`}>
-                    {formatTWD(row.totalRealizedPnL, true)}
+                    {formatCurrency(row.totalRealizedPnL, row.currency, true)}
                   </td>
                   <td className={`py-2.5 px-3 text-right hidden sm:table-cell tabular-nums ${pnlColor}`}>
                     {formatPct(row.realizedPnLPct)}
@@ -111,7 +112,10 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
                 {isOpen && (
                   <tr key={`${row.symbol}-detail`} className="bg-muted/20">
                     <td colSpan={8} className="px-0 py-0">
-                      <ExpandedTrades trades={row.trades} />
+                      <ExpandedTrades
+                        trades={row.trades}
+                        currency={row.currency}
+                      />
                     </td>
                   </tr>
                 )}
@@ -124,8 +128,15 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
   );
 }
 
-function ExpandedTrades({ trades }: { trades: SellTradeDetail[] }) {
+function ExpandedTrades({
+  trades,
+  currency,
+}: {
+  trades: SellTradeDetail[];
+  currency: Currency;
+}) {
   const { t } = useT();
+  const isUS = currency === "USD";
 
   return (
     <div className="pl-10 pr-3 py-2 border-b">
@@ -149,8 +160,9 @@ function ExpandedTrades({ trades }: { trades: SellTradeDetail[] }) {
                 : tr.realizedPnL < 0
                 ? "text-red-600 dark:text-red-400"
                 : "";
-            const sharesLabel =
-              tr.lotType === "ROUND"
+            const sharesLabel = isUS
+              ? `${tr.shares.toLocaleString()} ${t("common.shares")}`
+              : tr.lotType === "ROUND"
                 ? `${tr.shares / 1000} ${t("common.lots")}`
                 : `${tr.shares} ${t("common.shares")}`;
 
@@ -162,10 +174,10 @@ function ExpandedTrades({ trades }: { trades: SellTradeDetail[] }) {
                 <td className="py-1.5 px-2 text-right tabular-nums">{sharesLabel}</td>
                 <td className="py-1.5 px-2 text-right tabular-nums">{tr.price.toFixed(2)}</td>
                 <td className="py-1.5 px-2 text-right hidden sm:table-cell tabular-nums text-muted-foreground">
-                  {formatTWD(tr.buyCost)}
+                  {formatCurrency(tr.buyCost, currency)}
                 </td>
                 <td className={`py-1.5 px-2 text-right tabular-nums font-medium ${pnlColor}`}>
-                  {formatTWD(tr.realizedPnL, true)}
+                  {formatCurrency(tr.realizedPnL, currency, true)}
                 </td>
                 <td className={`py-1.5 px-2 text-right hidden sm:table-cell tabular-nums ${pnlColor}`}>
                   {formatPct(tr.realizedPnLPct)}
@@ -198,6 +210,7 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
         symbol: s.symbol,
         symbolName: s.symbolName,
         market: s.market,
+        currency: s.currency,
       }))
     )
     .sort((a, b) => (b.tradeDate > a.tradeDate ? 1 : -1));
@@ -232,8 +245,10 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
                 : tr.realizedPnL < 0
                 ? "text-red-600 dark:text-red-400"
                 : "";
-            const sharesLabel =
-              tr.lotType === "ROUND"
+            const isUS = tr.currency === "USD";
+            const sharesLabel = isUS
+              ? `${tr.shares.toLocaleString()} ${t("common.shares")}`
+              : tr.lotType === "ROUND"
                 ? `${tr.shares / 1000} ${t("common.lots")}`
                 : `${tr.shares} ${t("common.shares")}`;
 
@@ -261,10 +276,10 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
                   {tr.price.toFixed(2)}
                 </td>
                 <td className="py-2.5 px-3 text-right hidden md:table-cell tabular-nums text-muted-foreground">
-                  {formatTWD(tr.buyCost)}
+                  {formatCurrency(tr.buyCost, tr.currency)}
                 </td>
                 <td className={`py-2.5 px-3 text-right tabular-nums font-semibold ${pnlColor}`}>
-                  {formatTWD(tr.realizedPnL, true)}
+                  {formatCurrency(tr.realizedPnL, tr.currency, true)}
                 </td>
                 <td className={`py-2.5 px-3 text-right hidden sm:table-cell tabular-nums ${pnlColor}`}>
                   {formatPct(tr.realizedPnLPct)}
