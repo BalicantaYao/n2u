@@ -7,6 +7,7 @@ import {
   BookOpen,
   Briefcase,
   BarChart3,
+  StickyNote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -16,6 +17,7 @@ const navItems = [
   { href: "/journal", labelKey: "nav.journal", shortKey: "nav.journalShort", icon: BookOpen },
   { href: "/positions", labelKey: "nav.positions", shortKey: "nav.positionsShort", icon: Briefcase },
   { href: "/results", labelKey: "nav.results", shortKey: "nav.resultsShort", icon: BarChart3 },
+  { href: "/memos", labelKey: "nav.memos", shortKey: "nav.memosShort", icon: StickyNote },
 ];
 
 export function BottomNav() {

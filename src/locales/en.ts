@@ -17,6 +17,8 @@ const en = {
     results: "Results",
     resultsShort: "Results",
     charts: "Charts",
+    memos: "Memos",
+    memosShort: "Memos",
   },
 
   // ── Sidebar / Footer ───────────────────────────────────────
@@ -302,6 +304,32 @@ const en = {
     profit: "Profit",
     loss: "Loss",
     breakeven: "Break Even",
+  },
+
+  // ── Memos ──────────────────────────────────────────────────
+  memos: {
+    title: "Memos",
+    composerPlaceholder: "Jot down a thought, trading note, or idea... (Markdown supported, use #tag for tags)",
+    post: "Post",
+    created: "Memo posted",
+    updated: "Memo updated",
+    deleted: "Memo deleted",
+    saveFailed: "Failed to save",
+    deleteFailed: "Failed to delete",
+    confirmDelete: "Delete this memo?",
+    editedBadge: "edited",
+    noRecords: "No memos yet. Start by writing one above.",
+    searchPlaceholder: "Search memos...",
+    symbolFilter: "Symbol",
+    tagFilter: "Tags:",
+    linkSymbol: "Symbol",
+    linkTrade: "Link to trade (optional)",
+    linkedTradeBadge: "Trade",
+    pin: "Pin",
+    pinned: "Pinned",
+    unpin: "Unpin",
+    pinnedSection: "Pinned",
+    hotkeyHint: "⌘+Enter to post",
   },
 
   // ── Charts ─────────────────────────────────────────────────

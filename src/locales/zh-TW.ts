@@ -17,6 +17,8 @@ const zhTW = {
     results: "交易成果",
     resultsShort: "成果",
     charts: "走勢圖",
+    memos: "備忘錄",
+    memosShort: "筆記",
   },
 
   // ── Sidebar / Footer ───────────────────────────────────────
@@ -302,6 +304,32 @@ const zhTW = {
     profit: "獲利",
     loss: "虧損",
     breakeven: "持平",
+  },
+
+  // ── Memos ──────────────────────────────────────────────────
+  memos: {
+    title: "備忘錄",
+    composerPlaceholder: "隨手紀錄想法、交易心得、靈感⋯（支援 Markdown；用 #標籤 分類）",
+    post: "送出",
+    created: "已新增備忘錄",
+    updated: "備忘錄已更新",
+    deleted: "備忘錄已刪除",
+    saveFailed: "儲存失敗",
+    deleteFailed: "刪除失敗",
+    confirmDelete: "確定要刪除這則備忘錄嗎？",
+    editedBadge: "已編輯",
+    noRecords: "還沒有備忘錄，從上方寫一則吧！",
+    searchPlaceholder: "搜尋備忘錄⋯",
+    symbolFilter: "代號",
+    tagFilter: "標籤：",
+    linkSymbol: "股票代號",
+    linkTrade: "關聯交易（可選）",
+    linkedTradeBadge: "交易",
+    pin: "釘選",
+    pinned: "已釘選",
+    unpin: "取消釘選",
+    pinnedSection: "已釘選",
+    hotkeyHint: "⌘+Enter 送出",
   },
 
   // ── Charts ─────────────────────────────────────────────────

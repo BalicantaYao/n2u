@@ -16,6 +16,7 @@ model User {
   sessions      Session[]
   trades        Trade[]
   positionLots  PositionLot[]
+  memos         Memo[]
 }
 
 model Account {
@@ -78,6 +79,7 @@ model Trade {
   user           User?    @relation(fields: [userId], references: [id])
 
   positionLots   PositionLot[]
+  memos          Memo[]
 
   @@index([symbol])
   @@index([tradeDate])
@@ -101,4 +103,26 @@ model PositionLot {
 
   @@index([symbol, isOpen])
   @@index([userId])
+}
+
+model Memo {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  content      String
+  tags         String?
+
+  linkedSymbol String?
+  tradeId      String?
+  trade        Trade?   @relation(fields: [tradeId], references: [id], onDelete: SetNull)
+
+  pinned       Boolean  @default(false)
+
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([linkedSymbol])
+  @@index([tradeId])
 }
