@@ -130,7 +130,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         {/* Shares */}
                         <td className="px-4 py-3 text-right tabular-nums">
                           {pos.currency === "USD"
-                            ? `${pos.totalShares.toLocaleString()} ${t("common.shares")}`
+                            ? `${pos.totalShares.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${t("common.shares")}`
                             : pos.totalShares >= 1000
                               ? `${pos.totalShares / 1000} ${t("common.lots")}`
                               : `${pos.totalShares} ${t("common.shares")}`}

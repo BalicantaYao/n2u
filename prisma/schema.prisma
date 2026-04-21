@@ -60,7 +60,7 @@ model Trade {
 
   lotType        String
   lots           Int?
-  shares         Int
+  shares         Float
   price          Float
 
   commission     Float
@@ -96,7 +96,7 @@ model PositionLot {
   openTradeId  String
   openTrade    Trade    @relation(fields: [openTradeId], references: [id], onDelete: Cascade)
   openDate     DateTime
-  shares       Int
+  shares       Float
   costPerShare Float
   isOpen       Boolean  @default(true)
 

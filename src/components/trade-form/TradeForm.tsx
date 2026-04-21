@@ -106,7 +106,7 @@ export function TradeForm({
 
   const priceNum = parseFloat(price) || 0;
   const lotsNum = parseInt(lots) || 0;
-  const sharesNum = parseInt(shares) || 0;
+  const sharesNum = parseFloat(shares) || 0;
   const commissionNum = parseFloat(commission) || 0;
   const isUS = isUSMarket(market);
   // 美股一律 ROUND 但視為「股」輸入；台股依使用者選擇
@@ -404,9 +404,9 @@ export function TradeForm({
             <Input
               id="shares"
               type="number"
-              min={1}
-              step={1}
-              placeholder="e.g. 100"
+              min={0.0001}
+              step="any"
+              placeholder="e.g. 10.5"
               value={shares}
               onChange={(e) => setShares(e.target.value)}
               className="max-w-xs"
