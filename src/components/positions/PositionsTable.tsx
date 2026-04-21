@@ -10,7 +10,6 @@ import { useT } from "@/lib/i18n";
 import {
   Briefcase,
   AlertTriangle,
-  Target,
   ChevronDown,
   StickyNote,
   Activity,
@@ -102,11 +101,6 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                                     <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
                                   </span>
                                 )}
-                                {pos.isTakeProfitAlert && (
-                                  <span title={t("positions.takeProfitAlert")}>
-                                    <Target className="h-3.5 w-3.5 text-green-500" />
-                                  </span>
-                                )}
                                 {hasNotes && (
                                   <StickyNote className="h-3 w-3 text-muted-foreground" />
                                 )}
@@ -136,27 +130,11 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                           {pos.avgCostPerShare.toFixed(2)}
                         </td>
 
-                        {/* Current Price + Take-profit */}
+                        {/* Current Price */}
                         <td className="px-4 py-3 text-right">
                           <div className="tabular-nums">
                             {pos.currentPrice != null ? pos.currentPrice.toFixed(2) : "—"}
                           </div>
-                          {pos.takeProfit != null && (
-                            <div className="flex items-center justify-end gap-2 mt-0.5">
-                              <span
-                                className={cn(
-                                  "text-[11px] tabular-nums flex items-center gap-0.5",
-                                  pos.isTakeProfitAlert
-                                    ? "text-green-600 dark:text-green-400 font-medium"
-                                    : "text-muted-foreground"
-                                )}
-                                title={t("positions.takeProfitPrice")}
-                              >
-                                <Target className="h-3 w-3" />
-                                {pos.takeProfit.toFixed(2)}
-                              </span>
-                            </div>
-                          )}
                           {(pos.ma5 != null || pos.ma10 != null) && (
                             <div className="flex items-center justify-end gap-2 mt-0.5">
                               {pos.ma5 != null && (

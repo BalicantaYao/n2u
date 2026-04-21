@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
       price,
       isETF = false,
       stopLoss,
-      takeProfit,
       notes,
       tags,
     } = trades[i];
@@ -91,7 +90,6 @@ export async function POST(req: NextRequest) {
             realizedPnL,
             isETF,
             stopLoss,
-            takeProfit,
             notes,
             tags,
             userId: auth.userId,

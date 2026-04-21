@@ -22,7 +22,6 @@ export interface Trade {
   realizedPnL?: number;
   isETF: boolean;
   stopLoss?: number;
-  takeProfit?: number;
   notes?: string;
   tags?: string;
 }
@@ -39,7 +38,6 @@ export interface CreateTradeInput {
   price: number;
   isETF?: boolean;
   stopLoss?: number;
-  takeProfit?: number;
   notes?: string;
   tags?: string;
 }
@@ -64,11 +62,9 @@ export interface Position {
   pnlAtStopLoss?: number;
   pnlAtStopLossPct?: number;
   latestOpenBuyTradeId?: string;
-  takeProfit?: number;
   ma5?: number;
   ma10?: number;
   isStopLossAlert?: boolean;
-  isTakeProfitAlert?: boolean;
   notes: string[];
 }
 
