@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatTWD, formatPct, cn, tradingViewUrl } from "@/lib/utils";
+import { formatCurrency, formatPct, cn, tradingViewUrl } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import {
   Briefcase,
@@ -129,9 +129,11 @@ export function PositionsTable({ positions }: PositionsTableProps) {
 
                         {/* Shares */}
                         <td className="px-4 py-3 text-right tabular-nums">
-                          {pos.totalShares >= 1000
-                            ? `${pos.totalShares / 1000} ${t("common.lots")}`
-                            : `${pos.totalShares} ${t("common.shares")}`}
+                          {pos.currency === "USD"
+                            ? `${pos.totalShares.toLocaleString()} ${t("common.shares")}`
+                            : pos.totalShares >= 1000
+                              ? `${pos.totalShares / 1000} ${t("common.lots")}`
+                              : `${pos.totalShares} ${t("common.shares")}`}
                         </td>
 
                         {/* Avg Cost */}
@@ -258,7 +260,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                           {pos.pnlAtStopLoss != null ? (
                             <>
                               <div className="font-medium">
-                                {formatTWD(pos.pnlAtStopLoss, true)}
+                                {formatCurrency(pos.pnlAtStopLoss, pos.currency, true)}
                               </div>
                               {pos.pnlAtStopLossPct != null && (
                                 <div className="text-[11px] mt-0.5">
@@ -273,12 +275,12 @@ export function PositionsTable({ positions }: PositionsTableProps) {
 
                         {/* Total Cost */}
                         <td className="px-4 py-3 text-right tabular-nums">
-                          {formatTWD(pos.totalCost)}
+                          {formatCurrency(pos.totalCost, pos.currency)}
                         </td>
 
                         {/* Market Value */}
                         <td className="px-4 py-3 text-right tabular-nums">
-                          {pos.marketValue != null ? formatTWD(pos.marketValue) : "—"}
+                          {pos.marketValue != null ? formatCurrency(pos.marketValue, pos.currency) : "—"}
                         </td>
 
                         {/* Unrealized P&L */}
@@ -293,7 +295,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                           )}
                         >
                           {pos.unrealizedPnL != null
-                            ? formatTWD(pos.unrealizedPnL, true)
+                            ? formatCurrency(pos.unrealizedPnL, pos.currency, true)
                             : "—"}
                         </td>
 

@@ -1,4 +1,4 @@
-import type { Market, Side, LotType } from "./taiwan";
+import type { Market, Side, LotType, Currency } from "./taiwan";
 
 export interface Trade {
   id: string;
@@ -7,6 +7,7 @@ export interface Trade {
   symbol: string;
   symbolName?: string;
   market: Market;
+  currency: Currency;
   side: Side;
   tradeDate: string;
   settlementDate?: string;
@@ -36,6 +37,7 @@ export interface CreateTradeInput {
   lots?: number;
   shares: number;
   price: number;
+  commission?: number;
   isETF?: boolean;
   stopLoss?: number;
   notes?: string;
@@ -50,6 +52,7 @@ export interface Position {
   symbol: string;
   symbolName?: string;
   market: Market;
+  currency: Currency;
   isETF?: boolean;
   totalShares: number;
   avgCostPerShare: number;
@@ -105,6 +108,7 @@ export interface SymbolResult {
   symbol: string;
   symbolName?: string;
   market: Market;
+  currency: Currency;
   tradeCount: number;
   totalShares: number;
   totalRealizedPnL: number;

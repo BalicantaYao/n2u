@@ -8,9 +8,10 @@ import { TradeTable } from "@/components/journal/TradeTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTradeStore } from "@/store/useTradeStore";
-import { formatTWD } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { Plus, Upload } from "lucide-react";
+import type { Currency } from "@/types/taiwan";
 
 export default function JournalPage() {
   const { trades, isLoading, fetchTrades, deleteTrade, filters, setFilters } =
@@ -26,10 +27,18 @@ export default function JournalPage() {
     toast.success(t("journal.deleted"));
   }
 
-  // Stats
+  // Stats — 依幣別分別小計（TWD / USD）
   const sellTrades = trades.filter((t) => t.side === "SELL" && t.realizedPnL != null);
-  const totalPnL = sellTrades.reduce((s, t) => s + (t.realizedPnL ?? 0), 0);
   const wins = sellTrades.filter((t) => (t.realizedPnL ?? 0) > 0).length;
+  const pnlByCurrency = sellTrades.reduce<Record<Currency, number>>(
+    (acc, t) => {
+      const c = (t.currency ?? "TWD") as Currency;
+      acc[c] = (acc[c] ?? 0) + (t.realizedPnL ?? 0);
+      return acc;
+    },
+    { TWD: 0, USD: 0 },
+  );
+  const showUSD = pnlByCurrency.USD !== 0 || trades.some((t) => t.currency === "USD");
 
   return (
     <div>
@@ -37,11 +46,20 @@ export default function JournalPage() {
       <div className="p-4 md:p-6 space-y-4">
         {/* Stats bar */}
         <div className="flex flex-wrap gap-4 p-4 rounded-lg bg-muted/30 text-sm">
-          <div>
+          <div className="flex items-center gap-2">
             <span className="text-muted-foreground">{t("journal.totalRealizedPnL")}</span>
-            <span className={`font-semibold tabular-nums ${totalPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
-              {formatTWD(totalPnL, true)}
+            <span
+              className={`font-semibold tabular-nums ${pnlByCurrency.TWD >= 0 ? "text-green-600" : "text-red-600"}`}
+            >
+              {formatCurrency(pnlByCurrency.TWD, "TWD", true)}
             </span>
+            {showUSD && (
+              <span
+                className={`font-semibold tabular-nums border-l pl-2 ${pnlByCurrency.USD >= 0 ? "text-green-600" : "text-red-600"}`}
+              >
+                {formatCurrency(pnlByCurrency.USD, "USD", true)}
+              </span>
+            )}
           </div>
           <div>
             <span className="text-muted-foreground">{t("journal.tradeCount")}</span>
@@ -91,6 +109,8 @@ export default function JournalPage() {
               <option value="">{t("journal.allMarkets")}</option>
               <option value="TWSE">{t("common.twse")}</option>
               <option value="TPEX">{t("common.tpex")}</option>
+              <option value="NYSE">{t("common.nyse")}</option>
+              <option value="NASDAQ">{t("common.nasdaq")}</option>
             </select>
             <select
               className="h-9 rounded-md border border-input bg-background px-2 text-sm"

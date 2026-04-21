@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
 import type { TradingResultsData, SymbolResult, SellTradeDetail } from "@/types/trade";
 import type { Market, LotType } from "@/types/taiwan";
+import { marketToCurrency } from "@/types/taiwan";
 
 export const dynamic = "force-dynamic";
 
@@ -127,6 +128,7 @@ export async function GET(req: NextRequest) {
       symbol: g.symbol,
       symbolName: g.symbolName,
       market: g.market,
+      currency: marketToCurrency(g.market),
       tradeCount: g.trades.length,
       totalShares,
       totalRealizedPnL,

@@ -5,10 +5,10 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { fetchQuotes } from "@/lib/fugle-api";
+import { fetchQuotes } from "@/lib/market-api";
 
 import type { PnLSummary } from "@/types/trade";
-import type { Market } from "@/types/taiwan";
+import type { Currency, Market } from "@/types/taiwan";
 
 /**
  * 賣出時執行 FIFO 配對，回傳該筆賣出的已實現損益。
@@ -60,16 +60,25 @@ export async function matchSellFIFO(params: {
   return netProceedsForSold - totalBuyCost;
 }
 
-export async function computePnLSummary(userId?: string): Promise<PnLSummary> {
+export async function computePnLSummary(
+  userId?: string,
+  currency?: Currency,
+): Promise<PnLSummary> {
   const userFilter = userId ? { userId } : {};
+  const currencyFilter = currency ? { currency } : {};
 
   const trades = await prisma.trade.findMany({
-    where: { side: "SELL", realizedPnL: { not: null }, ...userFilter },
+    where: {
+      side: "SELL",
+      realizedPnL: { not: null },
+      ...userFilter,
+      ...currencyFilter,
+    },
     select: { realizedPnL: true, commission: true, transactionTax: true },
   });
 
   const allTrades = await prisma.trade.findMany({
-    where: userFilter,
+    where: { ...userFilter, ...currencyFilter },
     select: { commission: true, transactionTax: true },
   });
 
@@ -106,7 +115,7 @@ export async function computePnLSummary(userId?: string): Promise<PnLSummary> {
 
   // Compute total unrealized P&L from open position lots + live quotes
   const openLots = await prisma.positionLot.findMany({
-    where: { isOpen: true, ...userFilter },
+    where: { isOpen: true, ...userFilter, ...currencyFilter },
     select: { symbol: true, market: true, shares: true, costPerShare: true },
   });
 
@@ -152,11 +161,17 @@ export async function computePnLSummary(userId?: string): Promise<PnLSummary> {
   };
 }
 
-export async function getDailyPnL(from?: Date, to?: Date, userId?: string) {
+export async function getDailyPnL(
+  from?: Date,
+  to?: Date,
+  userId?: string,
+  currency?: Currency,
+) {
   const where: Record<string, unknown> = {
     side: "SELL",
     realizedPnL: { not: null },
     ...(userId ? { userId } : {}),
+    ...(currency ? { currency } : {}),
   };
   if (from || to) {
     where.tradeDate = {};

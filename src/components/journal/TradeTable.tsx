@@ -4,10 +4,24 @@ import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatTWD, formatDate, formatShares, cn, tradingViewUrl } from "@/lib/utils";
+import { formatCurrency, formatDate, formatShares, cn, tradingViewUrl } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { ChevronDown, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import type { Trade } from "@/types/trade";
+import type { Market } from "@/types/taiwan";
+
+function marketBadgeVariant(m: Market): "twse" | "tpex" | "nyse" | "nasdaq" {
+  if (m === "NYSE") return "nyse";
+  if (m === "NASDAQ") return "nasdaq";
+  if (m === "TPEX") return "tpex";
+  return "twse";
+}
+
+function marketLabel(m: Market, t: (k: string) => string): string {
+  if (m === "NYSE") return "NYSE";
+  if (m === "NASDAQ") return "NASDAQ";
+  return m === "TPEX" ? t("common.tpex") : t("common.twse");
+}
 
 interface TradeTableProps {
   trades: Trade[];
@@ -61,8 +75,8 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                   {tr.symbolName && (
                     <span className="text-xs text-muted-foreground">{tr.symbolName}</span>
                   )}
-                  <Badge variant={tr.market === "TWSE" ? "twse" : "tpex"} className="text-xs py-0">
-                    {tr.market === "TWSE" ? t("common.twse") : t("common.tpex")}
+                  <Badge variant={marketBadgeVariant(tr.market)} className="text-xs py-0">
+                    {marketLabel(tr.market, t)}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
@@ -94,7 +108,7 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                 <Badge variant={tr.side === "BUY" ? "profit" : "loss"} className="text-xs">
                   {tr.side === "BUY" ? t("common.buy") : t("common.sell")}
                 </Badge>
-                <span className="tabular-nums text-xs">{formatShares(tr.shares, tr.lotType as "ROUND" | "ODD")}</span>
+                <span className="tabular-nums text-xs">{formatShares(tr.shares, tr.lotType as "ROUND" | "ODD", tr.market)}</span>
                 <span className="tabular-nums text-xs">@ {tr.price.toLocaleString()}</span>
               </div>
 
@@ -109,7 +123,7 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                         tr.realizedPnL < 0 && "text-red-600 dark:text-red-400"
                       )}
                     >
-                      {formatTWD(tr.realizedPnL, true)}
+                      {formatCurrency(tr.realizedPnL, tr.currency, true)}
                     </span>
                   ) : (
                     <span className="text-muted-foreground text-xs">{t("common.inPosition")}</span>
@@ -129,19 +143,19 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                 <div className="mt-3 pt-3 border-t grid grid-cols-2 gap-3 text-xs">
                   <div>
                     <p className="text-muted-foreground mb-0.5">{t("common.commission")}</p>
-                    <p className="tabular-nums">{formatTWD(tr.commission)}</p>
+                    <p className="tabular-nums">{formatCurrency(tr.commission, tr.currency)}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground mb-0.5">{t("common.transactionTax")}</p>
-                    <p className="tabular-nums">{formatTWD(tr.transactionTax)}</p>
+                    <p className="tabular-nums">{formatCurrency(tr.transactionTax, tr.currency)}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground mb-0.5">{t("journal.grossAmount")}</p>
-                    <p className="tabular-nums">{formatTWD(tr.grossAmount)}</p>
+                    <p className="tabular-nums">{formatCurrency(tr.grossAmount, tr.currency)}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground mb-0.5">{t("journal.netAmount")}</p>
-                    <p className="tabular-nums">{formatTWD(tr.netAmount)}</p>
+                    <p className="tabular-nums">{formatCurrency(tr.netAmount, tr.currency)}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground mb-0.5">{t("journal.settlementDate")}</p>
@@ -223,10 +237,10 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                         {tr.symbol}
                       </a>
                       <Badge
-                        variant={tr.market === "TWSE" ? "twse" : "tpex"}
+                        variant={marketBadgeVariant(tr.market)}
                         className="text-xs py-0"
                       >
-                        {tr.market === "TWSE" ? t("common.twse") : t("common.tpex")}
+                        {marketLabel(tr.market, t)}
                       </Badge>
                     </div>
                     {tr.symbolName && (
@@ -242,16 +256,16 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                     </Badge>
                   </td>
                   <td className="py-3 pr-4 text-right tabular-nums">
-                    {formatShares(tr.shares, tr.lotType as "ROUND" | "ODD")}
+                    {formatShares(tr.shares, tr.lotType as "ROUND" | "ODD", tr.market)}
                   </td>
                   <td className="py-3 pr-4 text-right tabular-nums">
                     {tr.price.toLocaleString()}
                   </td>
                   <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
-                    {formatTWD(tr.commission)}
+                    {formatCurrency(tr.commission, tr.currency)}
                   </td>
                   <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
-                    {formatTWD(tr.transactionTax)}
+                    {formatCurrency(tr.transactionTax, tr.currency)}
                   </td>
                   <td
                     className={cn(
@@ -261,7 +275,7 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                     )}
                   >
                     {tr.realizedPnL != null
-                      ? formatTWD(tr.realizedPnL, true)
+                      ? formatCurrency(tr.realizedPnL, tr.currency, true)
                       : <span className="text-muted-foreground text-xs">{t("common.inPosition")}</span>}
                   </td>
                   <td className="py-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -301,11 +315,11 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                         </div>
                         <div>
                           <p className="text-muted-foreground mb-0.5">{t("journal.grossAmount")}</p>
-                          <p className="tabular-nums">{formatTWD(tr.grossAmount)}</p>
+                          <p className="tabular-nums">{formatCurrency(tr.grossAmount, tr.currency)}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground mb-0.5">{t("journal.netAmount")}</p>
-                          <p className="tabular-nums">{formatTWD(tr.netAmount)}</p>
+                          <p className="tabular-nums">{formatCurrency(tr.netAmount, tr.currency)}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground mb-0.5">{t("journal.type")}</p>
@@ -318,7 +332,7 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                               {t("journal.stopLoss")}
                             </p>
                             <p className="tabular-nums text-red-600 dark:text-red-400 font-medium">
-                              {tr.stopLoss.toLocaleString()} TWD
+                              {formatCurrency(tr.stopLoss, tr.currency)}
                             </p>
                           </div>
                         )}

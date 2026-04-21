@@ -18,6 +18,21 @@ import { useT } from "@/lib/i18n";
 import { Info, RefreshCw } from "lucide-react";
 import type { Trade } from "@/types/trade";
 import type { Market, Side, LotType } from "@/types/taiwan";
+import { isUSMarket } from "@/types/taiwan";
+
+const MARKET_LABEL_KEYS: Record<Market, string> = {
+  TWSE: "common.twseFull",
+  TPEX: "common.tpexFull",
+  NYSE: "common.nyseFull",
+  NASDAQ: "common.nasdaqFull",
+};
+
+const MARKET_ACTIVE_CLASS: Record<Market, string> = {
+  TWSE: "bg-blue-600 text-white border-blue-600",
+  TPEX: "bg-purple-600 text-white border-purple-600",
+  NYSE: "bg-amber-600 text-white border-amber-600",
+  NASDAQ: "bg-emerald-600 text-white border-emerald-600",
+};
 
 interface TradeFormProps {
   mode?: "create" | "edit";
@@ -81,10 +96,25 @@ export function TradeForm({
     initialData?.stopLoss != null ? String(initialData.stopLoss) : ""
   );
   const [notes, setNotes] = useState(initialData?.notes ?? "");
+  const [commission, setCommission] = useState<string>(
+    initialData?.commission != null && isUSMarket(
+      (initialData?.market as Market) ?? defaults?.market ?? "TWSE"
+    )
+      ? String(initialData.commission)
+      : ""
+  );
 
   const priceNum = parseFloat(price) || 0;
   const lotsNum = parseInt(lots) || 0;
   const sharesNum = parseInt(shares) || 0;
+  const commissionNum = parseFloat(commission) || 0;
+  const isUS = isUSMarket(market);
+  // 美股一律 ROUND 但視為「股」輸入；台股依使用者選擇
+  const effectiveShares = isUS
+    ? sharesNum
+    : lotType === "ROUND"
+      ? lotsNum * 1000
+      : sharesNum;
 
   async function handleFetchPrice() {
     if (!symbol) {
@@ -144,8 +174,13 @@ export function TradeForm({
     // Full validation for create or full-edit mode
     if (!symbol) return toast.error(t("trade.selectSymbol"));
     if (!priceNum || priceNum <= 0) return toast.error(t("trade.invalidPrice"));
-    if (lotType === "ROUND" && lotsNum <= 0) return toast.error(t("trade.invalidLots"));
-    if (lotType === "ODD" && sharesNum <= 0) return toast.error(t("trade.invalidShares"));
+    if (isUS) {
+      if (sharesNum <= 0) return toast.error(t("trade.invalidShares"));
+    } else if (lotType === "ROUND" && lotsNum <= 0) {
+      return toast.error(t("trade.invalidLots"));
+    } else if (lotType === "ODD" && sharesNum <= 0) {
+      return toast.error(t("trade.invalidShares"));
+    }
 
     setLoading(true);
     try {
@@ -155,10 +190,11 @@ export function TradeForm({
         market,
         side,
         tradeDate,
-        lotType,
-        lots: lotType === "ROUND" ? lotsNum : undefined,
-        shares: lotType === "ROUND" ? lotsNum * 1000 : sharesNum,
+        lotType: isUS ? "ROUND" : lotType,
+        lots: !isUS && lotType === "ROUND" ? lotsNum : undefined,
+        shares: effectiveShares,
         price: priceNum,
+        commission: isUS ? commissionNum : undefined,
         isETF,
         stopLoss: stopLoss ? parseFloat(stopLoss) : undefined,
         notes: notes || undefined,
@@ -204,25 +240,28 @@ export function TradeForm({
         <Label>{t("trade.market")}</Label>
         {metadataOnly ? (
           <p className="text-sm font-medium">
-            {market === "TWSE" ? t("common.twseFull") : t("common.tpexFull")}
+            {t(MARKET_LABEL_KEYS[market])}
           </p>
         ) : (
-          <div className="flex gap-2">
-            {(["TWSE", "TPEX"] as Market[]).map((m) => (
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            {(["TWSE", "TPEX", "NYSE", "NASDAQ"] as Market[]).map((m) => (
               <button
                 key={m}
                 type="button"
-                onClick={() => setMarket(m)}
+                onClick={() => {
+                  setMarket(m);
+                  // 切回台股時清掉 commission；切到美股時 lotType 強制 ROUND
+                  if (!isUSMarket(m)) setCommission("");
+                  else setLotType("ROUND");
+                }}
                 className={cn(
                   "px-4 py-2 rounded-md text-sm font-medium border transition-colors",
                   market === m
-                    ? m === "TWSE"
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-purple-600 text-white border-purple-600"
+                    ? MARKET_ACTIVE_CLASS[m]
                     : "bg-background text-foreground border-input hover:bg-accent"
                 )}
               >
-                {m === "TWSE" ? t("common.twseFull") : t("common.tpexFull")}
+                {t(MARKET_LABEL_KEYS[m])}
               </button>
             ))}
           </div>
@@ -249,6 +288,11 @@ export function TradeForm({
                 setSymbolName(name);
                 setMarket(mkt);
                 setIsETF(etf);
+                if (isUSMarket(mkt)) {
+                  setLotType("ROUND");
+                } else {
+                  setCommission("");
+                }
               }}
             />
             {symbol && (
@@ -317,31 +361,33 @@ export function TradeForm({
         )}
       </div>
 
-      {/* Lot type toggle */}
-      <div className="space-y-2">
-        <Label>{t("trade.tradeUnit")}</Label>
-        {metadataOnly ? (
-          <p className="text-sm">{lotType === "ROUND" ? t("common.roundLot") : t("common.oddLot")}</p>
-        ) : (
-          <div className="flex gap-2">
-            {(["ROUND", "ODD"] as LotType[]).map((lt) => (
-              <button
-                key={lt}
-                type="button"
-                onClick={() => setLotType(lt)}
-                className={cn(
-                  "px-4 py-2 rounded-md text-sm border transition-colors",
-                  lotType === lt
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background border-input hover:bg-accent"
-                )}
-              >
-                {lt === "ROUND" ? t("common.roundLot") : t("common.oddLot")}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Lot type toggle — 僅台股顯示 */}
+      {!isUS && (
+        <div className="space-y-2">
+          <Label>{t("trade.tradeUnit")}</Label>
+          {metadataOnly ? (
+            <p className="text-sm">{lotType === "ROUND" ? t("common.roundLot") : t("common.oddLot")}</p>
+          ) : (
+            <div className="flex gap-2">
+              {(["ROUND", "ODD"] as LotType[]).map((lt) => (
+                <button
+                  key={lt}
+                  type="button"
+                  onClick={() => setLotType(lt)}
+                  className={cn(
+                    "px-4 py-2 rounded-md text-sm border transition-colors",
+                    lotType === lt
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-input hover:bg-accent"
+                  )}
+                >
+                  {lt === "ROUND" ? t("common.roundLot") : t("common.oddLot")}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Quantity */}
       <div className="space-y-2">
@@ -349,8 +395,22 @@ export function TradeForm({
           <>
             <Label>{t("common.quantity")}</Label>
             <p className="text-sm tabular-nums">
-              {formatShares(initialData?.shares ?? 0, lotType)}
+              {formatShares(initialData?.shares ?? 0, lotType, market)}
             </p>
+          </>
+        ) : isUS ? (
+          <>
+            <Label htmlFor="shares">{t("trade.sharesLabel")}</Label>
+            <Input
+              id="shares"
+              type="number"
+              min={1}
+              step={1}
+              placeholder="e.g. 100"
+              value={shares}
+              onChange={(e) => setShares(e.target.value)}
+              className="max-w-xs"
+            />
           </>
         ) : lotType === "ROUND" ? (
           <>
@@ -425,6 +485,27 @@ export function TradeForm({
         )}
       </div>
 
+      {/* Commission (US only) */}
+      {isUS && !metadataOnly && (
+        <div className="space-y-2">
+          <Label htmlFor="commission">
+            {t("fee.commissionLabel")}
+            <span className="ml-1 text-xs text-muted-foreground">{t("common.optional")}</span>
+          </Label>
+          <Input
+            id="commission"
+            type="number"
+            min={0}
+            step={0.01}
+            placeholder="0"
+            value={commission}
+            onChange={(e) => setCommission(e.target.value)}
+            className="max-w-xs"
+          />
+          <p className="text-xs text-muted-foreground">{t("fee.commissionHint")}</p>
+        </div>
+      )}
+
       {/* Stop Loss */}
       <div className="space-y-2">
         <Label htmlFor="stopLoss">
@@ -470,17 +551,17 @@ export function TradeForm({
       {side === "BUY" && (
         <MaxLossPreview
           symbol={symbol}
+          market={market}
           price={metadataOnly ? initialData?.price ?? priceNum : priceNum}
           shares={
             metadataOnly
               ? initialData?.shares ?? 0
-              : lotType === "ROUND"
-              ? lotsNum * 1000
-              : sharesNum
+              : effectiveShares
           }
           stopLoss={parseFloat(stopLoss) || 0}
           side={side}
           isETF={isETF}
+          commission={isUS ? commissionNum : undefined}
           editingTradeId={isEdit ? initialData?.id : undefined}
         />
       )}
@@ -503,13 +584,15 @@ export function TradeForm({
       {/* Fee preview — only show when core fields are editable */}
       {!metadataOnly && (
         <FeePreview
+          market={market}
           price={priceNum}
-          shares={sharesNum}
+          shares={isUS ? sharesNum : sharesNum}
           lotType={lotType}
           lots={lotsNum}
           side={side}
           isETF={isETF}
           tradeDate={tradeDate}
+          commission={isUS ? commissionNum : undefined}
         />
       )}
 
