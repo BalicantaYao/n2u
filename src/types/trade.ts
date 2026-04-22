@@ -61,6 +61,7 @@ export interface Position {
   marketValue?: number;
   unrealizedPnL?: number;
   unrealizedPnLPct?: number;
+  realizedPnL?: number;
   stopLoss?: number;
   pnlAtStopLoss?: number;
   pnlAtStopLossPct?: number;

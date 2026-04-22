@@ -272,6 +272,7 @@ const zhTW = {
     costHeader: "投入成本",
     valueHeader: "市值",
     unrealizedHeader: "未實現損益",
+    realizedHeader: "已實現損益",
     returnHeader: "報酬率",
     stopLossHeader: "停損價",
     stopLossPnLHeader: "停損試算損益",

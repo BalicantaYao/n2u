@@ -29,6 +29,7 @@ export async function GET() {
       totalCost: number;
       stopLoss?: number;
       notes: string[];
+      earliestOpenDate: Date;
     }
   >();
 
@@ -44,6 +45,9 @@ export async function GET() {
       if (lot.openTrade.notes && !existing.notes.includes(lot.openTrade.notes)) {
         existing.notes.push(lot.openTrade.notes);
       }
+      if (lot.openDate < existing.earliestOpenDate) {
+        existing.earliestOpenDate = lot.openDate;
+      }
     } else {
       map.set(lot.symbol, {
         symbol: lot.symbol,
@@ -54,6 +58,7 @@ export async function GET() {
         totalCost: lot.shares * lot.costPerShare,
         stopLoss: lot.openTrade.stopLoss ?? undefined,
         notes: lot.openTrade.notes ? [lot.openTrade.notes] : [],
+        earliestOpenDate: lot.openDate,
       });
     }
   }
@@ -63,7 +68,36 @@ export async function GET() {
     market: p.market,
   }));
 
-  const quotes = symbols.length > 0 ? await fetchQuotes(symbols) : {};
+  const symbolKeys = Array.from(map.keys());
+  const globalEarliestOpenDate = Array.from(map.values()).reduce<Date | undefined>(
+    (acc, p) => (acc == null || p.earliestOpenDate < acc ? p.earliestOpenDate : acc),
+    undefined,
+  );
+
+  const [quotes, sellTrades] = await Promise.all([
+    symbols.length > 0 ? fetchQuotes(symbols) : Promise.resolve({} as Awaited<ReturnType<typeof fetchQuotes>>),
+    symbolKeys.length > 0
+      ? prisma.trade.findMany({
+          where: {
+            userId: auth.userId,
+            side: "SELL",
+            realizedPnL: { not: null },
+            symbol: { in: symbolKeys },
+            ...(globalEarliestOpenDate ? { tradeDate: { gte: globalEarliestOpenDate } } : {}),
+          },
+          select: { symbol: true, tradeDate: true, realizedPnL: true },
+        })
+      : Promise.resolve([] as Array<{ symbol: string; tradeDate: Date; realizedPnL: number | null }>),
+  ]);
+
+  const realizedBySymbol = new Map<string, number>();
+  for (const t of sellTrades) {
+    const entry = map.get(t.symbol);
+    if (!entry) continue;
+    if (t.tradeDate >= entry.earliestOpenDate) {
+      realizedBySymbol.set(t.symbol, (realizedBySymbol.get(t.symbol) ?? 0) + (t.realizedPnL ?? 0));
+    }
+  }
 
   const positions: Position[] = Array.from(map.values()).map((p) => {
     const avgCostPerShare = p.totalShares > 0 ? p.totalCost / p.totalShares : 0;
@@ -96,6 +130,7 @@ export async function GET() {
       marketValue,
       unrealizedPnL,
       unrealizedPnLPct,
+      realizedPnL: realizedBySymbol.get(p.symbol) ?? 0,
       stopLoss: p.stopLoss,
       pnlAtStopLoss,
       pnlAtStopLossPct,

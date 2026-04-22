@@ -29,6 +29,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       notes: string[];
       latestOpenBuyTradeId?: string;
       latestOpenDate?: Date;
+      earliestOpenDate: Date;
     }
   >();
 
@@ -48,6 +49,9 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
         existing.latestOpenDate = lot.openDate;
         existing.latestOpenBuyTradeId = lot.openTradeId;
       }
+      if (lot.openDate < existing.earliestOpenDate) {
+        existing.earliestOpenDate = lot.openDate;
+      }
     } else {
       map.set(lot.symbol, {
         symbol: lot.symbol,
@@ -60,6 +64,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
         notes: lot.openTrade.notes ? [lot.openTrade.notes] : [],
         latestOpenBuyTradeId: lot.openTradeId,
         latestOpenDate: lot.openDate,
+        earliestOpenDate: lot.openDate,
       });
     }
   }
@@ -71,8 +76,26 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
   const toDate = new Date();
   const historicalBars: Record<string, OHLCVBar[]> = {};
 
-  const [quotes] = await Promise.all([
+  const symbolKeys = Array.from(map.keys());
+  const globalEarliestOpenDate = Array.from(map.values()).reduce<Date | undefined>(
+    (acc, p) => (acc == null || p.earliestOpenDate < acc ? p.earliestOpenDate : acc),
+    undefined,
+  );
+
+  const [quotes, sellTrades] = await Promise.all([
     symbols.length > 0 ? fetchQuotes(symbols) : Promise.resolve({} as Record<string, import("@/types/market").Quote>),
+    symbolKeys.length > 0
+      ? prisma.trade.findMany({
+          where: {
+            userId,
+            side: "SELL",
+            realizedPnL: { not: null },
+            symbol: { in: symbolKeys },
+            ...(globalEarliestOpenDate ? { tradeDate: { gte: globalEarliestOpenDate } } : {}),
+          },
+          select: { symbol: true, tradeDate: true, realizedPnL: true },
+        })
+      : Promise.resolve([] as Array<{ symbol: string; tradeDate: Date; realizedPnL: number | null }>),
     Promise.allSettled(
       symbols.map(async ({ symbol, market }) => {
         const bars = await fetchHistorical(symbol, market, fromDate, toDate, "1d");
@@ -80,6 +103,15 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       })
     ),
   ]);
+
+  const realizedBySymbol = new Map<string, number>();
+  for (const t of sellTrades) {
+    const entry = map.get(t.symbol);
+    if (!entry) continue;
+    if (t.tradeDate >= entry.earliestOpenDate) {
+      realizedBySymbol.set(t.symbol, (realizedBySymbol.get(t.symbol) ?? 0) + (t.realizedPnL ?? 0));
+    }
+  }
 
   return Array.from(map.values()).map((p) => {
     const avgCostPerShare = p.totalShares > 0 ? p.totalCost / p.totalShares : 0;
@@ -111,6 +143,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       marketValue,
       unrealizedPnL,
       unrealizedPnLPct,
+      realizedPnL: realizedBySymbol.get(p.symbol) ?? 0,
       stopLoss: p.stopLoss,
       pnlAtStopLoss,
       pnlAtStopLossPct,
