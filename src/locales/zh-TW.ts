@@ -14,6 +14,8 @@ const zhTW = {
     journalShort: "日誌",
     positions: "持倉分析",
     positionsShort: "持倉",
+    marketMap: "市場地圖",
+    marketMapShort: "地圖",
     results: "交易成果",
     resultsShort: "成果",
     memos: "備忘錄",
@@ -313,6 +315,23 @@ const zhTW = {
     profit: "獲利",
     loss: "虧損",
     breakeven: "持平",
+  },
+
+  // ── Market Map ─────────────────────────────────────────────
+  marketMap: {
+    title: "台股市場地圖",
+    subtitle: "方塊大小依市值，顏色反映當日漲跌幅（TWSE 上市）",
+    asOf: "資料時間：{{time}}",
+    topN: "顯示檔數",
+    allSectors: "全部產業",
+    sector: "產業",
+    marketCap: "市值",
+    marketCapUnit: "億",
+    price: "收盤",
+    change: "漲跌幅",
+    legendHeader: "漲跌幅色階",
+    empty: "尚無市場資料，請稍後重試",
+    loading: "載入市場資料中...",
   },
 
   // ── Memos ──────────────────────────────────────────────────

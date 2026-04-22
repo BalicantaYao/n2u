@@ -52,6 +52,35 @@ export interface PositionImpact {
   mode: "scale-in" | "edit";
 }
 
+/* ── Market Map（台股 Finviz-style 地圖） ── */
+
+export interface MarketMapStock {
+  symbol: string;
+  name: string;
+  sector: string;
+  price: number;
+  change: number;
+  changePct: number; // 小數：0.0123 = +1.23%
+  marketCap: number; // 以 TWD 為單位
+}
+
+export interface MarketMapSector {
+  sector: string;
+  stocks: MarketMapStock[];
+  /** 該產業所有個股市值加總（用於排序 sector 本身） */
+  marketCap: number;
+}
+
+export interface MarketMapResponse {
+  groups: MarketMapSector[];
+  /** 來源資料時間（TWSE 回傳的日期，或 server fetch 時間） */
+  asOf: string;
+  /** 實際回傳的個股檔數 */
+  totalCount: number;
+  /** 若市值欄位無法解析時改用 trading value 當 size，前端可提示 */
+  sizingMode: "marketCap" | "tradeValue";
+}
+
 export interface StopLossHelperResponse {
   suggestions: StopLossSuggestion[];
   positionImpact: PositionImpact | null;

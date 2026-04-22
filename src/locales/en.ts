@@ -14,6 +14,8 @@ const en = {
     journalShort: "Journal",
     positions: "Positions",
     positionsShort: "Positions",
+    marketMap: "Market Map",
+    marketMapShort: "Map",
     results: "Results",
     resultsShort: "Results",
     memos: "Memos",
@@ -313,6 +315,23 @@ const en = {
     profit: "Profit",
     loss: "Loss",
     breakeven: "Break Even",
+  },
+
+  // ── Market Map ─────────────────────────────────────────────
+  marketMap: {
+    title: "Taiwan Market Map",
+    subtitle: "Block size by market cap, color by daily change (TWSE listed)",
+    asOf: "As of {{time}}",
+    topN: "Top N",
+    allSectors: "All sectors",
+    sector: "Sector",
+    marketCap: "Market Cap",
+    marketCapUnit: "B",
+    price: "Close",
+    change: "Change",
+    legendHeader: "Daily change legend",
+    empty: "No market data available",
+    loading: "Loading market data...",
   },
 
   // ── Memos ──────────────────────────────────────────────────

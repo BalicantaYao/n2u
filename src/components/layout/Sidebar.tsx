@@ -11,6 +11,7 @@ import {
   Briefcase,
   BarChart3,
   StickyNote,
+  LayoutGrid,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { href: "/journal", labelKey: "nav.journal", icon: BookOpen },
   { href: "/positions", labelKey: "nav.positions", icon: Briefcase },
+  { href: "/market-map", labelKey: "nav.marketMap", icon: LayoutGrid },
   { href: "/results", labelKey: "nav.results", icon: BarChart3 },
   { href: "/memos", labelKey: "nav.memos", icon: StickyNote },
 ];
