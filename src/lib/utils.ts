@@ -69,7 +69,7 @@ export function formatShares(
   market?: Market,
 ): string {
   if (market && isUSMarket(market)) {
-    return `${shares.toLocaleString()} 股`;
+    return `${shares.toLocaleString(undefined, { maximumFractionDigits: 4 })} 股`;
   }
   if (lotType === "ROUND") {
     return `${shares / 1000} 張`;

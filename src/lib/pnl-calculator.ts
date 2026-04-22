@@ -31,14 +31,15 @@ export async function matchSellFIFO(params: {
   let remainingShares = sellShares;
   let totalBuyCost = 0;
 
+  const EPSILON = 1e-9;
   for (const lot of openLots) {
-    if (remainingShares <= 0) break;
+    if (remainingShares <= EPSILON) break;
 
     const consume = Math.min(lot.shares, remainingShares);
     totalBuyCost += consume * lot.costPerShare;
     remainingShares -= consume;
 
-    if (consume >= lot.shares) {
+    if (lot.shares - consume <= EPSILON) {
       await prisma.positionLot.update({
         where: { id: lot.id },
         data: { isOpen: false, shares: 0 },
