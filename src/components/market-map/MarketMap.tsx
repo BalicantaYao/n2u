@@ -3,19 +3,19 @@
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { useT } from "@/lib/i18n";
 import { formatPct } from "@/lib/utils";
-import type { MarketMapResponse } from "@/types/market";
+import type { MarketMapMarketPayload } from "@/types/market";
 
 /**
- * Finviz-style heat color based on daily % change (changePct is a decimal, 0.0123 = 1.23%).
+ * 台股慣例熱度色（紅漲綠跌）。changePct 為小數，0.0123 = 1.23%。
  */
 function getHeatColor(pct: number): string {
-  if (pct <= -0.03) return "#7f1d1d"; // red-900
-  if (pct <= -0.015) return "#b91c1c"; // red-700
-  if (pct < 0) return "#ef4444"; // red-500
+  if (pct <= -0.03) return "#14532d"; // green-900
+  if (pct <= -0.015) return "#15803d"; // green-700
+  if (pct < 0) return "#22c55e"; // green-500
   if (pct === 0) return "#4b5563"; // gray-600
-  if (pct < 0.015) return "#22c55e"; // green-500
-  if (pct < 0.03) return "#15803d"; // green-700
-  return "#14532d"; // green-900
+  if (pct < 0.015) return "#ef4444"; // red-500
+  if (pct < 0.03) return "#b91c1c"; // red-700
+  return "#7f1d1d"; // red-900
 }
 
 interface TreemapDatum {
@@ -30,7 +30,7 @@ interface TreemapDatum {
   sector?: string;
 }
 
-function toTreemapData(data: MarketMapResponse): TreemapDatum[] {
+function toTreemapData(data: MarketMapMarketPayload): TreemapDatum[] {
   return data.groups
     .filter((g) => g.stocks.length > 0)
     .map((g) => ({
@@ -221,13 +221,13 @@ function TreemapTooltip({
 function Legend() {
   const { t } = useT();
   const steps: Array<{ label: string; color: string }> = [
-    { label: "≤ -3%", color: "#7f1d1d" },
-    { label: "-3 ~ -1.5%", color: "#b91c1c" },
-    { label: "-1.5 ~ 0%", color: "#ef4444" },
+    { label: "≤ -3%", color: "#14532d" },
+    { label: "-3 ~ -1.5%", color: "#15803d" },
+    { label: "-1.5 ~ 0%", color: "#22c55e" },
     { label: "0%", color: "#4b5563" },
-    { label: "0 ~ +1.5%", color: "#22c55e" },
-    { label: "+1.5 ~ +3%", color: "#15803d" },
-    { label: "≥ +3%", color: "#14532d" },
+    { label: "0 ~ +1.5%", color: "#ef4444" },
+    { label: "+1.5 ~ +3%", color: "#b91c1c" },
+    { label: "≥ +3%", color: "#7f1d1d" },
   ];
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
@@ -248,11 +248,12 @@ function Legend() {
 /* ── 主元件 ── */
 
 interface MarketMapProps {
-  data: MarketMapResponse;
+  data: MarketMapMarketPayload;
   height?: number;
+  showLegend?: boolean;
 }
 
-export function MarketMap({ data, height = 640 }: MarketMapProps) {
+export function MarketMap({ data, height = 560, showLegend = true }: MarketMapProps) {
   const { t } = useT();
   const treeData = toTreemapData(data);
 
@@ -280,7 +281,7 @@ export function MarketMap({ data, height = 640 }: MarketMapProps) {
           </Treemap>
         </ResponsiveContainer>
       </div>
-      <Legend />
+      {showLegend && <Legend />}
     </div>
   );
 }

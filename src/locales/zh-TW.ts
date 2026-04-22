@@ -320,9 +320,8 @@ const zhTW = {
   // ── Market Map ─────────────────────────────────────────────
   marketMap: {
     title: "台股市場地圖",
-    subtitle: "方塊大小依市值，顏色反映當日漲跌幅（TWSE 上市）",
+    subtitle: "方塊大小依市值，紅漲綠跌（上市／上櫃並列）",
     asOf: "資料時間：{{time}}",
-    topN: "顯示檔數",
     allSectors: "全部產業",
     sector: "產業",
     marketCap: "市值",
@@ -332,6 +331,20 @@ const zhTW = {
     legendHeader: "漲跌幅色階",
     empty: "尚無市場資料，請稍後重試",
     loading: "載入市場資料中...",
+    rankRange: "市值排名區間",
+    rankFrom: "從",
+    rankTo: "到",
+    rangePresetTop50: "前 50 名",
+    rangePresetTop100: "前 100 名",
+    rangePreset100to300: "100–300 名",
+    rangePreset300to500: "300–500 名",
+    rangeRangeCustom: "自訂",
+    rankRangeDisplay: "第 {{from}}–{{to}} 名",
+    twseHeading: "上市 TWSE",
+    tpexHeading: "上櫃 TPEX",
+    universeCount: "候選共 {{count}} 檔",
+    sizingModeMixed: "部分以成交值呈現",
+    sizingModeTradeValue: "以成交值呈現",
   },
 
   // ── Memos ──────────────────────────────────────────────────

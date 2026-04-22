@@ -77,17 +77,43 @@ interface FugleCandlesResponse {
   data: FugleCandle[];
 }
 
-interface FugleTicker {
+export interface FugleTicker {
   symbol: string;
   name: string;
   market: "TSE" | "OTC" | string;
   type?: string;
   industry?: string;
+  industryZhTw?: string;
   isETF?: boolean;
 }
 
 interface FugleTickersResponse {
   data: FugleTicker[];
+}
+
+/** Fugle snapshot quote 單列（對應我們會用到的欄位） */
+export interface FugleSnapshotRow {
+  symbol: string;
+  name?: string;
+  type?: string;
+  lastPrice?: number;
+  previousClose?: number;
+  change?: number;
+  changePercent?: number;
+  tradeValue?: number;
+  tradeVolume?: number;
+  openPrice?: number;
+  highPrice?: number;
+  lowPrice?: number;
+  lastUpdated?: number;
+}
+
+interface FugleSnapshotResponse {
+  date?: string;
+  type?: string;
+  exchange?: string;
+  market?: string;
+  data: FugleSnapshotRow[];
 }
 
 /* ── 核心 API ── */
@@ -185,7 +211,7 @@ function setCache<T>(k: string, v: T, ttlMs: number) {
   cache.set(k, { data: v, expiresAt: Date.now() + ttlMs });
 }
 
-async function fetchAllTickers(): Promise<FugleTicker[]> {
+export async function fetchAllTickers(): Promise<FugleTicker[]> {
   const cached = getCache<FugleTicker[]>("fugle-tickers");
   if (cached) return cached;
 
@@ -193,6 +219,18 @@ async function fetchAllTickers(): Promise<FugleTicker[]> {
   const list = res?.data ?? [];
   setCache("fugle-tickers", list, 24 * 60 * 60 * 1000);
   return list;
+}
+
+/**
+ * 取得指定市場（TSE 上市 / OTC 上櫃）所有個股的當日快照：
+ * lastPrice / previousClose / change / changePercent / tradeValue ...
+ * 一次呼叫可同時取得「今日收盤（或盤中）」與「前日收盤」。
+ */
+export async function fetchSnapshotQuotes(market: "TSE" | "OTC"): Promise<FugleSnapshotRow[]> {
+  const res = await fugleFetch<FugleSnapshotResponse>(
+    `/snapshot/quotes/${encodeURIComponent(market)}`,
+  );
+  return res?.data ?? [];
 }
 
 /** 搜尋股票代碼 */
