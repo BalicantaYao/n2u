@@ -60,6 +60,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.unrealizedHeader")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.realizedHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.returnHeader")}</th>
                   <th className="w-12 px-2 py-3" />
                 </tr>
@@ -299,6 +300,20 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                             : "—"}
                         </td>
 
+                        {/* Realized P&L (current holding period) */}
+                        <td
+                          className={cn(
+                            "px-4 py-3 text-right tabular-nums font-medium",
+                            !pos.realizedPnL
+                              ? "text-muted-foreground"
+                              : pos.realizedPnL > 0
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-red-600 dark:text-red-400"
+                          )}
+                        >
+                          {formatCurrency(pos.realizedPnL ?? 0, pos.currency, true)}
+                        </td>
+
                         {/* Return % */}
                         <td
                           className={cn(
@@ -350,7 +365,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                       {/* Expanded notes sub-row */}
                       {isExp && hasNotes && (
                         <tr className="bg-muted/20 border-b">
-                          <td colSpan={12} className="px-8 py-3">
+                          <td colSpan={13} className="px-8 py-3">
                             <div className="text-xs space-y-1.5">
                               <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
                               {pos.notes.map((note, i) => (

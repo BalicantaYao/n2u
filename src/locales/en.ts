@@ -272,6 +272,7 @@ const en = {
     costHeader: "Cost",
     valueHeader: "Value",
     unrealizedHeader: "Unrealized P&L",
+    realizedHeader: "Realized P&L",
     returnHeader: "Return",
     stopLossHeader: "Stop Loss",
     stopLossPnLHeader: "P&L @ Stop",
