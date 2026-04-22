@@ -318,15 +318,15 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         <td
                           className={cn(
                             "px-4 py-3 text-right tabular-nums font-medium",
-                            pos.unrealizedPnLPct == null
+                            pos.totalPnLPct == null
                               ? "text-muted-foreground"
-                              : pnlPositive
+                              : pos.totalPnLPct >= 0
                               ? "text-green-600 dark:text-green-400"
                               : "text-red-600 dark:text-red-400"
                           )}
                         >
-                          {pos.unrealizedPnLPct != null
-                            ? formatPct(pos.unrealizedPnLPct)
+                          {pos.totalPnLPct != null
+                            ? formatPct(pos.totalPnLPct)
                             : "—"}
                         </td>
 
