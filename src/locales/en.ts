@@ -320,9 +320,8 @@ const en = {
   // ── Market Map ─────────────────────────────────────────────
   marketMap: {
     title: "Taiwan Market Map",
-    subtitle: "Block size by market cap, color by daily change (TWSE listed)",
+    subtitle: "Size = market cap · Red = up, Green = down (TWSE & TPEX side-by-side)",
     asOf: "As of {{time}}",
-    topN: "Top N",
     allSectors: "All sectors",
     sector: "Sector",
     marketCap: "Market Cap",
@@ -332,6 +331,20 @@ const en = {
     legendHeader: "Daily change legend",
     empty: "No market data available",
     loading: "Loading market data...",
+    rankRange: "Market-cap rank range",
+    rankFrom: "From",
+    rankTo: "To",
+    rangePresetTop50: "Top 50",
+    rangePresetTop100: "Top 100",
+    rangePreset100to300: "Ranks 100–300",
+    rangePreset300to500: "Ranks 300–500",
+    rangeRangeCustom: "Custom",
+    rankRangeDisplay: "Ranks {{from}}–{{to}}",
+    twseHeading: "Listed (TWSE)",
+    tpexHeading: "OTC (TPEX)",
+    universeCount: "Universe: {{count}} symbols",
+    sizingModeMixed: "Partial trade-value sizing",
+    sizingModeTradeValue: "Sized by trade value",
   },
 
   // ── Memos ──────────────────────────────────────────────────
