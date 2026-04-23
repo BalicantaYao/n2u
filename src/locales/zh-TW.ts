@@ -288,6 +288,7 @@ const zhTW = {
     stopLossPrice: "停損價",
     ma5: "5日均線",
     ma10: "10日均線",
+    atr14: "ATR(14)：近 14 日平均真實波幅",
     refresh: "刷新報價",
     addTradeRecord: "新增交易",
     editStopLoss: "編輯最新一筆的停損價",
