@@ -78,6 +78,12 @@ const en = {
     inPosition: "Open",
   },
 
+  // ── Market Tabs ────────────────────────────────────────────
+  marketTabs: {
+    tw: "TW Stocks",
+    us: "US Stocks",
+  },
+
   // ── Dashboard ──────────────────────────────────────────────
   dashboard: {
     title: "Overview",

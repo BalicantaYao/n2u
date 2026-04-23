@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { PositionsTable } from "@/components/positions/PositionsTable";
+import { MarketTabs } from "@/components/common/MarketTabs";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatPct, cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -56,36 +57,19 @@ export function PositionsContent({ positions }: PositionsContentProps) {
           </Button>
         </div>
 
-        {twPositions.length > 0 && (
-          <CurrencySection
-            title={t("common.twseFull") + " + " + t("common.tpexFull")}
-            currency="TWD"
-            positions={twPositions}
-          />
-        )}
-
-        {usPositions.length > 0 && (
-          <CurrencySection
-            title="NYSE + NASDAQ"
-            currency="USD"
-            positions={usPositions}
-          />
-        )}
-
-        {positions.length === 0 && (
-          <PositionsTable positions={[]} />
-        )}
+        <MarketTabs
+          tw={<CurrencySection currency="TWD" positions={twPositions} />}
+          us={<CurrencySection currency="USD" positions={usPositions} />}
+        />
       </div>
     </div>
   );
 }
 
 function CurrencySection({
-  title,
   currency,
   positions,
 }: {
-  title: string;
   currency: Currency;
   positions: Position[];
 }) {
@@ -104,9 +88,6 @@ function CurrencySection({
 
   return (
     <section className="space-y-4">
-      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {title}
-      </h2>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
           title={t("positions.positionCount")}
