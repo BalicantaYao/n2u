@@ -12,6 +12,7 @@ import {
   BarChart3,
   StickyNote,
   LayoutGrid,
+  LineChart,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ import { LanguageToggle } from "./LanguageToggle";
 const navItems = [
   { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { href: "/journal", labelKey: "nav.journal", icon: BookOpen },
+  { href: "/options", labelKey: "nav.options", icon: LineChart },
   { href: "/positions", labelKey: "nav.positions", icon: Briefcase },
   { href: "/market-map", labelKey: "nav.marketMap", icon: LayoutGrid },
   { href: "/results", labelKey: "nav.results", icon: BarChart3 },

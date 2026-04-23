@@ -8,6 +8,7 @@ import {
   Briefcase,
   BarChart3,
   StickyNote,
+  LineChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -15,6 +16,7 @@ import { useT } from "@/lib/i18n";
 const navItems = [
   { href: "/dashboard", labelKey: "nav.dashboard", shortKey: "nav.dashboard", icon: LayoutDashboard },
   { href: "/journal", labelKey: "nav.journal", shortKey: "nav.journalShort", icon: BookOpen },
+  { href: "/options", labelKey: "nav.options", shortKey: "nav.optionsShort", icon: LineChart },
   { href: "/positions", labelKey: "nav.positions", shortKey: "nav.positionsShort", icon: Briefcase },
   { href: "/results", labelKey: "nav.results", shortKey: "nav.resultsShort", icon: BarChart3 },
   { href: "/memos", labelKey: "nav.memos", shortKey: "nav.memosShort", icon: StickyNote },
