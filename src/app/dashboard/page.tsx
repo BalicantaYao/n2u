@@ -15,29 +15,33 @@ export default async function DashboardPage() {
     dailyPnLTWD,
     summaryUSD,
     dailyPnLUSD,
-    recentTrades,
-    usTradeCount,
+    recentTradesTWD,
+    recentTradesUSD,
   ] = await Promise.all([
     computePnLSummary(userId, "TWD"),
     getDailyPnL(undefined, undefined, userId, "TWD"),
     computePnLSummary(userId, "USD"),
     getDailyPnL(undefined, undefined, userId, "USD"),
     prisma.trade.findMany({
-      where: { userId },
+      where: { userId, currency: "TWD" },
       orderBy: { tradeDate: "desc" },
       take: 10,
     }),
-    prisma.trade.count({ where: { userId, currency: "USD" } }),
+    prisma.trade.findMany({
+      where: { userId, currency: "USD" },
+      orderBy: { tradeDate: "desc" },
+      take: 10,
+    }),
   ]);
 
   return (
     <DashboardContent
-      summary={summaryTWD}
-      dailyPnL={dailyPnLTWD}
+      summaryTWD={summaryTWD}
+      dailyPnLTWD={dailyPnLTWD}
       summaryUSD={summaryUSD}
       dailyPnLUSD={dailyPnLUSD}
-      hasUSTrades={usTradeCount > 0}
-      recentTrades={recentTrades as never}
+      recentTradesTWD={recentTradesTWD as never}
+      recentTradesUSD={recentTradesUSD as never}
     />
   );
 }
