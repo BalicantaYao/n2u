@@ -98,6 +98,8 @@ export interface FugleSnapshotRow {
   type?: string;
   lastPrice?: number;
   previousClose?: number;
+  /** 除權息日的當日基準價；可作為 previousClose 的備援 */
+  referencePrice?: number;
   change?: number;
   changePercent?: number;
   tradeValue?: number;

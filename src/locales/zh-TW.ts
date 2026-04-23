@@ -345,6 +345,7 @@ const zhTW = {
     universeCount: "候選共 {{count}} 檔",
     sizingModeMixed: "部分以成交值呈現",
     sizingModeTradeValue: "以成交值呈現",
+    noData: "無資料",
   },
 
   // ── Memos ──────────────────────────────────────────────────

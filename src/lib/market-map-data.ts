@@ -120,8 +120,8 @@ interface EnrichedStock {
   industryCode: string;
   industryName: string;
   price: number;
-  change: number;
-  changePct: number;
+  change: number | null;
+  changePct: number | null;
   marketCap: number;
   tradeValue: number;
   /** true 表示 marketCap 欄位實際是 tradeValue（缺股本資料時的 fallback） */
@@ -150,14 +150,38 @@ function buildMarketPayload(args: BuildPayloadArgs): MarketMapMarketPayload {
     const price = row.lastPrice ?? 0;
     if (price <= 0) continue;
 
-    const previousClose = row.previousClose ?? 0;
-    const change = row.change ?? (previousClose > 0 ? price - previousClose : 0);
-    const changePct =
-      typeof row.changePercent === "number"
-        ? row.changePercent / 100
-        : previousClose > 0
-          ? (price - previousClose) / previousClose
-          : 0;
+    // Fugle snapshot 有時會只給其中一兩個欄位（例如除權息日、剛掛牌、停牌等）。
+    // 只要能湊到任何一組可算出漲跌幅，就盡量算出來；真的都缺才回 null，
+    // 讓 UI 能把「無資料」和「真的 0%」區分開。
+    const previousClose = typeof row.previousClose === "number" && row.previousClose > 0
+      ? row.previousClose
+      : typeof row.referencePrice === "number" && row.referencePrice > 0
+        ? row.referencePrice
+        : 0;
+
+    let changePct: number | null;
+    if (typeof row.changePercent === "number") {
+      changePct = row.changePercent / 100;
+    } else if (typeof row.change === "number" && price - row.change > 0) {
+      changePct = row.change / (price - row.change);
+    } else if (previousClose > 0) {
+      changePct = (price - previousClose) / previousClose;
+    } else {
+      changePct = null;
+    }
+
+    let change: number | null;
+    if (typeof row.change === "number") {
+      change = row.change;
+    } else if (previousClose > 0) {
+      change = price - previousClose;
+    } else if (changePct !== null && price > 0) {
+      // 由 changePct 反推：price = prev * (1 + pct) → change = price - prev
+      const derivedPrev = price / (1 + changePct);
+      change = derivedPrev > 0 ? price - derivedPrev : null;
+    } else {
+      change = null;
+    }
 
     const industryCode = (ticker?.industry ?? "").trim();
     const industryName = industryLabel(industryCode, "zh-TW");

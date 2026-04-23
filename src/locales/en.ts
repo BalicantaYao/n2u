@@ -345,6 +345,7 @@ const en = {
     universeCount: "Universe: {{count}} symbols",
     sizingModeMixed: "Partial trade-value sizing",
     sizingModeTradeValue: "Sized by trade value",
+    noData: "No data",
   },
 
   // ── Memos ──────────────────────────────────────────────────

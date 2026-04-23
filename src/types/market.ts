@@ -61,8 +61,10 @@ export interface MarketMapStock {
   /** Fugle / TWSE 產業代碼，例 "24" = 半導體業。UI 以此作為 sector 的穩定 key。 */
   industryCode?: string;
   price: number;
-  change: number;
-  changePct: number; // 小數：0.0123 = +1.23%
+  /** 當日漲跌（金額）。`null` 表示資料來源缺漏，無法計算。 */
+  change: number | null;
+  /** 當日漲跌幅，小數：0.0123 = +1.23%。`null` 表示資料來源缺漏，無法計算。 */
+  changePct: number | null;
   marketCap: number; // 以 TWD 為單位
 }
 

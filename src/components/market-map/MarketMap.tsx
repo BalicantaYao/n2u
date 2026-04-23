@@ -7,8 +7,10 @@ import type { MarketMapMarketPayload } from "@/types/market";
 
 /**
  * 台股慣例熱度色（紅漲綠跌）。changePct 為小數，0.0123 = 1.23%。
+ * 傳入 `null` 表示資料來源缺漏，用中性深灰與 0% 平盤區分。
  */
-function getHeatColor(pct: number): string {
+function getHeatColor(pct: number | null): string {
+  if (pct === null) return "#1f2937"; // gray-800，代表無資料
   if (pct <= -0.03) return "#14532d"; // green-900
   if (pct <= -0.015) return "#15803d"; // green-700
   if (pct < 0) return "#22c55e"; // green-500
@@ -25,7 +27,8 @@ interface TreemapDatum {
   symbol?: string;
   stockName?: string;
   price?: number;
-  changePct?: number;
+  /** `null` 表示資料來源缺漏 */
+  changePct?: number | null;
   marketCap?: number;
   sector?: string;
 }
@@ -60,7 +63,7 @@ interface CellProps {
   name: string;
   symbol?: string;
   stockName?: string;
-  changePct?: number;
+  changePct?: number | null;
   sector?: string;
 }
 
@@ -102,7 +105,7 @@ function Cell(props: CellProps) {
   // depth 2: 個股 leaf
   if (depth !== 2) return null;
 
-  const pct = changePct ?? 0;
+  const pct = changePct ?? null;
   const color = getHeatColor(pct);
   // 主標字體隨方塊大小動態調整
   const shorterSide = Math.min(width, height);
@@ -112,7 +115,7 @@ function Cell(props: CellProps) {
   const showName = width > 80 && height > 52;
   const showPct = width > 48 && height > 38;
 
-  const pctText = formatPct(pct, 2);
+  const pctText = pct === null ? "—" : formatPct(pct, 2);
 
   return (
     <g>
@@ -205,8 +208,8 @@ function TreemapTooltip({
         <span>
           {t("marketMap.price")}：{p.price?.toFixed(2)}
         </span>
-        <span style={{ color: getHeatColor(p.changePct ?? 0) }}>
-          {formatPct(p.changePct ?? 0, 2)}
+        <span style={{ color: getHeatColor(p.changePct ?? null) }}>
+          {p.changePct == null ? t("marketMap.noData") : formatPct(p.changePct, 2)}
         </span>
       </div>
       <div className="text-muted-foreground">
