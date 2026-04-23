@@ -2,7 +2,7 @@ import { PositionsContent } from "@/components/positions/PositionsContent";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
 import { fetchQuotes, fetchHistorical } from "@/lib/market-api";
-import { calculateMA } from "@/lib/stop-loss-calculator";
+import { calculateMA, calculateATR } from "@/lib/stop-loss-calculator";
 import { marketToCurrency } from "@/types/taiwan";
 import type { Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";
@@ -71,8 +71,9 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
 
   const symbols = Array.from(map.values()).map((p) => ({ symbol: p.symbol, market: p.market }));
 
+  // 30 曆日 ≈ 21 交易日，足夠算 MA10 與 ATR(14)（後者需至少 15 根 K 棒）
   const fromDate = new Date();
-  fromDate.setDate(fromDate.getDate() - 25);
+  fromDate.setDate(fromDate.getDate() - 30);
   const toDate = new Date();
   const historicalBars: Record<string, OHLCVBar[]> = {};
 
@@ -134,6 +135,9 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
     const bars = historicalBars[p.symbol];
     const ma5 = bars ? calculateMA(bars, 5) ?? undefined : undefined;
     const ma10 = bars ? calculateMA(bars, 10) ?? undefined : undefined;
+    // ATR(14) 需至少 15 根 K 棒才有意義；不足時回 undefined 而非 0
+    const atr14Raw = bars && bars.length >= 15 ? calculateATR(bars, 14) : 0;
+    const atr14 = atr14Raw > 0 ? atr14Raw : undefined;
 
     return {
       symbol: p.symbol,
@@ -156,6 +160,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       latestOpenBuyTradeId: p.latestOpenBuyTradeId,
       ma5,
       ma10,
+      atr14,
       isStopLossAlert:
         currentPrice != null && p.stopLoss != null ? currentPrice <= p.stopLoss : false,
       notes: p.notes,

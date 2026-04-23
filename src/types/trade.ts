@@ -69,6 +69,7 @@ export interface Position {
   latestOpenBuyTradeId?: string;
   ma5?: number;
   ma10?: number;
+  atr14?: number;
   isStopLossAlert?: boolean;
   notes: string[];
 }
