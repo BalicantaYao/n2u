@@ -2,8 +2,8 @@
 
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { useT } from "@/lib/i18n";
-import { formatPct } from "@/lib/utils";
-import type { MarketMapMarketPayload } from "@/types/market";
+import { formatPct, tradingViewChartUrl } from "@/lib/utils";
+import type { MarketMapMarket, MarketMapMarketPayload } from "@/types/market";
 
 /**
  * 台股慣例熱度色（紅漲綠跌）。changePct 為小數，0.0123 = 1.23%。
@@ -31,6 +31,7 @@ interface TreemapDatum {
   changePct?: number | null;
   marketCap?: number;
   sector?: string;
+  market?: MarketMapMarket;
 }
 
 function toTreemapData(data: MarketMapMarketPayload): TreemapDatum[] {
@@ -48,6 +49,7 @@ function toTreemapData(data: MarketMapMarketPayload): TreemapDatum[] {
         changePct: s.changePct,
         marketCap: s.marketCap,
         sector: g.sector,
+        market: data.market,
       })),
     }));
 }
@@ -65,10 +67,11 @@ interface CellProps {
   stockName?: string;
   changePct?: number | null;
   sector?: string;
+  market?: MarketMapMarket;
 }
 
 function Cell(props: CellProps) {
-  const { x, y, width, height, depth, name, symbol, stockName, changePct, sector } = props;
+  const { x, y, width, height, depth, name, symbol, stockName, changePct, sector, market } = props;
 
   if (width <= 0 || height <= 0) return null;
 
@@ -116,8 +119,9 @@ function Cell(props: CellProps) {
   const showPct = width > 48 && height > 38;
 
   const pctText = pct === null ? "—" : formatPct(pct, 2);
+  const href = symbol && market ? tradingViewChartUrl(symbol, market) : undefined;
 
-  return (
+  const content = (
     <g>
       <rect
         x={x}
@@ -127,6 +131,7 @@ function Cell(props: CellProps) {
         fill={color}
         stroke="hsl(var(--background))"
         strokeWidth={1}
+        style={href ? { cursor: "pointer" } : undefined}
       />
       {showText && (
         <text
@@ -170,6 +175,19 @@ function Cell(props: CellProps) {
       {/* invisible hover target with full metadata for Tooltip */}
       <title>{`${symbol} ${stockName ?? ""} ${pctText}${sector ? ` · ${sector}` : ""}`}</title>
     </g>
+  );
+
+  return href ? (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${symbol} TradingView chart`}
+    >
+      {content}
+    </a>
+  ) : (
+    content
   );
 }
 

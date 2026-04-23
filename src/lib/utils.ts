@@ -108,3 +108,9 @@ export function tradingViewUrl(symbol: string, market: Market): string {
   const upper = isUSMarket(market) ? symbol.toUpperCase() : symbol;
   return `https://www.tradingview.com/symbols/${market}-${upper}/`;
 }
+
+/** 組出 TradingView Chart 頁的 URL，直接開啟 K 線互動介面（與 /symbols/ 的資訊頁不同）。 */
+export function tradingViewChartUrl(symbol: string, market: Market): string {
+  const upper = isUSMarket(market) ? symbol.toUpperCase() : symbol;
+  return `https://www.tradingview.com/chart/?symbol=${market}:${upper}`;
+}
