@@ -1,7 +1,11 @@
 /**
  * 多市場資料派發層：依 market 路由到對應資料源
  *   TWSE / TPEX  → Fugle
- *   NYSE / NASDAQ → Finnhub
+ *   NYSE / NASDAQ → Finnhub（即時報價 / 搜尋）+ Yahoo Finance（歷史 K 棒）
+ *
+ * 說明：Finnhub 免費方案已不再提供美股 /stock/candle，
+ * 因此歷史 OHLCV 改打 Yahoo Finance 的公開 chart endpoint，
+ * 讓 ATR、移動平均等依賴歷史資料的計算（例如停損建議）能正常運作。
  */
 
 import type { Market } from "@/types/taiwan";
@@ -13,11 +17,8 @@ import {
   fetchHistorical as fetchHistoricalTW,
   searchSymbols as searchSymbolsTW,
 } from "./fugle-api";
-import {
-  fetchQuoteUS,
-  fetchHistoricalUS,
-  searchSymbolsUS,
-} from "./finnhub-api";
+import { fetchQuoteUS, searchSymbolsUS } from "./finnhub-api";
+import { fetchHistoricalUS } from "./yahoo-finance-api";
 
 export async function fetchQuote(
   symbol: string,
