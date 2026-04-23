@@ -55,6 +55,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.sharesHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.avgCost")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.currentPrice")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.dailyChangeHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossPnLHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
@@ -182,6 +183,35 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                                 </span>
                               )}
                             </div>
+                          )}
+                        </td>
+
+                        {/* Today's Change */}
+                        <td
+                          className={cn(
+                            "px-4 py-3 text-right tabular-nums",
+                            pos.dailyChange == null
+                              ? "text-muted-foreground"
+                              : pos.dailyChange > 0
+                              ? "text-green-600 dark:text-green-400"
+                              : pos.dailyChange < 0
+                              ? "text-red-600 dark:text-red-400"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {pos.dailyChange != null ? (
+                            <>
+                              <div className="font-medium">
+                                {formatCurrency(pos.dailyChange, pos.currency, true)}
+                              </div>
+                              {pos.dailyChangePct != null && (
+                                <div className="text-[11px] mt-0.5">
+                                  {formatPct(pos.dailyChangePct)}
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            "—"
                           )}
                         </td>
 
@@ -365,7 +395,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                       {/* Expanded notes sub-row */}
                       {isExp && hasNotes && (
                         <tr className="bg-muted/20 border-b">
-                          <td colSpan={13} className="px-8 py-3">
+                          <td colSpan={14} className="px-8 py-3">
                             <div className="text-xs space-y-1.5">
                               <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
                               {pos.notes.map((note, i) => (

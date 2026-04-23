@@ -145,6 +145,8 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       avgCostPerShare,
       totalCost: p.totalCost,
       currentPrice,
+      dailyChange: quote?.change,
+      dailyChangePct: quote?.changePct,
       marketValue,
       unrealizedPnL,
       unrealizedPnLPct,

@@ -58,6 +58,8 @@ export interface Position {
   avgCostPerShare: number;
   totalCost: number;
   currentPrice?: number;
+  dailyChange?: number;
+  dailyChangePct?: number;
   marketValue?: number;
   unrealizedPnL?: number;
   unrealizedPnLPct?: number;
