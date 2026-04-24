@@ -243,9 +243,21 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                               : distance != null && distance < 0.03
                               ? "text-amber-600 dark:text-amber-400"
                               : "text-muted-foreground";
+                            const suggestedLine =
+                              pos.suggestedStopLoss != null ? (
+                                <div
+                                  className="text-[11px] tabular-nums mt-0.5 text-muted-foreground"
+                                  title={t("positions.suggestedStopLossTip")}
+                                >
+                                  {t("positions.suggestedStopLossLabel")} {pos.suggestedStopLoss.toFixed(2)}
+                                </div>
+                              ) : null;
                             const content =
                               pos.stopLoss == null ? (
-                                <div className="tabular-nums text-muted-foreground">—</div>
+                                <>
+                                  <div className="tabular-nums text-muted-foreground">—</div>
+                                  {suggestedLine}
+                                </>
                               ) : (
                                 <>
                                   <div
@@ -267,6 +279,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                                   >
                                     {distance != null ? formatPct(distance) : "—"}
                                   </div>
+                                  {suggestedLine}
                                 </>
                               );
 

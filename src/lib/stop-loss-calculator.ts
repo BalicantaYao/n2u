@@ -71,6 +71,13 @@ export function findRecentLow(bars: OHLCVBar[], period: number): number | null {
   return Math.min(...sliced.map((b) => b.low));
 }
 
+/** 取最近 N 根 K 棒的最高收盤價 */
+export function findRecentHighClose(bars: OHLCVBar[], period: number): number | null {
+  if (bars.length === 0) return null;
+  const sliced = bars.slice(-period);
+  return Math.max(...sliced.map((b) => b.close));
+}
+
 /** 計算加碼後／編輯中的倉位影響 */
 export function calculatePositionImpact(
   input: StopLossCalcInput

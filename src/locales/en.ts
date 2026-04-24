@@ -288,6 +288,8 @@ const en = {
     stopLossPnLHeader: "P&L @ Stop",
     stopLossAlert: "Stop loss triggered",
     stopLossPrice: "Stop Loss",
+    suggestedStopLossLabel: "Suggested",
+    suggestedStopLossTip: "14-day high close − 2 × ATR(14)",
     ma5: "MA5",
     ma10: "MA10",
     atr14: "ATR(14): 14-day average true range",
