@@ -5,6 +5,12 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatCurrency, formatPct, cn, tradingViewUrl } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import {
@@ -35,6 +41,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
   }
 
   return (
+    <TooltipProvider delayDuration={150}>
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold">{t("positions.positionDetail")}</CardTitle>
@@ -55,9 +62,11 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.sharesHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.avgCost")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.currentPrice")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.atrHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.dailyChangeHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossPnLHeader")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.addOnHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.unrealizedHeader")}</th>
@@ -143,54 +152,80 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                           {pos.avgCostPerShare.toFixed(2)}
                         </td>
 
-                        {/* Current Price */}
+                        {/* Current Price (hover to see 5MA / 10MA) */}
                         <td className="px-4 py-3 text-right">
-                          <div className="tabular-nums">
-                            {pos.currentPrice != null ? pos.currentPrice.toFixed(2) : "—"}
-                          </div>
-                          {(pos.ma5 != null || pos.ma10 != null || pos.atr14 != null) && (
-                            <div className="flex items-center justify-end gap-2 mt-0.5">
-                              {pos.ma5 != null && (
-                                <span
-                                  className={cn(
-                                    "text-[11px] tabular-nums flex items-center gap-0.5",
-                                    pos.currentPrice != null && pos.currentPrice > pos.ma5
-                                      ? "text-green-600 dark:text-green-400"
-                                      : pos.currentPrice != null && pos.currentPrice < pos.ma5
-                                      ? "text-red-600 dark:text-red-400"
-                                      : "text-muted-foreground"
-                                  )}
-                                  title={t("positions.ma5")}
-                                >
-                                  <Activity className="h-3 w-3" />
-                                  5MA {pos.ma5.toFixed(2)}
-                                </span>
+                          {(() => {
+                            const priceNode = (
+                              <div className="tabular-nums">
+                                {pos.currentPrice != null ? pos.currentPrice.toFixed(2) : "—"}
+                              </div>
+                            );
+                            const hasMA = pos.ma5 != null || pos.ma10 != null;
+                            if (!hasMA) return priceNode;
+                            return (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-block cursor-help border-b border-dotted border-muted-foreground/40">
+                                    {priceNode}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent align="end" className="px-3 py-2">
+                                  <div className="flex flex-col gap-1">
+                                    {pos.ma5 != null && (
+                                      <div
+                                        className={cn(
+                                          "text-[11px] tabular-nums flex items-center gap-1",
+                                          pos.currentPrice != null && pos.currentPrice > pos.ma5
+                                            ? "text-green-600 dark:text-green-400"
+                                            : pos.currentPrice != null && pos.currentPrice < pos.ma5
+                                            ? "text-red-600 dark:text-red-400"
+                                            : "text-muted-foreground"
+                                        )}
+                                      >
+                                        <Activity className="h-3 w-3" />
+                                        <span>{t("positions.ma5")}</span>
+                                        <span className="ml-1">{pos.ma5.toFixed(2)}</span>
+                                      </div>
+                                    )}
+                                    {pos.ma10 != null && (
+                                      <div
+                                        className={cn(
+                                          "text-[11px] tabular-nums flex items-center gap-1",
+                                          pos.currentPrice != null && pos.currentPrice > pos.ma10
+                                            ? "text-green-600 dark:text-green-400"
+                                            : pos.currentPrice != null && pos.currentPrice < pos.ma10
+                                            ? "text-red-600 dark:text-red-400"
+                                            : "text-muted-foreground"
+                                        )}
+                                      >
+                                        <Activity className="h-3 w-3" />
+                                        <span>{t("positions.ma10")}</span>
+                                        <span className="ml-1">{pos.ma10.toFixed(2)}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            );
+                          })()}
+                        </td>
+
+                        {/* ATR(14) + volatility % (ATR / avg cost) */}
+                        <td
+                          className="px-4 py-3 text-right tabular-nums"
+                          title={t("positions.atr14")}
+                        >
+                          {pos.atr14 != null ? (
+                            <>
+                              <div>{pos.atr14.toFixed(2)}</div>
+                              {pos.avgCostPerShare > 0 && (
+                                <div className="text-[11px] mt-0.5 text-muted-foreground">
+                                  {formatPct(pos.atr14 / pos.avgCostPerShare)}
+                                </div>
                               )}
-                              {pos.ma10 != null && (
-                                <span
-                                  className={cn(
-                                    "text-[11px] tabular-nums flex items-center gap-0.5",
-                                    pos.currentPrice != null && pos.currentPrice > pos.ma10
-                                      ? "text-green-600 dark:text-green-400"
-                                      : pos.currentPrice != null && pos.currentPrice < pos.ma10
-                                      ? "text-red-600 dark:text-red-400"
-                                      : "text-muted-foreground"
-                                  )}
-                                  title={t("positions.ma10")}
-                                >
-                                  <Activity className="h-3 w-3" />
-                                  10MA {pos.ma10.toFixed(2)}
-                                </span>
-                              )}
-                              {pos.atr14 != null && (
-                                <span
-                                  className="text-[11px] tabular-nums flex items-center gap-0.5 text-muted-foreground"
-                                  title={t("positions.atr14")}
-                                >
-                                  ATR {pos.atr14.toFixed(2)}
-                                </span>
-                              )}
-                            </div>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
                           )}
                         </td>
 
@@ -325,6 +360,23 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                           )}
                         </td>
 
+                        {/* Suggested Add-On Price: avg cost + 2 × ATR(14) */}
+                        <td
+                          className="px-4 py-3 text-right tabular-nums"
+                          title={t("positions.addOnTip")}
+                        >
+                          {pos.atr14 != null && pos.avgCostPerShare > 0 ? (
+                            <>
+                              <div>{(pos.avgCostPerShare + 2 * pos.atr14).toFixed(2)}</div>
+                              <div className="text-[11px] mt-0.5 text-muted-foreground">
+                                +2 ATR
+                              </div>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+
                         {/* Total Cost */}
                         <td className="px-4 py-3 text-right tabular-nums">
                           {formatCurrency(pos.totalCost, pos.currency)}
@@ -416,7 +468,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                       {/* Expanded notes sub-row */}
                       {isExp && hasNotes && (
                         <tr className="bg-muted/20 border-b">
-                          <td colSpan={14} className="px-8 py-3">
+                          <td colSpan={16} className="px-8 py-3">
                             <div className="text-xs space-y-1.5">
                               <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
                               {pos.notes.map((note, i) => (
@@ -439,5 +491,6 @@ export function PositionsTable({ positions }: PositionsTableProps) {
         )}
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 }
