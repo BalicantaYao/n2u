@@ -16,16 +16,26 @@ interface Props {
   memo?: Memo;
   onCancel?: () => void;
   onSubmitted?: () => void;
+  defaultLinkedSymbol?: string;
+  lockLinkedSymbol?: boolean;
 }
 
-export function MemoComposer({ memo, onCancel, onSubmitted }: Props) {
+export function MemoComposer({
+  memo,
+  onCancel,
+  onSubmitted,
+  defaultLinkedSymbol,
+  lockLinkedSymbol,
+}: Props) {
   const { t } = useT();
   const addMemo = useMemoStore((s) => s.addMemo);
   const updateMemo = useMemoStore((s) => s.updateMemo);
   const { trades, fetchTrades } = useTradeStore();
 
+  const initialSymbol =
+    memo?.linkedSymbol ?? defaultLinkedSymbol?.toUpperCase() ?? "";
   const [content, setContent] = useState(memo?.content ?? "");
-  const [linkedSymbol, setLinkedSymbol] = useState(memo?.linkedSymbol ?? "");
+  const [linkedSymbol, setLinkedSymbol] = useState(initialSymbol);
   const [tradeId, setTradeId] = useState(memo?.tradeId ?? "");
   const [pinned, setPinned] = useState(memo?.pinned ?? false);
   const [submitting, setSubmitting] = useState(false);
@@ -59,7 +69,7 @@ export function MemoComposer({ memo, onCancel, onSubmitted }: Props) {
         await addMemo(payload);
         toast.success(t("memos.created"));
         setContent("");
-        setLinkedSymbol("");
+        setLinkedSymbol(lockLinkedSymbol ? initialSymbol : "");
         setTradeId("");
         setPinned(false);
       }
@@ -98,6 +108,7 @@ export function MemoComposer({ memo, onCancel, onSubmitted }: Props) {
             setLinkedSymbol(e.target.value.toUpperCase());
             setTradeId("");
           }}
+          disabled={lockLinkedSymbol}
           className="w-28 md:w-32 h-8 text-xs"
           maxLength={12}
         />

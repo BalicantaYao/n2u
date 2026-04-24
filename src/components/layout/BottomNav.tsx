@@ -8,12 +8,14 @@ import {
   Briefcase,
   BarChart3,
   StickyNote,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 
 const navItems = [
   { href: "/dashboard", labelKey: "nav.dashboard", shortKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/watchlist", labelKey: "nav.watchlist", shortKey: "nav.watchlistShort", icon: Eye },
   { href: "/journal", labelKey: "nav.journal", shortKey: "nav.journalShort", icon: BookOpen },
   { href: "/positions", labelKey: "nav.positions", shortKey: "nav.positionsShort", icon: Briefcase },
   { href: "/results", labelKey: "nav.results", shortKey: "nav.resultsShort", icon: BarChart3 },
