@@ -83,12 +83,16 @@ function CurrencySection({
     (s, p) => s + (p.unrealizedPnL ?? 0),
     0,
   );
+  const totalDailyChange = positions.reduce(
+    (s, p) => s + (p.dailyChange != null ? p.dailyChange * p.totalShares : 0),
+    0,
+  );
   const overallReturn = totalCost > 0 ? totalUnrealized / totalCost : 0;
   const hasQuotes = positions.some((p) => p.currentPrice != null);
 
   return (
     <section className="space-y-4">
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard
           title={t("positions.positionCount")}
           value={`${positions.length} ${t("positions.positionUnit")}`}
@@ -106,6 +110,22 @@ function CurrencySection({
           value={hasQuotes ? formatCurrency(totalMarketValue, currency) : "—"}
           icon={TrendingUp}
           trend="neutral"
+        />
+        <StatCard
+          title={t("positions.dailyPnL")}
+          value={
+            hasQuotes ? formatCurrency(totalDailyChange, currency, true) : "—"
+          }
+          icon={totalDailyChange >= 0 ? TrendingUp : TrendingDown}
+          trend={
+            !hasQuotes
+              ? "neutral"
+              : totalDailyChange > 0
+                ? "positive"
+                : totalDailyChange < 0
+                  ? "negative"
+                  : "neutral"
+          }
         />
         <StatCard
           title={t("positions.unrealizedPnL")}
