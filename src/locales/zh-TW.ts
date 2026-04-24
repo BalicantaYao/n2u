@@ -288,6 +288,8 @@ const zhTW = {
     stopLossPnLHeader: "停損試算損益",
     stopLossAlert: "觸及停損",
     stopLossPrice: "停損價",
+    suggestedStopLossLabel: "建議",
+    suggestedStopLossTip: "近 14 日收盤最高價 − 2 × ATR(14)",
     ma5: "5日均線",
     ma10: "10日均線",
     atr14: "ATR(14)：近 14 日平均真實波幅",

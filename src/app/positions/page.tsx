@@ -2,7 +2,7 @@ import { PositionsContent } from "@/components/positions/PositionsContent";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
 import { fetchQuotes, fetchHistorical } from "@/lib/market-api";
-import { calculateMA, calculateATR } from "@/lib/stop-loss-calculator";
+import { calculateMA, calculateATR, findRecentHighClose } from "@/lib/stop-loss-calculator";
 import { marketToCurrency } from "@/types/taiwan";
 import type { Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";
@@ -138,6 +138,15 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
     // ATR(14) 需至少 15 根 K 棒才有意義；不足時回 undefined 而非 0
     const atr14Raw = bars && bars.length >= 15 ? calculateATR(bars, 14) : 0;
     const atr14 = atr14Raw > 0 ? atr14Raw : undefined;
+    // 建議停損價：近 14 日收盤最高價 − 2 × ATR(14)
+    const recentHighClose =
+      bars && bars.length >= 14 ? findRecentHighClose(bars, 14) : null;
+    const suggestedStopLossRaw =
+      atr14 != null && recentHighClose != null ? recentHighClose - 2 * atr14 : null;
+    const suggestedStopLoss =
+      suggestedStopLossRaw != null && suggestedStopLossRaw > 0
+        ? suggestedStopLossRaw
+        : undefined;
 
     return {
       symbol: p.symbol,
@@ -163,6 +172,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       ma5,
       ma10,
       atr14,
+      suggestedStopLoss,
       isStopLossAlert:
         currentPrice != null && p.stopLoss != null ? currentPrice <= p.stopLoss : false,
       notes: p.notes,

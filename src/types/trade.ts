@@ -72,6 +72,7 @@ export interface Position {
   ma5?: number;
   ma10?: number;
   atr14?: number;
+  suggestedStopLoss?: number;
   isStopLossAlert?: boolean;
   notes: string[];
 }
