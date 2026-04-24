@@ -17,6 +17,8 @@ model User {
   trades        Trade[]
   positionLots  PositionLot[]
   memos         Memo[]
+  watchlists    Watchlist[]
+  watchlistItems WatchlistItem[]
 }
 
 model Account {
@@ -127,4 +129,43 @@ model Memo {
   @@index([userId, createdAt])
   @@index([linkedSymbol])
   @@index([tradeId])
+}
+
+model Watchlist {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items       WatchlistItem[]
+
+  @@index([userId, sortOrder])
+}
+
+model WatchlistItem {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  symbol      String
+  symbolName  String?
+  market      String
+  note        String?
+  sortOrder   Int      @default(0)
+
+  watchlistId String
+  watchlist   Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([watchlistId, symbol])
+  @@index([userId])
+  @@index([symbol])
 }

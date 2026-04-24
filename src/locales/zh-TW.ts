@@ -20,6 +20,8 @@ const zhTW = {
     resultsShort: "成果",
     memos: "備忘錄",
     memosShort: "筆記",
+    watchlist: "觀察名單",
+    watchlistShort: "觀察",
   },
 
   // ── Sidebar / Footer ───────────────────────────────────────
@@ -386,6 +388,36 @@ const zhTW = {
     unpin: "取消釘選",
     pinnedSection: "已釘選",
     hotkeyHint: "⌘+Enter 送出",
+  },
+
+  // ── Watchlist ─────────────────────────────────────────────
+  watchlist: {
+    title: "觀察名單",
+    newList: "新增名單",
+    listNamePlaceholder: "名單名稱…",
+    listCreated: "名單已建立",
+    listUpdated: "名單已更新",
+    listDeleted: "名單已刪除",
+    deleteListConfirm: "確定要刪除「{name}」嗎？其內所有觀察項目都會一併刪除。",
+    deleteItemConfirm: "要把 {symbol} 從名單中移除嗎？",
+    emptyLists: "還沒有任何觀察名單。點右上方「新增名單」開始建立。",
+    selectAList: "請先選擇一份觀察名單。",
+    noItems: "這份名單目前沒有項目。用上方搜尋把股票加入。",
+    itemCount: "共 {count} 檔",
+    refreshQuotes: "更新報價",
+    searchPlaceholder: "搜尋股票（代號或名稱）…",
+    notePlaceholder: "簡短觀察重點（可空）",
+    addItem: "加入名單",
+    itemAdded: "已加入名單",
+    itemDeleted: "已移除",
+    selectStockFirst: "請先選擇一檔股票",
+    saveFailed: "儲存失敗",
+    deleteFailed: "刪除失敗",
+    shortNote: "觀察重點",
+    noteSaved: "已更新重點",
+    addMemoForSymbol: "為 {symbol} 新增每日筆記",
+    relatedMemos: "{symbol} 的歷史筆記",
+    noMemosYet: "目前還沒有與這檔股票相關的筆記。",
   },
 } as const;
 

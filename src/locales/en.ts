@@ -20,6 +20,8 @@ const en = {
     resultsShort: "Results",
     memos: "Memos",
     memosShort: "Memos",
+    watchlist: "Watchlist",
+    watchlistShort: "Watch",
   },
 
   // ── Sidebar / Footer ───────────────────────────────────────
@@ -386,6 +388,36 @@ const en = {
     unpin: "Unpin",
     pinnedSection: "Pinned",
     hotkeyHint: "⌘+Enter to post",
+  },
+
+  // ── Watchlist ─────────────────────────────────────────────
+  watchlist: {
+    title: "Watchlist",
+    newList: "New list",
+    listNamePlaceholder: "List name…",
+    listCreated: "List created",
+    listUpdated: "List updated",
+    listDeleted: "List deleted",
+    deleteListConfirm: "Delete \"{name}\"? All items in this list will be removed.",
+    deleteItemConfirm: "Remove {symbol} from this list?",
+    emptyLists: "No watchlists yet. Click \"New list\" to create one.",
+    selectAList: "Select a watchlist to view its items.",
+    noItems: "No items in this list yet. Use the search above to add stocks.",
+    itemCount: "{count} item(s)",
+    refreshQuotes: "Refresh quotes",
+    searchPlaceholder: "Search stocks (symbol or name)…",
+    notePlaceholder: "Short observation note (optional)",
+    addItem: "Add to list",
+    itemAdded: "Added to list",
+    itemDeleted: "Removed",
+    selectStockFirst: "Please select a stock first",
+    saveFailed: "Save failed",
+    deleteFailed: "Delete failed",
+    shortNote: "Observation note",
+    noteSaved: "Note saved",
+    addMemoForSymbol: "Add a daily memo for {symbol}",
+    relatedMemos: "Memo history for {symbol}",
+    noMemosYet: "No memos linked to this symbol yet.",
   },
 } as const;
 
