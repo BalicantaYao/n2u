@@ -78,6 +78,12 @@ const en = {
     inPosition: "Open",
   },
 
+  // ── Market Tabs ────────────────────────────────────────────
+  marketTabs: {
+    tw: "TW Stocks",
+    us: "US Stocks",
+  },
+
   // ── Dashboard ──────────────────────────────────────────────
   dashboard: {
     title: "Overview",
@@ -284,6 +290,7 @@ const en = {
     stopLossPrice: "Stop Loss",
     ma5: "MA5",
     ma10: "MA10",
+    atr14: "ATR(14): 14-day average true range",
     refresh: "Refresh",
     addTradeRecord: "Add Trade",
     editStopLoss: "Edit stop loss on latest entry",
@@ -347,6 +354,7 @@ const en = {
     universeCount: "Universe: {{count}} symbols",
     sizingModeMixed: "Partial trade-value sizing",
     sizingModeTradeValue: "Sized by trade value",
+    noData: "No data",
   },
 
   // ── Memos ──────────────────────────────────────────────────

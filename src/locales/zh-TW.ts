@@ -78,6 +78,12 @@ const zhTW = {
     inPosition: "持倉中",
   },
 
+  // ── Market Tabs ────────────────────────────────────────────
+  marketTabs: {
+    tw: "台股",
+    us: "美股",
+  },
+
   // ── Dashboard ──────────────────────────────────────────────
   dashboard: {
     title: "總覽",
@@ -284,6 +290,7 @@ const zhTW = {
     stopLossPrice: "停損價",
     ma5: "5日均線",
     ma10: "10日均線",
+    atr14: "ATR(14)：近 14 日平均真實波幅",
     refresh: "刷新報價",
     addTradeRecord: "新增交易",
     editStopLoss: "編輯最新一筆的停損價",
@@ -347,6 +354,7 @@ const zhTW = {
     universeCount: "候選共 {{count}} 檔",
     sizingModeMixed: "部分以成交值呈現",
     sizingModeTradeValue: "以成交值呈現",
+    noData: "無資料",
   },
 
   // ── Memos ──────────────────────────────────────────────────

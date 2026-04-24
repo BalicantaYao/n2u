@@ -6,6 +6,7 @@ import { PnLChart } from "@/components/dashboard/PnLChart";
 import { DailyPnLBar } from "@/components/dashboard/DailyPnLBar";
 import { WinLossDonut } from "@/components/dashboard/WinLossDonut";
 import { RecentTrades } from "@/components/dashboard/RecentTrades";
+import { MarketTabs } from "@/components/common/MarketTabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -35,70 +36,59 @@ interface PnLSummary {
 }
 
 interface DashboardContentProps {
-  summary: PnLSummary;
-  dailyPnL: DailyPnL[];
-  summaryUSD?: PnLSummary;
-  dailyPnLUSD?: DailyPnL[];
-  hasUSTrades?: boolean;
-  recentTrades: Trade[];
+  summaryTWD: PnLSummary;
+  dailyPnLTWD: DailyPnL[];
+  summaryUSD: PnLSummary;
+  dailyPnLUSD: DailyPnL[];
+  recentTradesTWD: Trade[];
+  recentTradesUSD: Trade[];
 }
 
 export function DashboardContent({
-  summary,
-  dailyPnL,
+  summaryTWD,
+  dailyPnLTWD,
   summaryUSD,
   dailyPnLUSD,
-  hasUSTrades,
-  recentTrades,
+  recentTradesTWD,
+  recentTradesUSD,
 }: DashboardContentProps) {
-  const { t } = useT();
-
   return (
     <div>
       <Header titleKey="dashboard.title" />
-      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-        <MarketSection
-          title={t("common.twseFull") + " + " + t("common.tpexFull")}
-          currency="TWD"
-          summary={summary}
-          dailyPnL={dailyPnL}
+      <div className="p-4 md:p-6">
+        <MarketTabs
+          tw={
+            <MarketPanel
+              currency="TWD"
+              summary={summaryTWD}
+              dailyPnL={dailyPnLTWD}
+              recentTrades={recentTradesTWD}
+            />
+          }
+          us={
+            <MarketPanel
+              currency="USD"
+              summary={summaryUSD}
+              dailyPnL={dailyPnLUSD}
+              recentTrades={recentTradesUSD}
+            />
+          }
         />
-
-        {hasUSTrades && summaryUSD && dailyPnLUSD && (
-          <MarketSection
-            title="NYSE + NASDAQ"
-            currency="USD"
-            summary={summaryUSD}
-            dailyPnL={dailyPnLUSD}
-          />
-        )}
-
-        {/* Recent Trades（合併顯示台/美股，各自帶幣別） */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">
-              {t("dashboard.recentTrades")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4">
-            <RecentTrades trades={recentTrades as never} />
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
 }
 
-function MarketSection({
-  title,
+function MarketPanel({
   currency,
   summary,
   dailyPnL,
+  recentTrades,
 }: {
-  title: string;
   currency: Currency;
   summary: PnLSummary;
   dailyPnL: DailyPnL[];
+  recentTrades: Trade[];
 }) {
   const { t } = useT();
   const ev = summary.winRate * summary.avgWin - (1 - summary.winRate) * summary.avgLoss;
@@ -107,10 +97,6 @@ function MarketSection({
 
   return (
     <section className="space-y-4">
-      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {title}
-      </h2>
-
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard
@@ -220,6 +206,18 @@ function MarketSection({
         </CardHeader>
         <CardContent>
           <DailyPnLBar data={dailyPnL} currency={currency} />
+        </CardContent>
+      </Card>
+
+      {/* Recent Trades — 已依當前 Tab 的市場過濾 */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold">
+            {t("dashboard.recentTrades")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4">
+          <RecentTrades trades={recentTrades as never} />
         </CardContent>
       </Card>
     </section>

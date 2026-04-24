@@ -148,7 +148,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                           <div className="tabular-nums">
                             {pos.currentPrice != null ? pos.currentPrice.toFixed(2) : "—"}
                           </div>
-                          {(pos.ma5 != null || pos.ma10 != null) && (
+                          {(pos.ma5 != null || pos.ma10 != null || pos.atr14 != null) && (
                             <div className="flex items-center justify-end gap-2 mt-0.5">
                               {pos.ma5 != null && (
                                 <span
@@ -180,6 +180,14 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                                 >
                                   <Activity className="h-3 w-3" />
                                   10MA {pos.ma10.toFixed(2)}
+                                </span>
+                              )}
+                              {pos.atr14 != null && (
+                                <span
+                                  className="text-[11px] tabular-nums flex items-center gap-0.5 text-muted-foreground"
+                                  title={t("positions.atr14")}
+                                >
+                                  ATR {pos.atr14.toFixed(2)}
                                 </span>
                               )}
                             </div>

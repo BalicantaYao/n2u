@@ -2,14 +2,17 @@
  * Finnhub MarketData REST API wrapper
  * https://finnhub.io/docs/api
  *
- * 用途：美股（NYSE / NASDAQ）即時報價、歷史 K 棒、symbol search。
+ * 用途：美股（NYSE / NASDAQ）即時報價、symbol search。
  * 免費版：15 分鐘延遲報價、60 req/min。
+ *
+ * 歷史 K 棒改由 yahoo-finance-api 提供（Finnhub 免費方案已不再支援
+ * 美股 /stock/candle）。
  *
  * 需要環境變數：FINNHUB_API_KEY
  */
 
 import type { Market } from "@/types/taiwan";
-import type { Quote, OHLCVBar, SearchResult } from "@/types/market";
+import type { Quote, SearchResult } from "@/types/market";
 
 const BASE_URL = "https://finnhub.io/api/v1";
 
@@ -63,16 +66,6 @@ interface FinnhubQuoteResponse {
   o?: number; // open
   pc?: number; // prev close
   t?: number; // unix seconds
-}
-
-interface FinnhubCandleResponse {
-  c?: number[];
-  h?: number[];
-  l?: number[];
-  o?: number[];
-  t?: number[];
-  v?: number[];
-  s?: string; // "ok" | "no_data"
 }
 
 interface FinnhubSearchItem {
@@ -130,42 +123,6 @@ export async function fetchQuotesUS(
     }),
   );
   return results;
-}
-
-function toFinnhubResolution(interval: "1d" | "1wk" | "1mo"): "D" | "W" | "M" {
-  if (interval === "1wk") return "W";
-  if (interval === "1mo") return "M";
-  return "D";
-}
-
-/** 取得美股歷史 OHLCV 資料 */
-export async function fetchHistoricalUS(
-  symbol: string,
-  from: Date,
-  to: Date,
-  interval: "1d" | "1wk" | "1mo" = "1d",
-): Promise<OHLCVBar[]> {
-  const res = await finnhubFetch<FinnhubCandleResponse>("/stock/candle", {
-    symbol: symbol.toUpperCase(),
-    resolution: toFinnhubResolution(interval),
-    from: String(Math.floor(from.getTime() / 1000)),
-    to: String(Math.floor(to.getTime() / 1000)),
-  });
-
-  if (!res || res.s !== "ok" || !res.t) return [];
-
-  const bars: OHLCVBar[] = [];
-  for (let i = 0; i < res.t.length; i++) {
-    bars.push({
-      date: new Date(res.t[i] * 1000),
-      open: res.o?.[i] ?? 0,
-      high: res.h?.[i] ?? 0,
-      low: res.l?.[i] ?? 0,
-      close: res.c?.[i] ?? 0,
-      volume: res.v?.[i] ?? 0,
-    });
-  }
-  return bars.sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 
 /* ── 符號清單（用 MIC code 判斷 NYSE vs NASDAQ） ── */
