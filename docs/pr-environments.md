@@ -62,4 +62,4 @@ Railway deploy log 應依序看到：
 
 ## Postgres 版本對齊
 
-`nixpacks.toml` 目前鎖 `postgresql_16` client。`pg_dump` 要求 client 版本 **>=** server 版本，否則拒絕連線。若 prod Postgres 升級為 17，請同步把 `nixpacks.toml` 改成 `postgresql_17` 後 redeploy。
+`Dockerfile` 目前從 PGDG apt repo 安裝 `postgresql-client-16`。`pg_dump` 要求 client 版本 **>=** server 版本，否則拒絕連線。若 prod Postgres 升級為 17，請把 `Dockerfile` 裡的 `postgresql-client-16` 改成 `postgresql-client-17` 後 redeploy。
