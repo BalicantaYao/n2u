@@ -64,7 +64,19 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.currentPrice")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.atrHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.dailyChangeHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossHeader")}</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help border-b border-dotted border-muted-foreground/40">
+                          {t("positions.stopLossHeader")}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent align="end" className="px-3 py-2 text-[11px]">
+                        <div className="font-medium">{t("positions.suggestedStopLossLabel")}</div>
+                        <div className="text-muted-foreground">{t("positions.suggestedStopLossTip")}</div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossPnLHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
