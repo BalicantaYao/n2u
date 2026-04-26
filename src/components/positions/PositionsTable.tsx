@@ -66,7 +66,6 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.dailyChangeHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossPnLHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.addOnHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.unrealizedHeader")}</th>
@@ -360,23 +359,6 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                           )}
                         </td>
 
-                        {/* Suggested Add-On Price: avg cost + 2 × ATR(14) */}
-                        <td
-                          className="px-4 py-3 text-right tabular-nums"
-                          title={t("positions.addOnTip")}
-                        >
-                          {pos.atr14 != null && pos.avgCostPerShare > 0 ? (
-                            <>
-                              <div>{(pos.avgCostPerShare + 2 * pos.atr14).toFixed(2)}</div>
-                              <div className="text-[11px] mt-0.5 text-muted-foreground">
-                                +2 ATR
-                              </div>
-                            </>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-
                         {/* Total Cost */}
                         <td className="px-4 py-3 text-right tabular-nums">
                           {formatCurrency(pos.totalCost, pos.currency)}
@@ -468,7 +450,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                       {/* Expanded notes sub-row */}
                       {isExp && hasNotes && (
                         <tr className="bg-muted/20 border-b">
-                          <td colSpan={16} className="px-8 py-3">
+                          <td colSpan={15} className="px-8 py-3">
                             <div className="text-xs space-y-1.5">
                               <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
                               {pos.notes.map((note, i) => (
