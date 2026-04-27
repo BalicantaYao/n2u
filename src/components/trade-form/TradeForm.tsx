@@ -85,7 +85,9 @@ export function TradeForm({
     initialData?.lots != null ? String(initialData.lots) : ""
   );
   const [shares, setShares] = useState<string>(
-    initialData && initialData.lotType === "ODD"
+    initialData &&
+      (initialData.lotType === "ODD" ||
+        isUSMarket((initialData.market as Market) ?? "TWSE"))
       ? String(initialData.shares)
       : ""
   );
