@@ -5,6 +5,7 @@ import { lotsToShares } from "@/lib/taiwan-fees";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
+import { useUserProfile } from "@/lib/use-user-profile";
 import { marketToCurrency, isUSMarket } from "@/types/taiwan";
 import type { Market } from "@/types/taiwan";
 
@@ -32,8 +33,10 @@ export function FeePreview({
   commission,
 }: FeePreviewProps) {
   const { t } = useT();
+  const profile = useUserProfile();
   const isUS = isUSMarket(market);
   const currency = marketToCurrency(market);
+  const commissionDiscount = !isUS ? profile?.commissionDiscount ?? 1 : 1;
 
   const actualShares = isUS
     ? shares
@@ -55,15 +58,27 @@ export function FeePreview({
     side,
     isETF,
     commission,
+    commissionDiscount,
   });
   const settlementDate = tradeDate
     ? calcSettlementDate(market, new Date(tradeDate))
     : null;
 
+  const discountActive = !isUS && commissionDiscount < 1;
+  const discountLabel = discountActive
+    ? t("fee.commissionDiscounted", {
+        pct: (commissionDiscount * 100).toFixed(commissionDiscount * 100 % 1 === 0 ? 0 : 1),
+      })
+    : null;
+
   const rows: Array<{ label: string; value: string }> = [
     { label: t("fee.grossAmount"), value: formatCurrency(fees.grossAmount, currency) },
     {
-      label: isUS ? t("fee.commissionUS") : t("fee.commission"),
+      label: discountActive
+        ? `${t("fee.commission")} · ${discountLabel}`
+        : isUS
+          ? t("fee.commissionUS")
+          : t("fee.commission"),
       value: `- ${formatCurrency(fees.commission, currency)}`,
     },
   ];

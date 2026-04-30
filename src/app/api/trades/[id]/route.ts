@@ -149,12 +149,17 @@ export async function PUT(
     return NextResponse.json({ error: "股數不正確" }, { status: 400 });
   }
 
+  const userPref = await prisma.user.findUnique({
+    where: { id: auth.userId },
+    select: { commissionDiscount: true },
+  });
   const fees = calculateFees(market, {
     price,
     shares,
     side,
     isETF,
     commission,
+    commissionDiscount: userPref?.commissionDiscount ?? 1,
   });
   const tradeDateObj = new Date(tradeDate);
   const settlementDate = calcSettlementDate(market, tradeDateObj);

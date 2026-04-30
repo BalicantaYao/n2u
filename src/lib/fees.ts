@@ -31,7 +31,13 @@ export function calculateFees(
       commission: input.commission,
     });
   }
-  return calcTWFees(input);
+  return calcTWFees({
+    price: input.price,
+    shares: input.shares,
+    side: input.side,
+    isETF: input.isETF,
+    commissionDiscount: input.commissionDiscount,
+  });
 }
 
 export function calcSettlementDate(market: Market, tradeDate: Date): Date {

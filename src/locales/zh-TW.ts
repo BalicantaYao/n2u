@@ -22,6 +22,8 @@ const zhTW = {
     memosShort: "筆記",
     watchlist: "觀察名單",
     watchlistShort: "觀察",
+    settings: "個人設定",
+    settingsShort: "設定",
   },
 
   // ── Sidebar / Footer ───────────────────────────────────────
@@ -199,6 +201,7 @@ const zhTW = {
     grossAmount: "成交金額",
     commission: "手續費 (0.1425%)",
     commissionUS: "手續費",
+    commissionDiscounted: "{{pct}}% 折扣後",
     commissionLabel: "佣金 (USD)",
     commissionHint: "多數美券商 (IBKR Lite / Firstrade / 嘉信) 為零佣金，留空或填 0 即可",
     taxETF: "證交稅 (0.1%)",
@@ -416,6 +419,31 @@ const zhTW = {
     addMemoForSymbol: "為 {symbol} 新增每日筆記",
     relatedMemos: "{symbol} 的歷史筆記",
     noMemosYet: "目前還沒有與這檔股票相關的筆記。",
+  },
+
+  // ── Settings ─────────────────────────────────────────────────
+  settings: {
+    title: "個人設定",
+    tradingSection: "交易設定",
+    tradingSectionDesc: "設定台股券商手續費折扣，會自動套用到後續新增、編輯與匯入的交易。",
+    commissionDiscountLabel: "台股手續費折扣",
+    commissionDiscountHint: "輸入券商提供的折扣係數，1.0 = 無折扣，0.6 = 6 折，0.28 = 2.8 折。僅作用於台股交易。",
+    discountUnit: "折",
+    discountInvalid: "折扣需介於 0.01 到 1 之間",
+    discountPresetNone: "無折扣",
+    discountPreset65: "6.5 折",
+    discountPreset6: "6 折",
+    discountPreset5: "5 折",
+    discountPreset38: "3.8 折",
+    discountPreset28: "2.8 折",
+    previewHeader: "以 {{amount}} 試算",
+    previewBase: "原始手續費",
+    previewActual: "折扣後手續費",
+    previewSaved: "省下手續費",
+    save: "儲存設定",
+    saving: "儲存中...",
+    saved: "設定已儲存",
+    saveFailed: "儲存失敗",
   },
 } as const;
 

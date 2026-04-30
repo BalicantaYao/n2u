@@ -12,6 +12,8 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  // 台股券商手續費折扣係數，1.0 = 無折扣，0.6 = 6 折，0.28 = 2.8 折，僅作用於台股
+  commissionDiscount Float @default(1)
   accounts      Account[]
   sessions      Session[]
   trades        Trade[]
