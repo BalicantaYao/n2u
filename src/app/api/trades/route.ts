@@ -80,12 +80,17 @@ export async function POST(req: NextRequest) {
   }
 
   const currency = marketToCurrency(market);
+  const userPref = await prisma.user.findUnique({
+    where: { id: auth.userId },
+    select: { commissionDiscount: true },
+  });
   const fees = calculateFees(market, {
     price,
     shares,
     side,
     isETF,
     commission,
+    commissionDiscount: userPref?.commissionDiscount ?? 1,
   });
   const settlementDate = calcSettlementDate(market, new Date(tradeDate));
 

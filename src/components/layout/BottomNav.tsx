@@ -9,6 +9,7 @@ import {
   BarChart3,
   StickyNote,
   Eye,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/positions", labelKey: "nav.positions", shortKey: "nav.positionsShort", icon: Briefcase },
   { href: "/results", labelKey: "nav.results", shortKey: "nav.resultsShort", icon: BarChart3 },
   { href: "/memos", labelKey: "nav.memos", shortKey: "nav.memosShort", icon: StickyNote },
+  { href: "/settings", labelKey: "nav.settings", shortKey: "nav.settingsShort", icon: Settings },
 ];
 
 export function BottomNav() {

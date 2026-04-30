@@ -22,6 +22,8 @@ const en = {
     memosShort: "Memos",
     watchlist: "Watchlist",
     watchlistShort: "Watch",
+    settings: "Settings",
+    settingsShort: "Settings",
   },
 
   // ── Sidebar / Footer ───────────────────────────────────────
@@ -199,6 +201,7 @@ const en = {
     grossAmount: "Gross Amount",
     commission: "Commission (0.1425%)",
     commissionUS: "Commission",
+    commissionDiscounted: "after {{pct}}% rate",
     commissionLabel: "Commission (USD)",
     commissionHint: "Most US brokers (IBKR Lite / Firstrade / Schwab) charge $0 commission — leave blank or 0",
     taxETF: "Tax (0.1%)",
@@ -416,6 +419,33 @@ const en = {
     addMemoForSymbol: "Add a daily memo for {symbol}",
     relatedMemos: "Memo history for {symbol}",
     noMemosYet: "No memos linked to this symbol yet.",
+  },
+
+  // ── Settings ─────────────────────────────────────────────────
+  settings: {
+    title: "Settings",
+    tradingSection: "Trading Settings",
+    tradingSectionDesc:
+      "Configure your TW broker commission discount. It is applied automatically when creating, editing, or importing trades.",
+    commissionDiscountLabel: "TW Commission Discount",
+    commissionDiscountHint:
+      "Enter the discount factor your broker offers. 1.0 = no discount, 0.6 = 60% of base rate (6 折), 0.28 = 28% of base rate (2.8 折). TW market only.",
+    discountUnit: "(× 10%)",
+    discountInvalid: "Discount must be between 0.01 and 1",
+    discountPresetNone: "No discount",
+    discountPreset65: "6.5 折 (65%)",
+    discountPreset6: "6 折 (60%)",
+    discountPreset5: "5 折 (50%)",
+    discountPreset38: "3.8 折 (38%)",
+    discountPreset28: "2.8 折 (28%)",
+    previewHeader: "Sample with {{amount}}",
+    previewBase: "Base commission",
+    previewActual: "After discount",
+    previewSaved: "You save",
+    save: "Save",
+    saving: "Saving...",
+    saved: "Settings saved",
+    saveFailed: "Save failed",
   },
 } as const;
 

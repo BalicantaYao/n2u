@@ -14,6 +14,7 @@ import {
   LayoutGrid,
   Eye,
   LogOut,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/market-map", labelKey: "nav.marketMap", icon: LayoutGrid },
   { href: "/results", labelKey: "nav.results", icon: BarChart3 },
   { href: "/memos", labelKey: "nav.memos", icon: StickyNote },
+  { href: "/settings", labelKey: "nav.settings", icon: Settings },
 ];
 
 export function Sidebar() {

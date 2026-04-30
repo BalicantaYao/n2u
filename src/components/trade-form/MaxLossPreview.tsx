@@ -5,8 +5,9 @@ import { calculateFees } from "@/lib/fees";
 import { formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
+import { useUserProfile } from "@/lib/use-user-profile";
 import { ShieldAlert, AlertTriangle } from "lucide-react";
-import { marketToCurrency } from "@/types/taiwan";
+import { marketToCurrency, isUSMarket } from "@/types/taiwan";
 import type { Market, Side } from "@/types/taiwan";
 
 interface MaxLossPreviewProps {
@@ -40,7 +41,11 @@ export function MaxLossPreview({
   editingTradeId,
 }: MaxLossPreviewProps) {
   const { t } = useT();
+  const profile = useUserProfile();
   const currency = marketToCurrency(market);
+  const commissionDiscount = !isUSMarket(market)
+    ? profile?.commissionDiscount ?? 1
+    : 1;
   const [position, setPosition] = useState<ExistingPosition | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -97,6 +102,7 @@ export function MaxLossPreview({
     side: "BUY",
     isETF,
     commission,
+    commissionDiscount,
   });
   const newBuyCost = newBuyFees.netAmount;
 
@@ -107,6 +113,7 @@ export function MaxLossPreview({
     side: "SELL",
     isETF,
     commission,
+    commissionDiscount,
   });
   const newTradeLoss = newBuyCost - newSellFees.netAmount;
 
@@ -124,6 +131,7 @@ export function MaxLossPreview({
       side: "SELL",
       isETF,
       commission,
+      commissionDiscount,
     });
     existingLoss = position.totalCost - existingSellFees.netAmount;
 

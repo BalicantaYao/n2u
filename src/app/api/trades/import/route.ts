@@ -19,6 +19,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "沒有交易資料" }, { status: 400 });
   }
 
+  const userPref = await prisma.user.findUnique({
+    where: { id: auth.userId },
+    select: { commissionDiscount: true },
+  });
+  const commissionDiscount = userPref?.commissionDiscount ?? 1;
+
   const results: Array<{ index: number; success: boolean; tradeId?: string; error?: string }> = [];
   let imported = 0;
   let failed = 0;
@@ -68,6 +74,7 @@ export async function POST(req: NextRequest) {
       side,
       isETF,
       commission,
+      commissionDiscount,
     });
     const settlementDate = calcSettlementDate(market, new Date(tradeDate));
 
