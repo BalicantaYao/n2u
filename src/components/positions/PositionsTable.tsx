@@ -296,6 +296,11 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                                   title={t("positions.suggestedStopLossTip")}
                                 >
                                   {t("positions.suggestedStopLossLabel")} {pos.suggestedStopLoss.toFixed(2)}
+                                  {pos.suggestedStopLossRefDate && (
+                                    <span className="ml-1 opacity-80">
+                                      ({pos.suggestedStopLossRefDate.slice(5)})
+                                    </span>
+                                  )}
                                 </div>
                               ) : null;
                             const content =

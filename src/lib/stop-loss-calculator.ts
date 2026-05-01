@@ -71,11 +71,27 @@ export function findRecentLow(bars: OHLCVBar[], period: number): number | null {
   return Math.min(...sliced.map((b) => b.low));
 }
 
-/** 取最近 N 根 K 棒的最高收盤價 */
-export function findRecentHighClose(bars: OHLCVBar[], period: number): number | null {
+/**
+ * 取最近 N 根 K 棒中「開盤價或收盤價」的最高者，並回傳該 K 棒日期。
+ * 用於停損建議：以最近 N 日開／收盤最高價為基準向下扣 ATR。
+ */
+export function findRecentHighOpenClose(
+  bars: OHLCVBar[],
+  period: number,
+): { price: number; date: Date } | null {
   if (bars.length === 0) return null;
   const sliced = bars.slice(-period);
-  return Math.max(...sliced.map((b) => b.close));
+  let bestPrice = -Infinity;
+  let bestDate: Date | null = null;
+  for (const bar of sliced) {
+    const candidate = Math.max(bar.open, bar.close);
+    if (candidate > bestPrice) {
+      bestPrice = candidate;
+      bestDate = bar.date;
+    }
+  }
+  if (bestDate == null) return null;
+  return { price: bestPrice, date: bestDate };
 }
 
 /** 計算加碼後／編輯中的倉位影響 */

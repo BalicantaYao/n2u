@@ -2,7 +2,7 @@ import { PositionsContent } from "@/components/positions/PositionsContent";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
 import { fetchQuotes, fetchHistorical } from "@/lib/market-api";
-import { calculateMA, calculateATR, findRecentHighClose } from "@/lib/stop-loss-calculator";
+import { calculateMA, calculateATR, findRecentHighOpenClose } from "@/lib/stop-loss-calculator";
 import { marketToCurrency } from "@/types/taiwan";
 import type { Market } from "@/types/taiwan";
 import type { Position } from "@/types/trade";
@@ -138,14 +138,18 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
     // ATR(14) 需至少 15 根 K 棒才有意義；不足時回 undefined 而非 0
     const atr14Raw = bars && bars.length >= 15 ? calculateATR(bars, 14) : 0;
     const atr14 = atr14Raw > 0 ? atr14Raw : undefined;
-    // 建議停損價：近 14 日收盤最高價 − 2 × ATR(14)
-    const recentHighClose =
-      bars && bars.length >= 14 ? findRecentHighClose(bars, 14) : null;
+    // 建議停損價：近 14 日「開／收盤」最高價 − 2 × ATR(14)
+    const recentHigh =
+      bars && bars.length >= 14 ? findRecentHighOpenClose(bars, 14) : null;
     const suggestedStopLossRaw =
-      atr14 != null && recentHighClose != null ? recentHighClose - 2 * atr14 : null;
+      atr14 != null && recentHigh != null ? recentHigh.price - 2 * atr14 : null;
     const suggestedStopLoss =
       suggestedStopLossRaw != null && suggestedStopLossRaw > 0
         ? suggestedStopLossRaw
+        : undefined;
+    const suggestedStopLossRefDate =
+      suggestedStopLoss != null && recentHigh != null
+        ? recentHigh.date.toISOString().slice(0, 10)
         : undefined;
 
     return {
@@ -173,6 +177,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       ma10,
       atr14,
       suggestedStopLoss,
+      suggestedStopLossRefDate,
       isStopLossAlert:
         currentPrice != null && p.stopLoss != null ? currentPrice <= p.stopLoss : false,
       notes: p.notes,
