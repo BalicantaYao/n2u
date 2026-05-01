@@ -73,6 +73,8 @@ export interface Position {
   ma10?: number;
   atr14?: number;
   suggestedStopLoss?: number;
+  /** 建議停損價的參考日（YYYY-MM-DD），即近 14 日中開／收盤最高的那一日 */
+  suggestedStopLossRefDate?: string;
   isStopLossAlert?: boolean;
   notes: string[];
 }
