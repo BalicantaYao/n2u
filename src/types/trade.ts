@@ -128,15 +128,18 @@ export interface SymbolResult {
   trades: SellTradeDetail[];
 }
 
+export interface MarketSummary {
+  totalRealized: number;
+  totalTrades: number;
+  winCount: number;
+  lossCount: number;
+  winRate: number;
+  totalCommission: number;
+  totalTransactionTax: number;
+}
+
 export interface TradingResultsData {
-  summary: {
-    totalRealized: number;
-    totalTrades: number;
-    winCount: number;
-    lossCount: number;
-    winRate: number;
-    totalCommission: number;
-    totalTransactionTax: number;
-  };
+  summary: MarketSummary;
+  summaryByCurrency: Record<Currency, MarketSummary>;
   bySymbol: SymbolResult[];
 }
