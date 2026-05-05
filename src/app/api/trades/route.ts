@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
 import { calculateFees, calcSettlementDate } from "@/lib/fees";
 import { lotsToShares } from "@/lib/taiwan-fees";
-import { matchSellFIFO } from "@/lib/pnl-calculator";
+import { recomputeSymbolPnL } from "@/lib/pnl-calculator";
 import { marketToCurrency, isUSMarket } from "@/types/taiwan";
 import type { CreateTradeInput } from "@/types/trade";
 
@@ -96,18 +96,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const trade = await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
-      let realizedPnL: number | undefined;
-
-      if (side === "SELL") {
-        realizedPnL = await matchSellFIFO({
-          tradeId: "",
-          symbol: symbol.toUpperCase(),
-          shares,
-          netSellProceeds: fees.netAmount,
-          userId: auth.userId,
-        });
-      }
-
       const created = await tx.trade.create({
         data: {
           symbol: symbol.toUpperCase(),
@@ -126,7 +114,6 @@ export async function POST(req: NextRequest) {
           totalFees: fees.totalFees,
           grossAmount: fees.grossAmount,
           netAmount: fees.netAmount,
-          realizedPnL,
           isETF,
           stopLoss,
           notes,
@@ -135,24 +122,9 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      if (side === "BUY") {
-        await tx.positionLot.create({
-          data: {
-            symbol: symbol.toUpperCase(),
-            market,
-            currency,
-            lotType: effectiveLotType,
-            openTradeId: created.id,
-            openDate: new Date(tradeDate),
-            shares,
-            costPerShare: fees.netAmount / shares,
-            isOpen: true,
-            userId: auth.userId,
-          },
-        });
-      }
+      await recomputeSymbolPnL(tx, auth.userId, symbol.toUpperCase());
 
-      return created;
+      return tx.trade.findUniqueOrThrow({ where: { id: created.id } });
     });
 
     return NextResponse.json(trade, { status: 201 });

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
 import { calculateFees, calcSettlementDate } from "@/lib/fees";
 import { lotsToShares } from "@/lib/taiwan-fees";
+import { recomputeSymbolPnL } from "@/lib/pnl-calculator";
 import { marketToCurrency, isUSMarket } from "@/types/taiwan";
 
 const CORE_FIELDS = [
@@ -197,20 +198,10 @@ export async function PUT(
         },
       });
 
-      // Update the associated PositionLot
-      if (lots.length > 0) {
-        await tx.positionLot.update({
-          where: { id: lots[0].id },
-          data: {
-            symbol,
-            market,
-            currency,
-            lotType,
-            openDate: tradeDateObj,
-            shares,
-            costPerShare: fees.netAmount / shares,
-          },
-        });
+      // 重算受影響 symbol 的 FIFO 與 realizedPnL；若 symbol 變動，新舊都要重算
+      await recomputeSymbolPnL(tx, auth.userId, symbol);
+      if (symbol !== existing.symbol) {
+        await recomputeSymbolPnL(tx, auth.userId, existing.symbol);
       }
 
       // 整體部位停損：若 symbol 未變動且 stopLoss 變了，同步給其他仍有開倉的 BUY trades
@@ -254,6 +245,15 @@ export async function DELETE(
     return NextResponse.json({ error: "找不到" }, { status: 404 });
   }
 
-  await prisma.trade.delete({ where: { id: params.id } });
+  const symbol = trade.symbol;
+
+  await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
+    await tx.trade.delete({ where: { id: params.id } });
+    await recomputeSymbolPnL(tx, auth.userId, symbol);
+  });
+
+  revalidatePath("/positions");
+  revalidatePath("/journal");
+
   return NextResponse.json({ ok: true });
 }
