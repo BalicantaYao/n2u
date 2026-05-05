@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Header } from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
 import { ResultsTable, SellTradeList } from "@/components/results/ResultsTable";
+import { MarketTabs } from "@/components/common/MarketTabs";
 import { formatCurrency } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
-import type { TradingResultsData } from "@/types/trade";
+import type { MarketSummary, SymbolResult, TradingResultsData } from "@/types/trade";
 import type { Currency } from "@/types/taiwan";
 
 type Tab = "bySymbol" | "byTrade";
@@ -37,30 +38,33 @@ export default function ResultsPage() {
     fetchData();
   }, [fetchData]);
 
-  const summary = data?.summary;
-  const profitFactor =
-    summary && summary.lossCount > 0
-      ? (summary.winCount / summary.lossCount).toFixed(2)
-      : summary?.winCount
-      ? "∞"
-      : "—";
+  const twBySymbol = useMemo(
+    () => data?.bySymbol.filter((g) => (g.currency ?? "TWD") !== "USD") ?? [],
+    [data],
+  );
+  const usBySymbol = useMemo(
+    () => data?.bySymbol.filter((g) => g.currency === "USD") ?? [],
+    [data],
+  );
 
-  // 依幣別拆分 realized P&L（從 bySymbol 推回來）
-  const pnlByCurrency: Record<Currency, number> = { TWD: 0, USD: 0 };
-  if (data) {
-    for (const g of data.bySymbol) {
-      const c = (g.currency ?? "TWD") as Currency;
-      pnlByCurrency[c] += g.totalRealizedPnL;
-    }
-  }
-  const hasUSD = data?.bySymbol.some((g) => g.currency === "USD") ?? false;
+  const emptySummary: MarketSummary = {
+    totalRealized: 0,
+    totalTrades: 0,
+    winCount: 0,
+    lossCount: 0,
+    winRate: 0,
+    totalCommission: 0,
+    totalTransactionTax: 0,
+  };
+  const twSummary = data?.summaryByCurrency?.TWD ?? emptySummary;
+  const usSummary = data?.summaryByCurrency?.USD ?? emptySummary;
 
   return (
     <div>
       <Header titleKey="results.title" />
       <div className="p-4 md:p-6 space-y-4">
 
-        {/* Filters */}
+        {/* Date filters (shared across markets) */}
         <div className="flex flex-wrap items-center gap-2">
           <Input
             type="date"
@@ -85,109 +89,150 @@ export default function ResultsPage() {
           )}
         </div>
 
-        {/* Stats bar */}
-        {summary && (
-          <div className="flex flex-wrap gap-4 p-4 rounded-lg bg-muted/30 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">{t("results.realizedPnL")}</span>
-              <span
-                className={`font-semibold tabular-nums ${
-                  pnlByCurrency.TWD > 0
-                    ? "text-green-600 dark:text-green-400"
-                    : pnlByCurrency.TWD < 0
-                    ? "text-red-600 dark:text-red-400"
-                    : ""
-                }`}
-              >
-                {formatCurrency(pnlByCurrency.TWD, "TWD", true)}
-              </span>
-              {hasUSD && (
-                <span
-                  className={`font-semibold tabular-nums border-l pl-2 ${
-                    pnlByCurrency.USD > 0
-                      ? "text-green-600 dark:text-green-400"
-                      : pnlByCurrency.USD < 0
-                      ? "text-red-600 dark:text-red-400"
-                      : ""
-                  }`}
-                >
-                  {formatCurrency(pnlByCurrency.USD, "USD", true)}
-                </span>
-              )}
-            </div>
-            <div>
-              <span className="text-muted-foreground">{t("results.tradeCount")}</span>
-              <span className="font-semibold">{summary.totalTrades}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">{t("results.winRate")}</span>
-              <span className="font-semibold">
-                {summary.totalTrades > 0
-                  ? `${(summary.winRate * 100).toFixed(1)}%`
-                  : "—"}
-              </span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">{t("results.winLossRatio")}</span>
-              <span className="font-semibold">
-                <span className="text-green-600 dark:text-green-400">{t("results.winCount", { count: summary.winCount })}</span>
-                <span className="text-muted-foreground mx-0.5">/</span>
-                <span className="text-red-600 dark:text-red-400">{t("results.lossCount", { count: summary.lossCount })}</span>
-              </span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">{t("results.profitLossRatio")}</span>
-              <span className="font-semibold">{profitFactor}</span>
-            </div>
-            <div className="hidden sm:block">
-              <span className="text-muted-foreground">{t("results.commission")}</span>
-              <span className="font-semibold tabular-nums">
-                {formatCurrency(
-                  summary.totalCommission + summary.totalTransactionTax,
-                  hasUSD && pnlByCurrency.TWD === 0 ? "USD" : "TWD",
-                )}
-              </span>
-            </div>
-          </div>
-        )}
+        <MarketTabs
+          tw={
+            <ResultsPanel
+              currency="TWD"
+              summary={twSummary}
+              bySymbol={twBySymbol}
+              tab={tab}
+              setTab={setTab}
+              isLoading={isLoading}
+              hasData={data != null}
+            />
+          }
+          us={
+            <ResultsPanel
+              currency="USD"
+              summary={usSummary}
+              bySymbol={usBySymbol}
+              tab={tab}
+              setTab={setTab}
+              isLoading={isLoading}
+              hasData={data != null}
+            />
+          }
+        />
+      </div>
+    </div>
+  );
+}
 
-        {/* Tabs */}
-        <div className="flex border-b">
-          <button
-            onClick={() => setTab("bySymbol")}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              tab === "bySymbol"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t("results.bySymbol")}
-          </button>
-          <button
-            onClick={() => setTab("byTrade")}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              tab === "byTrade"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t("results.byTrade")}
-          </button>
+interface ResultsPanelProps {
+  currency: Currency;
+  summary: MarketSummary;
+  bySymbol: SymbolResult[];
+  tab: Tab;
+  setTab: (tab: Tab) => void;
+  isLoading: boolean;
+  hasData: boolean;
+}
+
+function ResultsPanel({
+  currency,
+  summary,
+  bySymbol,
+  tab,
+  setTab,
+  isLoading,
+  hasData,
+}: ResultsPanelProps) {
+  const { t } = useT();
+
+  const profitFactor =
+    summary.lossCount > 0
+      ? (summary.winCount / summary.lossCount).toFixed(2)
+      : summary.winCount
+      ? "∞"
+      : "—";
+
+  const pnlColor =
+    summary.totalRealized > 0
+      ? "text-green-600 dark:text-green-400"
+      : summary.totalRealized < 0
+      ? "text-red-600 dark:text-red-400"
+      : "";
+
+  return (
+    <div className="space-y-4">
+      {/* Stats bar */}
+      <div className="flex flex-wrap gap-4 p-4 rounded-lg bg-muted/30 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground">{t("results.realizedPnL")}</span>
+          <span className={`font-semibold tabular-nums ${pnlColor}`}>
+            {formatCurrency(summary.totalRealized, currency, true)}
+          </span>
         </div>
-
-        {/* Table */}
-        <div className="rounded-lg border bg-card">
-          {isLoading ? (
-            <div className="text-center py-16 text-muted-foreground text-sm">{t("common.loading")}</div>
-          ) : data ? (
-            tab === "bySymbol" ? (
-              <ResultsTable bySymbol={data.bySymbol} />
-            ) : (
-              <SellTradeList bySymbol={data.bySymbol} />
-            )
-          ) : null}
+        <div>
+          <span className="text-muted-foreground">{t("results.tradeCount")}</span>
+          <span className="font-semibold">{summary.totalTrades}</span>
         </div>
+        <div>
+          <span className="text-muted-foreground">{t("results.winRate")}</span>
+          <span className="font-semibold">
+            {summary.totalTrades > 0
+              ? `${(summary.winRate * 100).toFixed(1)}%`
+              : "—"}
+          </span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">{t("results.winLossRatio")}</span>
+          <span className="font-semibold">
+            <span className="text-green-600 dark:text-green-400">{t("results.winCount", { count: summary.winCount })}</span>
+            <span className="text-muted-foreground mx-0.5">/</span>
+            <span className="text-red-600 dark:text-red-400">{t("results.lossCount", { count: summary.lossCount })}</span>
+          </span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">{t("results.profitLossRatio")}</span>
+          <span className="font-semibold">{profitFactor}</span>
+        </div>
+        <div className="hidden sm:block">
+          <span className="text-muted-foreground">{t("results.commission")}</span>
+          <span className="font-semibold tabular-nums">
+            {formatCurrency(
+              summary.totalCommission + summary.totalTransactionTax,
+              currency,
+            )}
+          </span>
+        </div>
+      </div>
 
+      {/* bySymbol / byTrade tabs */}
+      <div className="flex border-b">
+        <button
+          onClick={() => setTab("bySymbol")}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            tab === "bySymbol"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {t("results.bySymbol")}
+        </button>
+        <button
+          onClick={() => setTab("byTrade")}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            tab === "byTrade"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {t("results.byTrade")}
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="rounded-lg border bg-card">
+        {isLoading ? (
+          <div className="text-center py-16 text-muted-foreground text-sm">{t("common.loading")}</div>
+        ) : hasData ? (
+          tab === "bySymbol" ? (
+            <ResultsTable bySymbol={bySymbol} />
+          ) : (
+            <SellTradeList bySymbol={bySymbol} />
+          )
+        ) : null}
       </div>
     </div>
   );

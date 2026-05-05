@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/session";
-import type { TradingResultsData, SymbolResult, SellTradeDetail } from "@/types/trade";
-import type { Market, LotType } from "@/types/taiwan";
+import type {
+  TradingResultsData,
+  MarketSummary,
+  SymbolResult,
+  SellTradeDetail,
+} from "@/types/trade";
+import type { Currency, Market, LotType } from "@/types/taiwan";
 import { marketToCurrency } from "@/types/taiwan";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +60,23 @@ export async function GET(req: NextRequest) {
     trades: SellTradeDetail[];
   }>();
 
+  function emptySummary(): MarketSummary {
+    return {
+      totalRealized: 0,
+      totalTrades: 0,
+      winCount: 0,
+      lossCount: 0,
+      winRate: 0,
+      totalCommission: 0,
+      totalTransactionTax: 0,
+    };
+  }
+
+  const byCurrency: Record<Currency, MarketSummary> = {
+    TWD: emptySummary(),
+    USD: emptySummary(),
+  };
+
   let totalRealized = 0;
   let winCount = 0;
   let lossCount = 0;
@@ -65,12 +87,23 @@ export async function GET(req: NextRequest) {
     const pnl = t.realizedPnL ?? 0;
     const buyCost = t.netAmount - pnl;
     const pnlPct = buyCost > 0 ? pnl / buyCost : 0;
+    const currency = marketToCurrency(t.market as Market);
+    const cs = byCurrency[currency];
 
     totalRealized += pnl;
     totalCommission += t.commission;
     totalTransactionTax += t.transactionTax;
-    if (pnl > 0) winCount++;
-    else if (pnl < 0) lossCount++;
+    cs.totalRealized += pnl;
+    cs.totalCommission += t.commission;
+    cs.totalTransactionTax += t.transactionTax;
+    cs.totalTrades += 1;
+    if (pnl > 0) {
+      winCount++;
+      cs.winCount += 1;
+    } else if (pnl < 0) {
+      lossCount++;
+      cs.lossCount += 1;
+    }
 
     const detail: SellTradeDetail = {
       id: t.id,
@@ -100,6 +133,11 @@ export async function GET(req: NextRequest) {
 
   const totalTrades = trades.length;
   const winRate = totalTrades > 0 ? winCount / totalTrades : 0;
+
+  for (const c of Object.keys(byCurrency) as Currency[]) {
+    const cs = byCurrency[c];
+    cs.winRate = cs.totalTrades > 0 ? cs.winCount / cs.totalTrades : 0;
+  }
 
   // Build bySymbol array
   const bySymbol: SymbolResult[] = Array.from(symbolMap.values()).map((g) => {
@@ -154,6 +192,7 @@ export async function GET(req: NextRequest) {
       totalCommission,
       totalTransactionTax,
     },
+    summaryByCurrency: byCurrency,
     bySymbol,
   };
 
