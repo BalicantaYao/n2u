@@ -58,13 +58,13 @@ export function PositionsTable({ positions }: PositionsTableProps) {
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="w-6 px-1 py-3" />
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t("positions.stockHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.sharesHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.avgCost")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.currentPrice")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.atrHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.dailyChangeHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="text-left px-2 md:px-4 py-3 font-medium text-muted-foreground">{t("positions.stockHeader")}</th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.sharesHeader")}</th>
+                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">{t("positions.avgCost")}</th>
+                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">{t("positions.currentPrice")}</th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.atrHeader")}</th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.dailyChangeHeader")}</th>
+                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="cursor-help border-b border-dotted border-muted-foreground/40">
@@ -77,13 +77,13 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                       </TooltipContent>
                     </Tooltip>
                   </th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossPnLHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.unrealizedHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.realizedHeader")}</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.returnHeader")}</th>
-                  <th className="w-12 px-2 py-3" />
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossPnLHeader")}</th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.unrealizedHeader")}</th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.realizedHeader")}</th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.returnHeader")}</th>
+                  <th className="hidden md:table-cell w-12 px-2 py-3" />
                 </tr>
               </thead>
                 {positions.map((pos) => {
@@ -94,26 +94,25 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                     <tbody key={pos.symbol}>
                       <tr
                         className={cn(
-                          "border-b hover:bg-muted/30 transition-colors",
-                          hasNotes && "cursor-pointer",
+                          "border-b hover:bg-muted/30 transition-colors cursor-pointer",
+                          !hasNotes && "md:cursor-default",
                           isExp && "bg-muted/20"
                         )}
-                        onClick={hasNotes ? () => toggle(pos.symbol) : undefined}
+                        onClick={() => toggle(pos.symbol)}
                       >
-                        {/* Expand toggle */}
+                        {/* Expand toggle: always shown on mobile, only when notes on desktop */}
                         <td className="px-1 py-3 text-center">
-                          {hasNotes && (
-                            <ChevronDown
-                              className={cn(
-                                "h-4 w-4 text-muted-foreground transition-transform mx-auto",
-                                isExp && "rotate-180"
-                              )}
-                            />
-                          )}
+                          <ChevronDown
+                            className={cn(
+                              "h-4 w-4 text-muted-foreground transition-transform mx-auto",
+                              !hasNotes && "md:hidden",
+                              isExp && "rotate-180"
+                            )}
+                          />
                         </td>
 
                         {/* Stock */}
-                        <td className="px-4 py-3">
+                        <td className="px-2 md:px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div>
                               <div className="flex items-center gap-1.5">
@@ -150,7 +149,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         </td>
 
                         {/* Shares */}
-                        <td className="px-4 py-3 text-right tabular-nums">
+                        <td className="hidden md:table-cell px-4 py-3 text-right tabular-nums">
                           {pos.currency === "USD"
                             ? `${pos.totalShares.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${t("common.shares")}`
                             : pos.totalShares >= 1000
@@ -159,12 +158,12 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         </td>
 
                         {/* Avg Cost */}
-                        <td className="px-4 py-3 text-right tabular-nums">
+                        <td className="px-2 md:px-4 py-3 text-right tabular-nums">
                           {pos.avgCostPerShare.toFixed(2)}
                         </td>
 
                         {/* Current Price (hover to see 5MA / 10MA) */}
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-2 md:px-4 py-3 text-right">
                           {(() => {
                             const priceNode = (
                               <div className="tabular-nums">
@@ -223,7 +222,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
 
                         {/* ATR(14) + volatility % (ATR / avg cost) */}
                         <td
-                          className="px-4 py-3 text-right tabular-nums"
+                          className="hidden md:table-cell px-4 py-3 text-right tabular-nums"
                           title={t("positions.atr14")}
                         >
                           {pos.atr14 != null ? (
@@ -243,7 +242,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         {/* Today's Change */}
                         <td
                           className={cn(
-                            "px-4 py-3 text-right tabular-nums",
+                            "hidden md:table-cell px-4 py-3 text-right tabular-nums",
                             pos.dailyChange == null
                               ? "text-muted-foreground"
                               : pos.dailyChange > 0
@@ -271,7 +270,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
 
                         {/* Stop Loss + distance % */}
                         <td
-                          className="px-4 py-3 text-right"
+                          className="px-2 md:px-4 py-3 text-right"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {(() => {
@@ -352,7 +351,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         {/* Hypothetical P&L @ Stop-Loss */}
                         <td
                           className={cn(
-                            "px-4 py-3 text-right tabular-nums",
+                            "hidden md:table-cell px-4 py-3 text-right tabular-nums",
                             pos.pnlAtStopLoss == null
                               ? "text-muted-foreground"
                               : pos.pnlAtStopLoss >= 0
@@ -377,19 +376,19 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         </td>
 
                         {/* Total Cost */}
-                        <td className="px-4 py-3 text-right tabular-nums">
+                        <td className="hidden md:table-cell px-4 py-3 text-right tabular-nums">
                           {formatCurrency(pos.totalCost, pos.currency)}
                         </td>
 
                         {/* Market Value */}
-                        <td className="px-4 py-3 text-right tabular-nums">
+                        <td className="hidden md:table-cell px-4 py-3 text-right tabular-nums">
                           {pos.marketValue != null ? formatCurrency(pos.marketValue, pos.currency) : "—"}
                         </td>
 
                         {/* Unrealized P&L */}
                         <td
                           className={cn(
-                            "px-4 py-3 text-right tabular-nums font-medium",
+                            "hidden md:table-cell px-4 py-3 text-right tabular-nums font-medium",
                             pos.unrealizedPnL == null
                               ? "text-muted-foreground"
                               : pnlPositive
@@ -405,7 +404,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         {/* Realized P&L (current holding period) */}
                         <td
                           className={cn(
-                            "px-4 py-3 text-right tabular-nums font-medium",
+                            "hidden md:table-cell px-4 py-3 text-right tabular-nums font-medium",
                             !pos.realizedPnL
                               ? "text-muted-foreground"
                               : pos.realizedPnL > 0
@@ -419,7 +418,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         {/* Return % */}
                         <td
                           className={cn(
-                            "px-4 py-3 text-right tabular-nums font-medium",
+                            "hidden md:table-cell px-4 py-3 text-right tabular-nums font-medium",
                             pos.totalPnLPct == null
                               ? "text-muted-foreground"
                               : pos.totalPnLPct >= 0
@@ -434,7 +433,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
 
                         {/* Add Trade Record */}
                         <td
-                          className="px-2 py-3 text-center"
+                          className="hidden md:table-cell px-2 py-3 text-center"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Button
@@ -464,21 +463,149 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                         </td>
                       </tr>
 
-                      {/* Expanded notes sub-row */}
-                      {isExp && hasNotes && (
+                      {/* Expanded sub-row: hidden mobile fields + notes */}
+                      {isExp && (
                         <tr className="bg-muted/20 border-b">
-                          <td colSpan={15} className="px-8 py-3">
-                            <div className="text-xs space-y-1.5">
-                              <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
-                              {pos.notes.map((note, i) => (
-                                <p
-                                  key={i}
-                                  className="whitespace-pre-wrap text-muted-foreground pl-2 border-l-2 border-border"
+                          <td colSpan={15} className="px-4 md:px-8 py-3">
+                            {/* Mobile-only details (the columns hidden in the row above) */}
+                            <div className="md:hidden grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                              <DetailItem
+                                label={t("positions.sharesHeader")}
+                                value={
+                                  pos.currency === "USD"
+                                    ? `${pos.totalShares.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${t("common.shares")}`
+                                    : pos.totalShares >= 1000
+                                      ? `${pos.totalShares / 1000} ${t("common.lots")}`
+                                      : `${pos.totalShares} ${t("common.shares")}`
+                                }
+                              />
+                              <DetailItem
+                                label={t("positions.dailyChangeHeader")}
+                                value={
+                                  pos.dailyChange != null
+                                    ? `${formatCurrency(pos.dailyChange, pos.currency, true)}${pos.dailyChangePct != null ? ` (${formatPct(pos.dailyChangePct)})` : ""}`
+                                    : "—"
+                                }
+                                valueClassName={
+                                  pos.dailyChange == null
+                                    ? "text-muted-foreground"
+                                    : pos.dailyChange > 0
+                                      ? "text-green-600 dark:text-green-400"
+                                      : pos.dailyChange < 0
+                                        ? "text-red-600 dark:text-red-400"
+                                        : "text-muted-foreground"
+                                }
+                              />
+                              <DetailItem
+                                label={t("positions.atrHeader")}
+                                value={
+                                  pos.atr14 != null
+                                    ? `${pos.atr14.toFixed(2)}${pos.avgCostPerShare > 0 ? ` (${formatPct(pos.atr14 / pos.avgCostPerShare)})` : ""}`
+                                    : "—"
+                                }
+                              />
+                              <DetailItem
+                                label={t("positions.stopLossPnLHeader")}
+                                value={
+                                  pos.pnlAtStopLoss != null
+                                    ? `${formatCurrency(pos.pnlAtStopLoss, pos.currency, true)}${pos.pnlAtStopLossPct != null ? ` (${formatPct(pos.pnlAtStopLossPct)})` : ""}`
+                                    : "—"
+                                }
+                                valueClassName={
+                                  pos.pnlAtStopLoss == null
+                                    ? "text-muted-foreground"
+                                    : pos.pnlAtStopLoss >= 0
+                                      ? "text-green-600 dark:text-green-400"
+                                      : "text-red-600 dark:text-red-400"
+                                }
+                              />
+                              <DetailItem
+                                label={t("positions.costHeader")}
+                                value={formatCurrency(pos.totalCost, pos.currency)}
+                              />
+                              <DetailItem
+                                label={t("positions.valueHeader")}
+                                value={pos.marketValue != null ? formatCurrency(pos.marketValue, pos.currency) : "—"}
+                              />
+                              <DetailItem
+                                label={t("positions.unrealizedHeader")}
+                                value={
+                                  pos.unrealizedPnL != null
+                                    ? formatCurrency(pos.unrealizedPnL, pos.currency, true)
+                                    : "—"
+                                }
+                                valueClassName={
+                                  pos.unrealizedPnL == null
+                                    ? "text-muted-foreground"
+                                    : pnlPositive
+                                      ? "text-green-600 dark:text-green-400 font-medium"
+                                      : "text-red-600 dark:text-red-400 font-medium"
+                                }
+                              />
+                              <DetailItem
+                                label={t("positions.realizedHeader")}
+                                value={formatCurrency(pos.realizedPnL ?? 0, pos.currency, true)}
+                                valueClassName={
+                                  !pos.realizedPnL
+                                    ? "text-muted-foreground"
+                                    : pos.realizedPnL > 0
+                                      ? "text-green-600 dark:text-green-400 font-medium"
+                                      : "text-red-600 dark:text-red-400 font-medium"
+                                }
+                              />
+                              <DetailItem
+                                label={t("positions.returnHeader")}
+                                value={pos.totalPnLPct != null ? formatPct(pos.totalPnLPct) : "—"}
+                                valueClassName={
+                                  pos.totalPnLPct == null
+                                    ? "text-muted-foreground"
+                                    : pos.totalPnLPct >= 0
+                                      ? "text-green-600 dark:text-green-400 font-medium"
+                                      : "text-red-600 dark:text-red-400 font-medium"
+                                }
+                              />
+                              <div className="col-span-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                                <Button
+                                  asChild
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 w-full"
                                 >
-                                  {note}
-                                </p>
-                              ))}
+                                  <Link
+                                    href={{
+                                      pathname: "/journal/new",
+                                      query: {
+                                        symbol: pos.symbol,
+                                        ...(pos.symbolName
+                                          ? { symbolName: pos.symbolName }
+                                          : {}),
+                                        market: pos.market,
+                                        ...(pos.isETF ? { isETF: "1" } : {}),
+                                      },
+                                    }}
+                                    aria-label={t("positions.addTradeRecord")}
+                                    title={t("positions.addTradeRecord")}
+                                  >
+                                    <Plus className="h-3.5 w-3.5 mr-1" />
+                                    {t("positions.addTradeRecord")}
+                                  </Link>
+                                </Button>
+                              </div>
                             </div>
+
+                            {hasNotes && (
+                              <div className={cn("text-xs space-y-1.5", "md:mt-0 mt-3")}>
+                                <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
+                                {pos.notes.map((note, i) => (
+                                  <p
+                                    key={i}
+                                    className="whitespace-pre-wrap text-muted-foreground pl-2 border-l-2 border-border"
+                                  >
+                                    {note}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
                           </td>
                         </tr>
                       )}
@@ -491,5 +618,22 @@ export function PositionsTable({ positions }: PositionsTableProps) {
       </CardContent>
     </Card>
     </TooltipProvider>
+  );
+}
+
+function DetailItem({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: string;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="flex justify-between items-baseline gap-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={cn("tabular-nums text-right", valueClassName)}>{value}</span>
+    </div>
   );
 }
