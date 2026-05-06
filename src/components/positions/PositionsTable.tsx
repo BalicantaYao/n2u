@@ -293,8 +293,16 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                               : distance != null && distance < 0.03
                               ? "text-amber-600 dark:text-amber-400"
                               : "text-muted-foreground";
+                            const isSuggestionCloseToStopLoss =
+                              pos.suggestedStopLoss != null &&
+                              pos.stopLoss != null &&
+                              pos.stopLoss !== 0 &&
+                              Math.abs(pos.suggestedStopLoss - pos.stopLoss) /
+                                Math.abs(pos.stopLoss) <=
+                                0.01;
                             const suggestedLine =
-                              pos.suggestedStopLoss != null ? (
+                              pos.suggestedStopLoss != null &&
+                              !isSuggestionCloseToStopLoss ? (
                                 <div
                                   className="text-[11px] tabular-nums mt-0.5 text-muted-foreground"
                                   title={t("positions.suggestedStopLossTip")}
