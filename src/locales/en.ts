@@ -304,6 +304,7 @@ const en = {
     refresh: "Refresh",
     addTradeRecord: "Add Trade",
     editStopLoss: "Edit stop loss on latest entry",
+    saveFailed: "Save failed",
   },
 
   // ── Results ────────────────────────────────────────────────

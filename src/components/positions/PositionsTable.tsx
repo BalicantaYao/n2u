@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
@@ -20,6 +22,9 @@ import {
   StickyNote,
   Activity,
   Plus,
+  Check,
+  X,
+  Loader2,
 } from "lucide-react";
 import type { Position } from "@/types/trade";
 
@@ -336,14 +341,13 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                             if (!pos.latestOpenBuyTradeId) return content;
 
                             return (
-                              <Link
-                                href={`/journal/${pos.latestOpenBuyTradeId}/edit`}
+                              <StopLossEditor
+                                tradeId={pos.latestOpenBuyTradeId}
+                                stopLoss={pos.stopLoss}
                                 title={t("positions.editStopLoss")}
-                                aria-label={t("positions.editStopLoss")}
-                                className="block -mx-2 -my-1 px-2 py-1 rounded hover:bg-muted/60 transition-colors"
                               >
                                 {content}
-                              </Link>
+                              </StopLossEditor>
                             );
                           })()}
                         </td>
@@ -635,5 +639,147 @@ function DetailItem({
       <span className="text-muted-foreground">{label}</span>
       <span className={cn("tabular-nums text-right", valueClassName)}>{value}</span>
     </div>
+  );
+}
+
+function StopLossEditor({
+  tradeId,
+  stopLoss,
+  title,
+  children,
+}: {
+  tradeId: string;
+  stopLoss?: number;
+  title: string;
+  children: React.ReactNode;
+}) {
+  const { t } = useT();
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (editing) {
+      setValue(stopLoss != null ? String(stopLoss) : "");
+      setError(null);
+      // Focus and select on next tick so the input is ready
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 0);
+    }
+  }, [editing, stopLoss]);
+
+  function close() {
+    setEditing(false);
+    setError(null);
+  }
+
+  async function save() {
+    const trimmed = value.trim();
+    let payload: number | null;
+    if (trimmed === "") {
+      payload = null;
+    } else {
+      const n = Number(trimmed);
+      if (!Number.isFinite(n) || n < 0) {
+        setError(t("positions.saveFailed"));
+        return;
+      }
+      payload = n;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/trades/${tradeId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stopLoss: payload }),
+      });
+      if (!res.ok) {
+        setError(t("positions.saveFailed"));
+        return;
+      }
+      setEditing(false);
+      router.refresh();
+    } catch {
+      setError(t("positions.saveFailed"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (editing) {
+    return (
+      <div className="flex items-center justify-end gap-1">
+        <Input
+          ref={inputRef}
+          type="number"
+          step="0.01"
+          inputMode="decimal"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void save();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              close();
+            }
+          }}
+          disabled={saving}
+          aria-label={t("positions.stopLossPrice")}
+          className={cn(
+            "h-7 w-20 px-1.5 text-right tabular-nums text-sm",
+            error && "border-red-500 focus-visible:ring-red-500"
+          )}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => void save()}
+          disabled={saving}
+          aria-label={t("common.save")}
+          title={t("common.save")}
+        >
+          {saving ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Check className="h-3.5 w-3.5" />
+          )}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={close}
+          disabled={saving}
+          aria-label={t("common.cancel")}
+          title={t("common.cancel")}
+        >
+          <X className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-label={title}
+      onClick={() => setEditing(true)}
+      className="block w-full text-right -mx-2 -my-1 px-2 py-1 rounded hover:bg-muted/60 transition-colors"
+    >
+      {children}
+    </button>
   );
 }

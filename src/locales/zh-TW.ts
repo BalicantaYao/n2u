@@ -304,6 +304,7 @@ const zhTW = {
     refresh: "刷新報價",
     addTradeRecord: "新增交易",
     editStopLoss: "編輯最新一筆的停損價",
+    saveFailed: "儲存失敗",
   },
 
   // ── Results ────────────────────────────────────────────────
