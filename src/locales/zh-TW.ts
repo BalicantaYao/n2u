@@ -31,6 +31,8 @@ const zhTW = {
     logo: "Nothing 2 You",
     footer1: "Nothing 2 You — 台股交易日誌",
     footer2: "TWSE / TPEX",
+    collapse: "收合側邊欄",
+    expand: "展開側邊欄",
   },
 
   // ── Header ─────────────────────────────────────────────────

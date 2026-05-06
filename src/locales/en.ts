@@ -31,6 +31,8 @@ const en = {
     logo: "Nothing 2 You",
     footer1: "Nothing 2 You — Trading Journal",
     footer2: "TWSE / TPEX",
+    collapse: "Collapse sidebar",
+    expand: "Expand sidebar",
   },
 
   // ── Header ─────────────────────────────────────────────────
