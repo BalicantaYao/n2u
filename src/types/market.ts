@@ -100,6 +100,15 @@ export interface MarketMapResponse {
   asOf: string;
 }
 
+/** 單一移動平均線指標值（資訊用，不一定低於基準價） */
+export interface MovingAverageIndicator {
+  period: number;
+  /** 移動平均值；資料不足時為 null */
+  value: number | null;
+  /** 相對基準價的差距百分比；資料不足時為 null */
+  distancePct: number | null;
+}
+
 export interface StopLossHelperResponse {
   suggestions: StopLossSuggestion[];
   positionImpact: PositionImpact | null;
@@ -119,6 +128,10 @@ export interface StopLossHelperResponse {
     low: number;
     high: number;
   } | null;
+  /** 技術指標（資訊用），目前包含 SMA 5/10/20 */
+  indicators: {
+    sma: MovingAverageIndicator[];
+  };
   meta: {
     barsCount: number;
     hasHistoricalData: boolean;

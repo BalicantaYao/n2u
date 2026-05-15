@@ -204,20 +204,7 @@ export function suggestStopLossLevels(
   }
 
   // ── 4. 均線 ──
-  for (const period of [5, 10, 20]) {
-    const ma = calculateMA(input.bars, period);
-    if (ma != null && ma > 0 && ma < refPrice) {
-      const distancePct = ((ma - refPrice) / refPrice) * 100;
-      suggestions.push({
-        strategy: `ma-${period}`,
-        label: `${period}MA`,
-        description: `${period} 日移動平均線`,
-        price: Math.round(ma * 100) / 100,
-        distancePct: Math.round(distancePct * 100) / 100,
-        category: "ma",
-      });
-    }
-  }
+  // 均線建議改由 API 層提供 indicators.sma（永遠回 5/10/20 三條），UI 在 SMA < 基準價時才允許套用為停損。
 
   // ── 5. 跌停板 ──
   if (input.prevClose > 0) {

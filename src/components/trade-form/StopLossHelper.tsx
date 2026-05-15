@@ -26,11 +26,12 @@ const CATEGORY_LABELS: Record<StopLossSuggestion["category"], string> = {
   limit: "跌停板",
 };
 
+// 注意：均線 (ma) 已改由獨立的「SMA 指標」區塊處理（永遠顯示 5/10/20），
+// 因此不再透過 suggestions 列出，這裡也將 ma 從顯示順序移除。
 const CATEGORY_ORDER: StopLossSuggestion["category"][] = [
   "percentage",
   "atr",
   "support",
-  "ma",
   "limit",
 ];
 
@@ -307,6 +308,89 @@ export function StopLossHelper({
                 <p className="text-xs text-muted-foreground">
                   歷史資料不足，僅顯示基本建議
                 </p>
+              )}
+
+              {/* SMA 5/10/20 指標 — 永遠顯示，僅當低於基準價（即可作為有效停損）時可套用 */}
+              {data.indicators?.sma?.some((s) => s.value != null) && (
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    SMA 指標
+                  </p>
+                  {data.indicators.sma.map((s) => {
+                    const hasValue = s.value != null;
+                    const isAbove =
+                      s.distancePct != null && s.distancePct > 0;
+                    const applicable = hasValue && !isAbove;
+                    const strategyKey = `ma-${s.period}`;
+                    return (
+                      <button
+                        key={`sma-${s.period}`}
+                        type="button"
+                        onClick={() => {
+                          if (applicable && s.value != null) {
+                            onSelectStopLoss(s.value);
+                            setAppliedStrategy(strategyKey);
+                          }
+                        }}
+                        disabled={!applicable}
+                        title={
+                          !hasValue
+                            ? `${s.period} 日簡單移動平均線（歷史資料不足）`
+                            : isAbove
+                              ? `${s.period} 日 SMA 高於${basisLabel}，不適合作為停損`
+                              : `${s.period} 日簡單移動平均線`
+                        }
+                        className={cn(
+                          "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors",
+                          appliedStrategy === strategyKey
+                            ? "bg-primary/10 ring-1 ring-primary/30"
+                            : applicable
+                              ? "hover:bg-accent"
+                              : "opacity-70 cursor-not-allowed"
+                        )}
+                      >
+                        <span className="text-muted-foreground truncate max-w-[120px]">
+                          SMA{s.period}
+                        </span>
+                        <span className="flex items-center gap-3">
+                          <span className="tabular-nums font-medium">
+                            {hasValue ? formatCurrency(s.value!, currency) : "—"}
+                          </span>
+                          <span
+                            className={cn(
+                              "tabular-nums text-xs w-[56px] text-right",
+                              s.distancePct == null
+                                ? "text-muted-foreground"
+                                : isAbove
+                                  ? "text-green-600"
+                                  : "text-red-500"
+                            )}
+                          >
+                            {s.distancePct == null
+                              ? "—"
+                              : `${isAbove ? "+" : ""}${s.distancePct.toFixed(2)}%`}
+                          </span>
+                          <span
+                            className={cn(
+                              "text-xs shrink-0",
+                              appliedStrategy === strategyKey
+                                ? "text-primary font-medium"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            {!hasValue
+                              ? "資料不足"
+                              : !applicable
+                                ? "高於基準"
+                                : appliedStrategy === strategyKey
+                                  ? "已套用"
+                                  : "套用"}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
 
               {/* Suggestion groups */}
