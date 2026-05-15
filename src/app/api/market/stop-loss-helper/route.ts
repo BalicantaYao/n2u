@@ -5,8 +5,10 @@ import { fetchQuote, fetchHistorical } from "@/lib/market-api";
 import {
   suggestStopLossLevels,
   calculatePositionImpact,
+  calculateMA,
 } from "@/lib/stop-loss-calculator";
 import type { Market } from "@/types/taiwan";
+import type { MovingAverageIndicator } from "@/types/market";
 
 export async function GET(req: NextRequest) {
   const auth = await requireAuth();
@@ -92,6 +94,16 @@ export async function GET(req: NextRequest) {
   const suggestions = suggestStopLossLevels(input);
   const positionImpact = calculatePositionImpact(input);
 
+  const sma: MovingAverageIndicator[] = [5, 10, 20].map((period) => {
+    const value = calculateMA(bars, period);
+    const rounded = value != null ? Math.round(value * 100) / 100 : null;
+    const distancePct =
+      rounded != null && referencePrice > 0
+        ? Math.round(((rounded - referencePrice) / referencePrice) * 10000) / 100
+        : null;
+    return { period, value: rounded, distancePct };
+  });
+
   return NextResponse.json({
     suggestions,
     positionImpact,
@@ -107,6 +119,9 @@ export async function GET(req: NextRequest) {
           high: quote.high,
         }
       : null,
+    indicators: {
+      sma,
+    },
     meta: {
       barsCount: bars.length,
       hasHistoricalData: bars.length > 0,
