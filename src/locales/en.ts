@@ -16,6 +16,8 @@ const en = {
     positionsShort: "Positions",
     marketMap: "Market Map",
     marketMapShort: "Map",
+    etfHoldings: "ETF Holdings",
+    etfHoldingsShort: "ETF",
     results: "Results",
     resultsShort: "Results",
     memos: "Memos",
@@ -422,6 +424,27 @@ const en = {
     addMemoForSymbol: "Add a daily memo for {symbol}",
     relatedMemos: "Memo history for {symbol}",
     noMemosYet: "No memos linked to this symbol yet.",
+  },
+
+  // ── ETF Holdings (active management ETFs) ────────────────────
+  etfHoldings: {
+    title: "Active ETF Holdings",
+    selectFund: "Select ETF",
+    issuer: "Issuer",
+    asOfDate: "As of",
+    holdingsCount: "{{n}} holdings",
+    refresh: "Refresh",
+    refreshing: "Refreshing...",
+    empty: "No snapshot yet. Click \"Refresh\" above to fetch the latest PCF.",
+    noUrlConfigured:
+      "No download URL configured. Edit src/lib/etf-holdings/issuers.ts and set pcfUrlTemplate for this issuer.",
+    source: "Source",
+    fetchedAt: "Fetched at",
+    colSymbol: "Symbol",
+    colName: "Name",
+    colShares: "Shares",
+    colWeight: "Weight",
+    colMarketValue: "Market value",
   },
 
   // ── Settings ─────────────────────────────────────────────────

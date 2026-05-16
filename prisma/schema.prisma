@@ -171,3 +171,40 @@ model WatchlistItem {
   @@index([userId])
   @@index([symbol])
 }
+
+// 主動式 ETF 每日持股快照。fundSymbol 對應 src/lib/etf-holdings/issuers.ts
+// 內登記的 ETF 代碼（例：00980A）。一檔 ETF 每個交易日一份快照。
+model EtfHoldingSnapshot {
+  id          String   @id @default(cuid())
+  fundSymbol  String
+  asOfDate    DateTime @db.Date
+  fetchedAt   DateTime @default(now())
+  // PCF 中常見的整體數值（若資料源未提供則為 null）
+  nav         Float?
+  totalAssets Float?
+  // 來源 URL 或 issuer 代碼，方便日後追溯
+  source      String?
+
+  holdings    EtfHolding[]
+
+  @@unique([fundSymbol, asOfDate])
+  @@index([fundSymbol, asOfDate])
+}
+
+model EtfHolding {
+  id          String   @id @default(cuid())
+  snapshotId  String
+  snapshot    EtfHoldingSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  symbol      String
+  name        String
+  market      String?
+  shares      Float
+  // 占基金比重（小數，0.0567 = 5.67%）
+  weight      Float?
+  marketValue Float?
+  price       Float?
+
+  @@index([snapshotId])
+  @@index([symbol])
+}

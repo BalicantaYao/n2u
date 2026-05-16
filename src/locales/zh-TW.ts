@@ -16,6 +16,8 @@ const zhTW = {
     positionsShort: "持倉",
     marketMap: "市場地圖",
     marketMapShort: "地圖",
+    etfHoldings: "ETF 持股",
+    etfHoldingsShort: "ETF",
     results: "交易成果",
     resultsShort: "成果",
     memos: "備忘錄",
@@ -422,6 +424,27 @@ const zhTW = {
     addMemoForSymbol: "為 {symbol} 新增每日筆記",
     relatedMemos: "{symbol} 的歷史筆記",
     noMemosYet: "目前還沒有與這檔股票相關的筆記。",
+  },
+
+  // ── ETF Holdings (主動式 ETF 持股) ───────────────────────────
+  etfHoldings: {
+    title: "主動式 ETF 持股",
+    selectFund: "選擇 ETF",
+    issuer: "發行投信",
+    asOfDate: "資料日期",
+    holdingsCount: "{{n}} 檔持股",
+    refresh: "重新抓取",
+    refreshing: "抓取中...",
+    empty: "目前尚無持股快照。請按上方「重新抓取」拉一份最新資料。",
+    noUrlConfigured:
+      "尚未設定下載 URL。請編輯 src/lib/etf-holdings/issuers.ts 為對應投信補上 pcfUrlTemplate。",
+    source: "資料來源",
+    fetchedAt: "抓取時間",
+    colSymbol: "代碼",
+    colName: "名稱",
+    colShares: "持股數",
+    colWeight: "比重",
+    colMarketValue: "市值",
   },
 
   // ── Settings ─────────────────────────────────────────────────
