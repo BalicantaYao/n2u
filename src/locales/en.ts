@@ -332,6 +332,8 @@ const en = {
     sharesHeader: "Shares",
     sellAvgPrice: "Sell Avg Price",
     sellPrice: "Sell Price",
+    buyDate: "Buy Date",
+    buyAvgPrice: "Buy Avg Price",
     profit: "Profit",
     loss: "Loss",
     breakeven: "Break Even",

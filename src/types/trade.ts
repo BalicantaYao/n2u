@@ -107,6 +107,9 @@ export interface SellTradeDetail {
   price: number;
   netAmount: number;
   buyCost: number;
+  buyAvgPrice: number;
+  buyDate?: string;
+  buyDateEnd?: string;
   realizedPnL: number;
   realizedPnLPct: number;
   notes?: string;

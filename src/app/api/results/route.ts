@@ -12,6 +12,8 @@ import { marketToCurrency } from "@/types/taiwan";
 
 export const dynamic = "force-dynamic";
 
+const EPSILON = 1e-9;
+
 export async function GET(req: NextRequest) {
   const auth = await requireAuth();
   if (auth.error) return auth.error;
@@ -19,27 +21,25 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const from = searchParams.get("from");
   const to = searchParams.get("to");
+  const fromDate = from ? new Date(from) : null;
+  const toDate = to ? new Date(to) : null;
 
-  const where: Record<string, unknown> = {
-    side: "SELL",
-    realizedPnL: { not: null },
-    userId: auth.userId,
-  };
-
-  if (from || to) {
-    where.tradeDate = {};
-    if (from) (where.tradeDate as Record<string, unknown>).gte = new Date(from);
-    if (to) (where.tradeDate as Record<string, unknown>).lte = new Date(to);
-  }
-
+  // Fetch ALL trades (BUY and SELL) for FIFO replay; date filter only applies
+  // to which SELL trades are displayed, since old BUYs can match new SELLs.
   const trades = await prisma.trade.findMany({
-    where,
-    orderBy: { tradeDate: "desc" },
+    where: { userId: auth.userId },
+    orderBy: [
+      { tradeDate: "asc" },
+      { createdAt: "asc" },
+      { id: "asc" },
+    ],
     select: {
       id: true,
       symbol: true,
       symbolName: true,
       market: true,
+      currency: true,
+      side: true,
       tradeDate: true,
       lotType: true,
       shares: true,
@@ -52,7 +52,81 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  // Build per-symbol groups
+  // Group trades by symbol; trades are already in chronological order.
+  const tradesBySymbol = new Map<string, typeof trades>();
+  for (const t of trades) {
+    const list = tradesBySymbol.get(t.symbol);
+    if (list) list.push(t);
+    else tradesBySymbol.set(t.symbol, [t]);
+  }
+
+  type ReplayLot = {
+    currency: string;
+    openDate: Date;
+    remainingShares: number;
+    costPerShare: number;
+    grossPrice: number;
+  };
+
+  type SellMatch = {
+    buyCost: number;
+    buyAvgPrice: number;
+    buyDate?: Date;
+    buyDateEnd?: Date;
+  };
+
+  // For each SELL trade id, the FIFO-matched buy info.
+  const matchBySellId = new Map<string, SellMatch>();
+
+  for (const symbolTrades of tradesBySymbol.values()) {
+    const lots: ReplayLot[] = [];
+
+    for (const t of symbolTrades) {
+      if (t.side === "BUY") {
+        lots.push({
+          currency: t.currency,
+          openDate: t.tradeDate,
+          remainingShares: t.shares,
+          costPerShare: t.shares > 0 ? t.netAmount / t.shares : 0,
+          grossPrice: t.price,
+        });
+        continue;
+      }
+      if (t.side !== "SELL") continue;
+
+      let remaining = t.shares;
+      let totalBuyCost = 0;
+      let totalGrossBuy = 0;
+      let earliest: Date | null = null;
+      let latest: Date | null = null;
+
+      for (const lot of lots) {
+        if (remaining <= EPSILON) break;
+        if (lot.remainingShares <= EPSILON) continue;
+        if (lot.currency !== t.currency) continue;
+        const consume = Math.min(lot.remainingShares, remaining);
+        totalBuyCost += consume * lot.costPerShare;
+        totalGrossBuy += consume * lot.grossPrice;
+        if (!earliest || lot.openDate < earliest) earliest = lot.openDate;
+        if (!latest || lot.openDate > latest) latest = lot.openDate;
+        lot.remainingShares -= consume;
+        remaining -= consume;
+      }
+
+      const consumed = t.shares - remaining;
+      matchBySellId.set(t.id, {
+        buyCost: totalBuyCost,
+        buyAvgPrice: consumed > EPSILON ? totalGrossBuy / consumed : 0,
+        buyDate: earliest ?? undefined,
+        buyDateEnd:
+          latest && earliest && latest.getTime() !== earliest.getTime()
+            ? latest
+            : undefined,
+      });
+    }
+  }
+
+  // Build per-symbol groups (filtered SELLs only)
   const symbolMap = new Map<string, {
     symbol: string;
     symbolName?: string;
@@ -82,14 +156,22 @@ export async function GET(req: NextRequest) {
   let lossCount = 0;
   let totalCommission = 0;
   let totalTransactionTax = 0;
+  let totalTrades = 0;
 
   for (const t of trades) {
-    const pnl = t.realizedPnL ?? 0;
-    const buyCost = t.netAmount - pnl;
+    if (t.side !== "SELL" || t.realizedPnL == null) continue;
+    if (fromDate && t.tradeDate < fromDate) continue;
+    if (toDate && t.tradeDate > toDate) continue;
+
+    const pnl = t.realizedPnL;
+    const match = matchBySellId.get(t.id);
+    const buyCost = match?.buyCost ?? t.netAmount - pnl;
+    const buyAvgPrice = match?.buyAvgPrice ?? 0;
     const pnlPct = buyCost > 0 ? pnl / buyCost : 0;
     const currency = marketToCurrency(t.market as Market);
     const cs = byCurrency[currency];
 
+    totalTrades++;
     totalRealized += pnl;
     totalCommission += t.commission;
     totalTransactionTax += t.transactionTax;
@@ -113,6 +195,9 @@ export async function GET(req: NextRequest) {
       price: t.price,
       netAmount: t.netAmount,
       buyCost,
+      buyAvgPrice,
+      buyDate: match?.buyDate?.toISOString(),
+      buyDateEnd: match?.buyDateEnd?.toISOString(),
       realizedPnL: pnl,
       realizedPnLPct: pnlPct,
       notes: t.notes ?? undefined,
@@ -131,7 +216,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const totalTrades = trades.length;
   const winRate = totalTrades > 0 ? winCount / totalTrades : 0;
 
   for (const c of Object.keys(byCurrency) as Currency[]) {
@@ -159,9 +243,6 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // trades are already desc by tradeDate; sort asc for display in expanded view
-    const tradesAsc = [...g.trades].reverse();
-
     return {
       symbol: g.symbol,
       symbolName: g.symbolName,
@@ -175,7 +256,7 @@ export async function GET(req: NextRequest) {
       winCount: symWin,
       lossCount: symLoss,
       lastTradeDate,
-      trades: tradesAsc,
+      trades: g.trades,
     };
   });
 
