@@ -128,6 +128,13 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
   );
 }
 
+function formatBuyDate(tr: SellTradeDetail): string {
+  if (!tr.buyDate) return "—";
+  const start = formatDate(tr.buyDate);
+  if (tr.buyDateEnd) return `${start} ~ ${formatDate(tr.buyDateEnd)}`;
+  return start;
+}
+
 function ExpandedTrades({
   trades,
   currency,
@@ -143,13 +150,15 @@ function ExpandedTrades({
       <table className="w-full text-xs">
         <thead>
           <tr className="text-muted-foreground">
+            <th className="text-left py-1.5 px-2">{t("results.buyDate")}</th>
             <th className="text-left py-1.5 px-2">{t("results.tradeDate")}</th>
             <th className="text-right py-1.5 px-2">{t("results.sharesHeader")}</th>
+            <th className="text-right py-1.5 px-2 hidden md:table-cell">{t("results.buyAvgPrice")}</th>
             <th className="text-right py-1.5 px-2">{t("results.sellAvgPrice")}</th>
             <th className="text-right py-1.5 px-2 hidden sm:table-cell">{t("results.buyCost")}</th>
             <th className="text-right py-1.5 px-2">{t("results.realizedPnLHeader")}</th>
             <th className="text-right py-1.5 px-2 hidden sm:table-cell">{t("results.returnHeader")}</th>
-            <th className="text-left py-1.5 px-2 hidden md:table-cell">{t("common.notes")}</th>
+            <th className="text-left py-1.5 px-2 hidden lg:table-cell">{t("common.notes")}</th>
           </tr>
         </thead>
         <tbody>
@@ -168,10 +177,16 @@ function ExpandedTrades({
 
             return (
               <tr key={tr.id} className="border-t border-border/50">
-                <td className="py-1.5 px-2 text-muted-foreground">
+                <td className="py-1.5 px-2 text-muted-foreground whitespace-nowrap">
+                  {formatBuyDate(tr)}
+                </td>
+                <td className="py-1.5 px-2 text-muted-foreground whitespace-nowrap">
                   {formatDate(tr.tradeDate)}
                 </td>
                 <td className="py-1.5 px-2 text-right tabular-nums">{sharesLabel}</td>
+                <td className="py-1.5 px-2 text-right hidden md:table-cell tabular-nums text-muted-foreground">
+                  {tr.buyAvgPrice > 0 ? tr.buyAvgPrice.toFixed(2) : "—"}
+                </td>
                 <td className="py-1.5 px-2 text-right tabular-nums">{tr.price.toFixed(2)}</td>
                 <td className="py-1.5 px-2 text-right hidden sm:table-cell tabular-nums text-muted-foreground">
                   {formatCurrency(tr.buyCost, currency)}
@@ -182,7 +197,7 @@ function ExpandedTrades({
                 <td className={`py-1.5 px-2 text-right hidden sm:table-cell tabular-nums ${pnlColor}`}>
                   {formatPct(tr.realizedPnLPct)}
                 </td>
-                <td className="py-1.5 px-2 hidden md:table-cell text-muted-foreground truncate max-w-[200px]">
+                <td className="py-1.5 px-2 hidden lg:table-cell text-muted-foreground truncate max-w-[200px]">
                   {tr.notes ?? "—"}
                 </td>
               </tr>
@@ -228,9 +243,11 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-muted-foreground text-xs">
+            <th className="text-left py-2.5 px-3 hidden md:table-cell">{t("results.buyDate")}</th>
             <th className="text-left py-2.5 px-3">{t("common.date")}</th>
             <th className="text-left py-2.5 px-3">{t("results.symbolHeader")}</th>
             <th className="text-right py-2.5 px-3">{t("results.sharesHeader")}</th>
+            <th className="text-right py-2.5 px-3 hidden lg:table-cell">{t("results.buyAvgPrice")}</th>
             <th className="text-right py-2.5 px-3 hidden sm:table-cell">{t("results.sellPrice")}</th>
             <th className="text-right py-2.5 px-3 hidden md:table-cell">{t("results.buyCost")}</th>
             <th className="text-right py-2.5 px-3">{t("results.realizedPnLHeader")}</th>
@@ -254,7 +271,10 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
 
             return (
               <tr key={tr.id} className="border-b hover:bg-muted/40 transition-colors">
-                <td className="py-2.5 px-3 text-muted-foreground">
+                <td className="py-2.5 px-3 text-muted-foreground hidden md:table-cell whitespace-nowrap">
+                  {formatBuyDate(tr)}
+                </td>
+                <td className="py-2.5 px-3 text-muted-foreground whitespace-nowrap">
                   {formatDate(tr.tradeDate)}
                 </td>
                 <td className="py-2.5 px-3">
@@ -272,6 +292,9 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
                   )}
                 </td>
                 <td className="py-2.5 px-3 text-right tabular-nums">{sharesLabel}</td>
+                <td className="py-2.5 px-3 text-right hidden lg:table-cell tabular-nums text-muted-foreground">
+                  {tr.buyAvgPrice > 0 ? tr.buyAvgPrice.toFixed(2) : "—"}
+                </td>
                 <td className="py-2.5 px-3 text-right hidden sm:table-cell tabular-nums">
                   {tr.price.toFixed(2)}
                 </td>

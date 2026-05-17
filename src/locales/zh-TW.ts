@@ -332,6 +332,8 @@ const zhTW = {
     sharesHeader: "股數",
     sellAvgPrice: "賣出均價",
     sellPrice: "賣出價",
+    buyDate: "買入日期",
+    buyAvgPrice: "買入均價",
     profit: "獲利",
     loss: "虧損",
     breakeven: "持平",
