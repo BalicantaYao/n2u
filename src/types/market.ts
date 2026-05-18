@@ -12,6 +12,16 @@ export interface Quote {
   timestamp: Date;
 }
 
+/**
+ * 多週期漲跌幅：以最近一筆收盤為基準，回推 N 個交易日的收盤計算。
+ * 各欄位為小數（0.0123 = +1.23%），資料不足時為 null。
+ */
+export interface PriceChanges {
+  symbol: string;
+  changePct5d: number | null;
+  changePct30d: number | null;
+}
+
 export interface OHLCVBar {
   date: Date;
   open: number;

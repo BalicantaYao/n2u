@@ -9,13 +9,38 @@ import { useT } from "@/lib/i18n";
 import { cn, formatCurrency, formatPct, tradingViewUrl } from "@/lib/utils";
 import { marketToCurrency } from "@/types/taiwan";
 import type { WatchlistItem } from "@/types/watchlist";
-import type { Quote } from "@/types/market";
+import type { PriceChanges, Quote } from "@/types/market";
 import type { Market } from "@/types/taiwan";
 import { WatchlistItemDetail } from "./WatchlistItemDetail";
 
 interface Props {
   item: WatchlistItem;
   quote: Quote | undefined;
+  priceChanges: PriceChanges | undefined;
+}
+
+function changeColor(value: number | null | undefined): string {
+  if (value == null) return "text-muted-foreground";
+  if (value > 0) return "text-green-600 dark:text-green-400";
+  if (value < 0) return "text-red-600 dark:text-red-400";
+  return "text-muted-foreground";
+}
+
+function ChangeCell({
+  label,
+  value,
+}: {
+  label: string;
+  value: number | null | undefined;
+}) {
+  return (
+    <div className="flex flex-col items-end leading-tight">
+      <span className="text-[10px] text-muted-foreground">{label}</span>
+      <span className={cn("text-xs tabular-nums", changeColor(value))}>
+        {value != null ? formatPct(value) : "—"}
+      </span>
+    </div>
+  );
 }
 
 function marketBadgeVariant(
@@ -27,21 +52,12 @@ function marketBadgeVariant(
   return "twse";
 }
 
-export function WatchlistItemRow({ item, quote }: Props) {
+export function WatchlistItemRow({ item, quote, priceChanges }: Props) {
   const { t } = useT();
   const deleteItem = useWatchlistStore((s) => s.deleteItem);
   const [expanded, setExpanded] = useState(false);
 
   const currency = marketToCurrency(item.market);
-  const changePct = quote?.changePct;
-  const colorCls =
-    changePct == null
-      ? "text-muted-foreground"
-      : changePct > 0
-        ? "text-green-600 dark:text-green-400"
-        : changePct < 0
-          ? "text-red-600 dark:text-red-400"
-          : "text-muted-foreground";
 
   async function handleDelete() {
     if (!confirm(t("watchlist.deleteItemConfirm").replace("{symbol}", item.symbol))) {
@@ -79,19 +95,19 @@ export function WatchlistItemRow({ item, quote }: Props) {
           )}
         </div>
 
-        <div className="text-right tabular-nums">
+        <div className="flex flex-col items-end gap-1 tabular-nums">
           {quote ? (
-            <>
-              <div className="text-sm font-medium">
-                {formatCurrency(quote.price, currency)}
-              </div>
-              <div className={cn("text-xs", colorCls)}>
-                {changePct != null ? formatPct(changePct) : "—"}
-              </div>
-            </>
+            <div className="text-sm font-medium">
+              {formatCurrency(quote.price, currency)}
+            </div>
           ) : (
             <span className="text-xs text-muted-foreground">—</span>
           )}
+          <div className="flex items-end gap-3">
+            <ChangeCell label={t("watchlist.change1d")} value={quote?.changePct} />
+            <ChangeCell label={t("watchlist.change5d")} value={priceChanges?.changePct5d} />
+            <ChangeCell label={t("watchlist.change30d")} value={priceChanges?.changePct30d} />
+          </div>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">

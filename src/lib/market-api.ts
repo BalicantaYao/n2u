@@ -10,7 +10,7 @@
 
 import type { Market } from "@/types/taiwan";
 import { isUSMarket } from "@/types/taiwan";
-import type { Quote, OHLCVBar, SearchResult } from "@/types/market";
+import type { Quote, OHLCVBar, PriceChanges, SearchResult } from "@/types/market";
 
 import {
   fetchQuote as fetchQuoteTW,
@@ -52,6 +52,58 @@ export async function fetchHistorical(
   return isUSMarket(market)
     ? fetchHistoricalUS(symbol, from, to, interval)
     : fetchHistoricalTW(symbol, market, from, to, interval);
+}
+
+/**
+ * 取得 5 日 / 30 日漲跌幅。
+ * 以最近一筆日 K 棒收盤為基準，回推 5、30 個交易日的收盤計算。
+ * 抓 ~60 個日曆日的資料以確保涵蓋 30 個交易日。
+ */
+export async function fetchPriceChanges(
+  symbol: string,
+  market: Market,
+): Promise<PriceChanges> {
+  const to = new Date();
+  const from = new Date(to.getTime() - 60 * 24 * 60 * 60 * 1000);
+  const bars = await fetchHistorical(symbol, market, from, to, "1d");
+
+  const empty: PriceChanges = {
+    symbol,
+    changePct5d: null,
+    changePct30d: null,
+  };
+  if (bars.length === 0) return empty;
+
+  const lastIdx = bars.length - 1;
+  const latest = bars[lastIdx].close;
+  if (!latest) return empty;
+
+  const pctFrom = (tradingDaysAgo: number): number | null => {
+    const idx = lastIdx - tradingDaysAgo;
+    if (idx < 0) return null;
+    const base = bars[idx].close;
+    if (!base) return null;
+    return (latest - base) / base;
+  };
+
+  return {
+    symbol,
+    changePct5d: pctFrom(5),
+    changePct30d: pctFrom(30),
+  };
+}
+
+export async function fetchPriceChangesBatch(
+  symbols: Array<{ symbol: string; market: Market }>,
+): Promise<Record<string, PriceChanges>> {
+  const results: Record<string, PriceChanges> = {};
+  await Promise.allSettled(
+    symbols.map(async ({ symbol, market }) => {
+      const c = await fetchPriceChanges(symbol, market);
+      results[symbol] = c;
+    }),
+  );
+  return results;
 }
 
 /**
