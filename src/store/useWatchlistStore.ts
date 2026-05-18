@@ -9,13 +9,14 @@ import type {
   CreateWatchlistItemInput,
   UpdateWatchlistItemInput,
 } from "@/types/watchlist";
-import type { Quote } from "@/types/market";
+import type { PriceChanges, Quote } from "@/types/market";
 
 interface WatchlistStore {
   watchlists: Watchlist[];
   activeId: string | null;
   activeItems: WatchlistItem[];
   quotes: Record<string, Quote>;
+  priceChanges: Record<string, PriceChanges>;
   isLoading: boolean;
   isLoadingItems: boolean;
 
@@ -43,11 +44,24 @@ async function fetchQuotesFor(
   return res.json();
 }
 
+async function fetchPriceChangesFor(
+  items: WatchlistItem[],
+): Promise<Record<string, PriceChanges>> {
+  if (items.length === 0) return {};
+  const qs = items.map((i) => `${i.symbol}:${i.market}`).join(",");
+  const res = await fetch(
+    `/api/market/price-changes?symbols=${encodeURIComponent(qs)}`,
+  );
+  if (!res.ok) return {};
+  return res.json();
+}
+
 export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
   watchlists: [],
   activeId: null,
   activeItems: [],
   quotes: {},
+  priceChanges: {},
   isLoading: false,
   isLoadingItems: false,
 
@@ -61,7 +75,7 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
       if (!activeId && data.length > 0) {
         await get().fetchActive(data[0].id);
       } else if (activeId && !data.find((w) => w.id === activeId)) {
-        set({ activeId: null, activeItems: [], quotes: {} });
+        set({ activeId: null, activeItems: [], quotes: {}, priceChanges: {} });
         if (data.length > 0) await get().fetchActive(data[0].id);
       }
     } finally {
@@ -74,14 +88,17 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
     try {
       const res = await fetch(`/api/watchlists/${id}`);
       if (!res.ok) {
-        set({ activeItems: [], quotes: {} });
+        set({ activeItems: [], quotes: {}, priceChanges: {} });
         return;
       }
       const data: Watchlist = await res.json();
       const items = data.items ?? [];
       set({ activeItems: items });
-      const quotes = await fetchQuotesFor(items);
-      set({ quotes });
+      const [quotes, priceChanges] = await Promise.all([
+        fetchQuotesFor(items),
+        fetchPriceChangesFor(items),
+      ]);
+      set({ quotes, priceChanges });
     } finally {
       set({ isLoadingItems: false });
     }
@@ -89,12 +106,16 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
 
   setActive: (id) => {
     if (id) get().fetchActive(id);
-    else set({ activeId: null, activeItems: [], quotes: {} });
+    else set({ activeId: null, activeItems: [], quotes: {}, priceChanges: {} });
   },
 
   refreshQuotes: async () => {
-    const quotes = await fetchQuotesFor(get().activeItems);
-    set({ quotes });
+    const items = get().activeItems;
+    const [quotes, priceChanges] = await Promise.all([
+      fetchQuotesFor(items),
+      fetchPriceChangesFor(items),
+    ]);
+    set({ quotes, priceChanges });
   },
 
   createWatchlist: async (input) => {
@@ -141,6 +162,7 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
         activeId: nextActive,
         activeItems: state.activeId === id ? [] : state.activeItems,
         quotes: state.activeId === id ? {} : state.quotes,
+        priceChanges: state.activeId === id ? {} : state.priceChanges,
       };
     });
     const { watchlists, activeId } = get();
@@ -162,12 +184,18 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
     const item: WatchlistItem = await res.json();
     if (get().activeId === watchlistId) {
       set((state) => ({ activeItems: [...state.activeItems, item] }));
-      const res2 = await fetch(
-        `/api/market/quote?symbols=${encodeURIComponent(`${item.symbol}:${item.market}`)}`,
-      );
-      if (res2.ok) {
-        const q = await res2.json();
+      const qs = encodeURIComponent(`${item.symbol}:${item.market}`);
+      const [quoteRes, changesRes] = await Promise.all([
+        fetch(`/api/market/quote?symbols=${qs}`),
+        fetch(`/api/market/price-changes?symbols=${qs}`),
+      ]);
+      if (quoteRes.ok) {
+        const q = await quoteRes.json();
         set((state) => ({ quotes: { ...state.quotes, ...q } }));
+      }
+      if (changesRes.ok) {
+        const c = await changesRes.json();
+        set((state) => ({ priceChanges: { ...state.priceChanges, ...c } }));
       }
     }
     return item;

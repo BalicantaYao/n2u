@@ -16,6 +16,7 @@ export default function WatchlistPage() {
   const activeId = useWatchlistStore((s) => s.activeId);
   const activeItems = useWatchlistStore((s) => s.activeItems);
   const quotes = useWatchlistStore((s) => s.quotes);
+  const priceChanges = useWatchlistStore((s) => s.priceChanges);
   const isLoading = useWatchlistStore((s) => s.isLoading);
   const isLoadingItems = useWatchlistStore((s) => s.isLoadingItems);
   const fetchWatchlists = useWatchlistStore((s) => s.fetchWatchlists);
@@ -86,6 +87,7 @@ export default function WatchlistPage() {
                     key={item.id}
                     item={item}
                     quote={quotes[item.symbol]}
+                    priceChanges={priceChanges[item.symbol]}
                   />
                 ))}
               </div>
