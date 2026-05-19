@@ -2,7 +2,7 @@
 
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { useT } from "@/lib/i18n";
-import { formatPct, tradingViewChartUrl } from "@/lib/utils";
+import { formatPct, tradingViewUrl } from "@/lib/utils";
 import type { MarketMapMarket, MarketMapMarketPayload } from "@/types/market";
 
 /**
@@ -119,7 +119,7 @@ function Cell(props: CellProps) {
   const showPct = width > 48 && height > 38;
 
   const pctText = pct === null ? "—" : formatPct(pct, 2);
-  const href = symbol && market ? tradingViewChartUrl(symbol, market) : undefined;
+  const href = symbol && market ? tradingViewUrl(symbol, market) : undefined;
 
   const content = (
     <g>
