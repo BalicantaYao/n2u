@@ -103,14 +103,8 @@ export function getTodayTW(): string {
     .toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
 }
 
-/** 組出 TradingView 頁面的 URL。台股：TWSE-2330；美股：NASDAQ-AAPL、NYSE-IBM */
+/** 組出 TradingView Chart 頁的 URL，直接開啟 K 線互動介面。台股：TWSE:2330；美股：NASDAQ:AAPL、NYSE:IBM */
 export function tradingViewUrl(symbol: string, market: Market): string {
-  const upper = isUSMarket(market) ? symbol.toUpperCase() : symbol;
-  return `https://www.tradingview.com/symbols/${market}-${upper}/`;
-}
-
-/** 組出 TradingView Chart 頁的 URL，直接開啟 K 線互動介面（與 /symbols/ 的資訊頁不同）。 */
-export function tradingViewChartUrl(symbol: string, market: Market): string {
   const upper = isUSMarket(market) ? symbol.toUpperCase() : symbol;
   return `https://www.tradingview.com/chart/?symbol=${market}:${upper}`;
 }
