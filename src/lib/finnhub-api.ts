@@ -125,6 +125,26 @@ export async function fetchQuotesUS(
   return results;
 }
 
+interface FinnhubProfileResponse {
+  /** 市值，單位為「百萬」當地貨幣（美股即百萬美元）。 */
+  marketCapitalization?: number;
+  currency?: string;
+}
+
+/**
+ * 取得美股市值（回傳絕對金額，單位：美元）。
+ * Finnhub profile2 的 marketCapitalization 單位為百萬美元，這裡換算回絕對值。
+ * 取不到時回傳 null。
+ */
+export async function fetchMarketCapUS(symbol: string): Promise<number | null> {
+  const res = await finnhubFetch<FinnhubProfileResponse>("/stock/profile2", {
+    symbol: symbol.toUpperCase(),
+  });
+  const capMillions = res?.marketCapitalization;
+  if (typeof capMillions !== "number" || capMillions <= 0) return null;
+  return capMillions * 1e6;
+}
+
 /* ── 符號清單（用 MIC code 判斷 NYSE vs NASDAQ） ── */
 
 // https://en.wikipedia.org/wiki/Market_Identifier_Code

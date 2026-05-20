@@ -16,6 +16,8 @@ const en = {
     positionsShort: "Positions",
     marketMap: "Market Map",
     marketMapShort: "Map",
+    watchlistMap: "Watchlist Map",
+    watchlistMapShort: "List Map",
     results: "Results",
     resultsShort: "Results",
     memos: "Memos",
@@ -368,6 +370,20 @@ const en = {
     sizingModeMixed: "Partial trade-value sizing",
     sizingModeTradeValue: "Sized by trade value",
     noData: "No data",
+  },
+
+  // ── Watchlist Map ──────────────────────────────────────────
+  watchlistMap: {
+    title: "Watchlist Map",
+    subtitle: "Each watchlist is a block · Size = market cap · Red = up, Green = down",
+    asOf: "As of {{time}}",
+    timeframe: "Timeframe",
+    tfToday: "Today",
+    tf5d: "5 days",
+    tf30d: "30 days",
+    watchlist: "Watchlist",
+    allWatchlists: "All",
+    empty: "No symbols in your watchlists yet — add some from the Watchlist page",
   },
 
   // ── Memos ──────────────────────────────────────────────────

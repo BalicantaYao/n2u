@@ -3,7 +3,8 @@
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { useT } from "@/lib/i18n";
 import { formatPct, tradingViewUrl } from "@/lib/utils";
-import type { MarketMapMarket, MarketMapMarketPayload } from "@/types/market";
+import type { MarketMapMarketPayload } from "@/types/market";
+import type { Market } from "@/types/taiwan";
 
 /**
  * 台股慣例熱度色（紅漲綠跌）。changePct 為小數，0.0123 = 1.23%。
@@ -31,7 +32,7 @@ interface TreemapDatum {
   changePct?: number | null;
   marketCap?: number;
   sector?: string;
-  market?: MarketMapMarket;
+  market?: Market;
 }
 
 function toTreemapData(data: MarketMapMarketPayload): TreemapDatum[] {
@@ -49,7 +50,7 @@ function toTreemapData(data: MarketMapMarketPayload): TreemapDatum[] {
         changePct: s.changePct,
         marketCap: s.marketCap,
         sector: g.sector,
-        market: data.market,
+        market: s.market ?? data.market,
       })),
     }));
 }
@@ -67,7 +68,7 @@ interface CellProps {
   stockName?: string;
   changePct?: number | null;
   sector?: string;
-  market?: MarketMapMarket;
+  market?: Market;
 }
 
 function Cell(props: CellProps) {
