@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { useT } from "@/lib/i18n";
 import { formatPct, tradingViewUrl } from "@/lib/utils";
@@ -57,6 +58,14 @@ function toTreemapData(data: MarketMapMarketPayload): TreemapDatum[] {
 
 /* ── Custom cell content ── */
 
+interface SectorBox {
+  name: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface CellProps {
   x: number;
   y: number;
@@ -76,33 +85,19 @@ function Cell(props: CellProps) {
 
   if (width <= 0 || height <= 0) return null;
 
-  // depth 1: sector group — 畫透明背景 + 標題
+  // depth 1: 產業群組 — 只畫較寬的分隔溝（gutter），標題與外框交由 overlay 在最上層繪製，
+  // 因為 recharts 會把個股 leaf 疊在群組之上，群組自身畫的文字會被蓋掉。
   if (depth === 1) {
     return (
-      <g>
-        <rect
-          x={x}
-          y={y}
-          width={width}
-          height={height}
-          fill="transparent"
-          stroke="hsl(var(--background))"
-          strokeWidth={2}
-        />
-        {width > 80 && height > 24 && (
-          <text
-            x={x + 6}
-            y={y + 14}
-            textAnchor="start"
-            fill="rgba(255,255,255,0.55)"
-            fontSize={11}
-            fontWeight={600}
-            style={{ pointerEvents: "none", textTransform: "uppercase", letterSpacing: "0.05em" }}
-          >
-            {name}
-          </text>
-        )}
-      </g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill="transparent"
+        stroke="hsl(var(--background))"
+        strokeWidth={4}
+      />
     );
   }
 
@@ -267,6 +262,63 @@ function Legend() {
   );
 }
 
+/* ── 產業框 overlay（疊在 treemap 最上層，標出每個產業區塊的邊界與名稱） ── */
+
+const HEADER_HEIGHT = 18;
+
+function SectorOverlay({ boxes }: { boxes: SectorBox[] }) {
+  return (
+    <svg
+      className="pointer-events-none absolute inset-0 h-full w-full"
+      preserveAspectRatio="none"
+    >
+      {boxes.map((b) => {
+        const showHeader = b.width > 64 && b.height > 30;
+        // 依寬度粗估可容納字數，超出截斷（中文約 12px/字）
+        const maxChars = Math.max(0, Math.floor((b.width - 12) / 12));
+        const label =
+          maxChars >= b.name.length ? b.name : b.name.slice(0, Math.max(1, maxChars - 1)) + "…";
+        return (
+          <g key={`${b.name}-${Math.round(b.x)}-${Math.round(b.y)}`}>
+            <rect
+              x={b.x + 1}
+              y={b.y + 1}
+              width={Math.max(0, b.width - 2)}
+              height={Math.max(0, b.height - 2)}
+              fill="none"
+              stroke="rgba(255,255,255,0.85)"
+              strokeWidth={2}
+              rx={2}
+            />
+            {showHeader && (
+              <>
+                <rect
+                  x={b.x + 1}
+                  y={b.y + 1}
+                  width={Math.max(0, b.width - 2)}
+                  height={HEADER_HEIGHT}
+                  fill="rgba(0,0,0,0.6)"
+                />
+                <text
+                  x={b.x + 6}
+                  y={b.y + 1 + HEADER_HEIGHT / 2}
+                  dominantBaseline="central"
+                  fill="#fff"
+                  fontSize={11}
+                  fontWeight={700}
+                  style={{ letterSpacing: "0.02em" }}
+                >
+                  {label}
+                </text>
+              </>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 /* ── 主元件 ── */
 
 interface MarketMapProps {
@@ -279,6 +331,51 @@ export function MarketMap({ data, height = 560, showLegend = true }: MarketMapPr
   const { t } = useT();
   const treeData = toTreemapData(data);
 
+  const [boxes, setBoxes] = useState<SectorBox[]>([]);
+  const collectRef = useRef<SectorBox[]>([]);
+  const sigRef = useRef<string>("");
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    },
+    [],
+  );
+
+  // recharts 把每個產業群組的內容畫在其個股 leaf「之前」，群組自身的標題/外框會被 leaf 蓋掉；
+  // 因此在繪製過程蒐集各群組版面框，於本幀繪製後（rAF）疊一層 overlay 在最上層畫邊框與名稱。
+  // ResponsiveContainer 在視窗縮放時只會重繪圖表而不會重繪本元件，故不能依賴 render/effect，
+  // 改以 rAF flush + 依產業名去重（取最後一次座標）確保縮放後仍正確且不累積重複。
+  const renderCell = (props: CellProps) => {
+    if (props.depth === 1 && props.width > 0 && props.height > 0) {
+      collectRef.current.push({
+        name: props.name,
+        x: props.x,
+        y: props.y,
+        width: props.width,
+        height: props.height,
+      });
+      if (rafRef.current == null && typeof requestAnimationFrame !== "undefined") {
+        rafRef.current = requestAnimationFrame(() => {
+          rafRef.current = null;
+          const byName = new Map<string, SectorBox>();
+          for (const b of collectRef.current) byName.set(b.name, b);
+          collectRef.current = [];
+          const next = Array.from(byName.values());
+          const sig = next
+            .map((b) => `${b.name}|${Math.round(b.x)}|${Math.round(b.y)}|${Math.round(b.width)}|${Math.round(b.height)}`)
+            .join(";");
+          if (sig !== sigRef.current) {
+            sigRef.current = sig;
+            setBoxes(next);
+          }
+        });
+      }
+    }
+    return <Cell {...props} />;
+  };
+
   if (treeData.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">
@@ -289,7 +386,7 @@ export function MarketMap({ data, height = 560, showLegend = true }: MarketMapPr
 
   return (
     <div className="space-y-3">
-      <div style={{ width: "100%", height }}>
+      <div className="relative" style={{ width: "100%", height }}>
         <ResponsiveContainer width="100%" height="100%">
           <Treemap
             data={treeData as unknown as never[]}
@@ -297,11 +394,12 @@ export function MarketMap({ data, height = 560, showLegend = true }: MarketMapPr
             nameKey="name"
             aspectRatio={4 / 3}
             isAnimationActive={false}
-            content={<Cell {...({} as CellProps)} />}
+            content={renderCell as unknown as never}
           >
             <Tooltip content={<TreemapTooltip />} />
           </Treemap>
         </ResponsiveContainer>
+        <SectorOverlay boxes={boxes} />
       </div>
       {showLegend && <Legend />}
     </div>
