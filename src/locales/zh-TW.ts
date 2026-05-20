@@ -16,6 +16,8 @@ const zhTW = {
     positionsShort: "持倉",
     marketMap: "市場地圖",
     marketMapShort: "地圖",
+    watchlistMap: "觀察清單地圖",
+    watchlistMapShort: "清單圖",
     results: "交易成果",
     resultsShort: "成果",
     memos: "備忘錄",
@@ -368,6 +370,20 @@ const zhTW = {
     sizingModeMixed: "部分以成交值呈現",
     sizingModeTradeValue: "以成交值呈現",
     noData: "無資料",
+  },
+
+  // ── Watchlist Map ──────────────────────────────────────────
+  watchlistMap: {
+    title: "觀察清單地圖",
+    subtitle: "以觀察清單為版塊，方塊大小依市值，紅漲綠跌",
+    asOf: "資料時間：{{time}}",
+    timeframe: "週期",
+    tfToday: "今日",
+    tf5d: "五日",
+    tf30d: "三十日",
+    watchlist: "觀察清單",
+    allWatchlists: "全部",
+    empty: "觀察清單尚無個股，請先到「觀察名單」加入股票",
   },
 
   // ── Memos ──────────────────────────────────────────────────
