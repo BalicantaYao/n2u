@@ -384,6 +384,12 @@ const en = {
     watchlist: "Watchlist",
     allWatchlists: "All",
     empty: "No symbols in your watchlists yet — add some from the Watchlist page",
+    overviewTitle: "Overview",
+    overviewSubtitle: "Lists ranked by market-cap-weighted change, most significant first — click a list for its detail map",
+    weightedChange: "Weighted change",
+    symbolsCount: "{{count}} symbols",
+    noChangeData: "No data",
+    back: "Back to overview",
   },
 
   // ── Memos ──────────────────────────────────────────────────

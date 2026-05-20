@@ -384,6 +384,12 @@ const zhTW = {
     watchlist: "觀察清單",
     allWatchlists: "全部",
     empty: "觀察清單尚無個股，請先到「觀察名單」加入股票",
+    overviewTitle: "總覽",
+    overviewSubtitle: "各清單以市值加權平均漲跌幅排序，變動最顯著者在前；點選清單看細節地圖",
+    weightedChange: "加權漲跌幅",
+    symbolsCount: "{{count}} 檔",
+    noChangeData: "資料不足",
+    back: "返回總覽",
   },
 
   // ── Memos ──────────────────────────────────────────────────
