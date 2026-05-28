@@ -37,14 +37,16 @@ interface TreemapDatum {
 }
 
 function toTreemapData(data: MarketMapMarketPayload): TreemapDatum[] {
+  // "equal" 模式：個股方塊等大，產業群組大小自然等於該群組個股數量。
+  const equalSized = data.sizingMode === "equal";
   return data.groups
     .filter((g) => g.stocks.length > 0)
     .map((g) => ({
       name: g.sector,
-      value: g.marketCap,
+      value: equalSized ? g.stocks.length : g.marketCap,
       children: g.stocks.map<TreemapDatum>((s) => ({
         name: s.symbol,
-        value: Math.max(s.marketCap, 1),
+        value: equalSized ? 1 : Math.max(s.marketCap, 1),
         symbol: s.symbol,
         stockName: s.name,
         price: s.price,

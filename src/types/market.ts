@@ -89,7 +89,7 @@ export interface MarketMapSector {
 }
 
 export type MarketMapMarket = "TWSE" | "TPEX";
-export type MarketMapSizingMode = "marketCap" | "tradeValue" | "mixed";
+export type MarketMapSizingMode = "marketCap" | "tradeValue" | "mixed" | "equal";
 
 export interface MarketMapMarketPayload {
   market: MarketMapMarket;

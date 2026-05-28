@@ -30,7 +30,7 @@ const PRESETS: Array<{ key: string; from: number; to: number; labelKey: string }
 ];
 
 function sizingNoteKey(mode: MarketMapMarketPayload["sizingMode"]): string | null {
-  if (mode === "marketCap") return null;
+  if (mode === "marketCap" || mode === "equal") return null;
   if (mode === "tradeValue") return "marketMap.sizingModeTradeValue";
   return "marketMap.sizingModeMixed";
 }

@@ -93,7 +93,7 @@ export function WatchlistMapContent({ initial }: { initial: WatchlistMapResponse
       asOf: data?.asOf ?? new Date().toISOString(),
       totalCount: sectors.reduce((acc, g) => acc + g.stocks.length, 0),
       universeCount: sectors.reduce((acc, g) => acc + g.stocks.length, 0),
-      sizingMode: "marketCap",
+      sizingMode: "equal",
       rankFrom: 1,
       rankTo: sectors.reduce((acc, g) => acc + g.stocks.length, 0),
     };
