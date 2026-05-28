@@ -37,25 +37,29 @@ interface TreemapDatum {
 }
 
 function toTreemapData(data: MarketMapMarketPayload): TreemapDatum[] {
-  // "equal" 模式：個股方塊等大，產業群組大小自然等於該群組個股數量。
+  // "equal" 模式：每個 List 佔相同面積，且同一個 List 內個股方塊也等大。
+  // 做法：將每股 value 設為 1/N（N = 該清單個股數），使每個 List 的子節點總和 = 1。
   const equalSized = data.sizingMode === "equal";
   return data.groups
     .filter((g) => g.stocks.length > 0)
-    .map((g) => ({
-      name: g.sector,
-      value: equalSized ? g.stocks.length : g.marketCap,
-      children: g.stocks.map<TreemapDatum>((s) => ({
-        name: s.symbol,
-        value: equalSized ? 1 : Math.max(s.marketCap, 1),
-        symbol: s.symbol,
-        stockName: s.name,
-        price: s.price,
-        changePct: s.changePct,
-        marketCap: s.marketCap,
-        sector: g.sector,
-        market: s.market ?? data.market,
-      })),
-    }));
+    .map((g) => {
+      const perStockValue = equalSized ? 1 / g.stocks.length : 0;
+      return {
+        name: g.sector,
+        value: equalSized ? 1 : g.marketCap,
+        children: g.stocks.map<TreemapDatum>((s) => ({
+          name: s.symbol,
+          value: equalSized ? perStockValue : Math.max(s.marketCap, 1),
+          symbol: s.symbol,
+          stockName: s.name,
+          price: s.price,
+          changePct: s.changePct,
+          marketCap: s.marketCap,
+          sector: g.sector,
+          market: s.market ?? data.market,
+        })),
+      };
+    });
 }
 
 /* ── Custom cell content ── */
