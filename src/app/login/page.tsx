@@ -1,9 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, AlertTriangle, ExternalLink, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
+import {
+  detectInAppBrowser,
+  buildAndroidChromeIntent,
+  type InAppBrowserInfo,
+} from "@/lib/inAppBrowser";
 
 function GoogleIcon() {
   return (
@@ -28,8 +34,57 @@ function GoogleIcon() {
   );
 }
 
+function InAppBrowserWarning({ info }: { info: InAppBrowserInfo }) {
+  const { t } = useT();
+  const [copied, setCopied] = useState(false);
+
+  const openInChrome = () => {
+    window.location.href = buildAndroidChromeIntent(window.location.href);
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard API unavailable (insecure context / blocked); ignore.
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-left dark:border-amber-800 dark:bg-amber-950/40">
+      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+        <AlertTriangle className="h-5 w-5 shrink-0" />
+        <h2 className="font-semibold">{t("auth.inAppWarningTitle")}</h2>
+      </div>
+      <p className="mt-2 text-sm text-amber-800 dark:text-amber-200">{t("auth.inAppWarningBody")}</p>
+      <p className="mt-2 text-sm text-amber-800 dark:text-amber-200">
+        {info.isIOS ? t("auth.inAppHintIOS") : t("auth.inAppHintAndroid")}
+      </p>
+      <div className="mt-3 flex flex-col gap-2">
+        {info.isAndroid && (
+          <Button variant="default" className="w-full gap-2" onClick={openInChrome}>
+            <ExternalLink className="h-4 w-4" />
+            {t("auth.openInChrome")}
+          </Button>
+        )}
+        <Button variant="outline" className="w-full gap-2" onClick={copyLink}>
+          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          {copied ? t("auth.copied") : t("auth.copyLink")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function LoginPage() {
   const { t } = useT();
+  const [inApp, setInApp] = useState<InAppBrowserInfo | null>(null);
+
+  useEffect(() => {
+    setInApp(detectInAppBrowser());
+  }, []);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -42,17 +97,21 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground">{t("auth.description")}</p>
         </div>
 
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h1 className="mb-6 text-lg font-semibold">{t("auth.login")}</h1>
-          <Button
-            variant="outline"
-            className="w-full gap-3"
-            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-          >
-            <GoogleIcon />
-            {t("auth.loginWithGoogle")}
-          </Button>
-        </div>
+        {inApp?.isInApp ? (
+          <InAppBrowserWarning info={inApp} />
+        ) : (
+          <div className="rounded-lg border bg-card p-6 shadow-sm">
+            <h1 className="mb-6 text-lg font-semibold">{t("auth.login")}</h1>
+            <Button
+              variant="outline"
+              className="w-full gap-3"
+              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            >
+              <GoogleIcon />
+              {t("auth.loginWithGoogle")}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

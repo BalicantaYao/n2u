@@ -5,6 +5,14 @@ const en = {
     loginWithGoogle: "Sign in with Google",
     logout: "Sign Out",
     description: "Taiwan Trading Journal",
+    inAppWarningTitle: "Please open in a browser",
+    inAppWarningBody:
+      "You're viewing this site inside an in-app browser. Google blocks sign-in here for security reasons. Please reopen the site in your system browser (Safari / Chrome) and sign in again.",
+    inAppHintIOS: 'Tap the "•••" or share button in the top corner and choose "Open in Safari".',
+    inAppHintAndroid: 'Tap the menu in the top corner and choose "Open in browser", or use the button below.',
+    openInChrome: "Open in Chrome",
+    copyLink: "Copy link",
+    copied: "Copied!",
   },
 
   // ── Navigation ──────────────────────────────────────────────

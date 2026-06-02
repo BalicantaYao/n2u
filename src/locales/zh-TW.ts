@@ -5,6 +5,14 @@ const zhTW = {
     loginWithGoogle: "使用 Google 登入",
     logout: "登出",
     description: "台灣股市交易日誌",
+    inAppWarningTitle: "請用瀏覽器開啟",
+    inAppWarningBody:
+      "你正在 App 內建瀏覽器中開啟本站,Google 基於安全政策會封鎖此處的登入。請改用系統瀏覽器(Safari / Chrome)開啟後再登入。",
+    inAppHintIOS: "點右上角「⋯」或分享按鈕,選擇「在 Safari 中開啟」。",
+    inAppHintAndroid: "點右上角選單選擇「用瀏覽器開啟」,或直接按下方按鈕。",
+    openInChrome: "用 Chrome 開啟",
+    copyLink: "複製網址",
+    copied: "已複製!",
   },
 
   // ── Navigation ──────────────────────────────────────────────
