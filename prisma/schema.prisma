@@ -21,6 +21,7 @@ model User {
   memos         Memo[]
   watchlists    Watchlist[]
   watchlistItems WatchlistItem[]
+  observationTargets ObservationTarget[]
 }
 
 model Account {
@@ -170,4 +171,28 @@ model WatchlistItem {
   @@unique([watchlistId, symbol])
   @@index([userId])
   @@index([symbol])
+}
+
+model ObservationTarget {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  symbol          String
+  symbolName      String?
+  market          String
+  currency        String   @default("TWD")
+
+  // 自由文字確認筆記
+  note            String?
+  // 最後一次「今日已確認」的台北日期（YYYY-MM-DD），null = 從未確認
+  lastCheckedDate String?
+  archived        Boolean  @default(false)
+  sortOrder       Int      @default(0)
+
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol, market])
+  @@index([userId, archived])
 }

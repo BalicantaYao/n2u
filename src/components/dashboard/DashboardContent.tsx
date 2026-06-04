@@ -6,6 +6,7 @@ import { PnLChart } from "@/components/dashboard/PnLChart";
 import { DailyPnLBar } from "@/components/dashboard/DailyPnLBar";
 import { WinLossDonut } from "@/components/dashboard/WinLossDonut";
 import { RecentTrades } from "@/components/dashboard/RecentTrades";
+import { DailyObservationPanel } from "@/components/dashboard/DailyObservationPanel";
 import { MarketTabs } from "@/components/common/MarketTabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
@@ -56,6 +57,7 @@ export function DashboardContent({
     <div>
       <Header titleKey="dashboard.title" />
       <div className="p-4 md:p-6">
+        <DailyObservationPanel />
         <MarketTabs
           tw={
             <MarketPanel
