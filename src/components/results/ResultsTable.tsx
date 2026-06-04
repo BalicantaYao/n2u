@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatPct, formatDate, tradingViewUrl } from "@/lib/utils";
+import { AddObservationButton } from "@/components/observations/AddObservationButton";
 import { useT } from "@/lib/i18n";
 import type { SymbolResult, SellTradeDetail } from "@/types/trade";
 import type { Currency } from "@/types/taiwan";
@@ -73,16 +74,23 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
                     )}
                   </td>
                   <td className="py-2.5 px-3">
-                    <a
-                      href={tradingViewUrl(row.symbol, row.market)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="font-medium hover:text-primary hover:underline"
-                      title="View on TradingView"
-                    >
-                      {row.symbol}
-                    </a>
+                    <div className="flex items-center gap-1.5">
+                      <a
+                        href={tradingViewUrl(row.symbol, row.market)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="font-medium hover:text-primary hover:underline"
+                        title="View on TradingView"
+                      >
+                        {row.symbol}
+                      </a>
+                      <AddObservationButton
+                        symbol={row.symbol}
+                        symbolName={row.symbolName}
+                        market={row.market}
+                      />
+                    </div>
                     {row.symbolName && (
                       <div className="text-xs text-muted-foreground">{row.symbolName}</div>
                     )}

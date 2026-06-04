@@ -12,6 +12,7 @@ import {
   BarChart3,
   StickyNote,
   Eye,
+  ListChecks,
   LogOut,
   Settings,
   ChevronLeft,
@@ -28,6 +29,7 @@ const navItems = [
   { href: "/journal", labelKey: "nav.journal", icon: BookOpen },
   { href: "/positions", labelKey: "nav.positions", icon: Briefcase },
   { href: "/results", labelKey: "nav.results", icon: BarChart3 },
+  { href: "/observations", labelKey: "nav.observations", icon: ListChecks },
   { href: "/memos", labelKey: "nav.memos", icon: StickyNote },
   { href: "/settings", labelKey: "nav.settings", icon: Settings },
 ];
