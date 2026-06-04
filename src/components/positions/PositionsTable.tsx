@@ -13,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { formatCurrency, formatPct, cn, tradingViewUrl } from "@/lib/utils";
+import { formatCurrency, formatPct, formatDate, cn, tradingViewUrl } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import {
   Briefcase,
@@ -609,12 +609,15 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                               <div className={cn("text-xs space-y-1.5", "md:mt-0 mt-3")}>
                                 <p className="text-muted-foreground font-medium">{t("common.notes")}</p>
                                 {pos.notes.map((note, i) => (
-                                  <p
+                                  <div
                                     key={i}
-                                    className="whitespace-pre-wrap text-muted-foreground pl-2 border-l-2 border-border"
+                                    className="text-muted-foreground pl-2 border-l-2 border-border"
                                   >
-                                    {note}
-                                  </p>
+                                    <span className="block text-[11px] tabular-nums opacity-70">
+                                      {formatDate(note.date)}
+                                    </span>
+                                    <p className="whitespace-pre-wrap">{note.note}</p>
+                                  </div>
                                 ))}
                               </div>
                             )}

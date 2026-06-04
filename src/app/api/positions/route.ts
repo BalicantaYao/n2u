@@ -6,7 +6,7 @@ import { requireAuth } from "@/lib/session";
 import { fetchQuotes } from "@/lib/market-api";
 import { marketToCurrency } from "@/types/taiwan";
 import type { Currency, Market } from "@/types/taiwan";
-import type { Position } from "@/types/trade";
+import type { Position, PositionNote } from "@/types/trade";
 
 export async function GET() {
   const auth = await requireAuth();
@@ -28,7 +28,7 @@ export async function GET() {
       totalShares: number;
       totalCost: number;
       stopLoss?: number;
-      notes: string[];
+      notes: PositionNote[];
       earliestOpenDate: Date;
     }
   >();
@@ -42,8 +42,8 @@ export async function GET() {
       // invariant: 同 symbol 所有開倉中 BUY trades 的 stopLoss 會在寫入時同步（PUT /api/trades/[id]），
       // 所以這裡取「最後一筆非空值」的結果對所有進場筆都一致。
       if (lot.openTrade.stopLoss != null) existing.stopLoss = lot.openTrade.stopLoss;
-      if (lot.openTrade.notes && !existing.notes.includes(lot.openTrade.notes)) {
-        existing.notes.push(lot.openTrade.notes);
+      if (lot.openTrade.notes && !existing.notes.some((n) => n.note === lot.openTrade.notes)) {
+        existing.notes.push({ note: lot.openTrade.notes, date: lot.openDate.toISOString().slice(0, 10) });
       }
       if (lot.openDate < existing.earliestOpenDate) {
         existing.earliestOpenDate = lot.openDate;
@@ -57,7 +57,9 @@ export async function GET() {
         totalShares: lot.shares,
         totalCost: lot.shares * lot.costPerShare,
         stopLoss: lot.openTrade.stopLoss ?? undefined,
-        notes: lot.openTrade.notes ? [lot.openTrade.notes] : [],
+        notes: lot.openTrade.notes
+          ? [{ note: lot.openTrade.notes, date: lot.openDate.toISOString().slice(0, 10) }]
+          : [],
         earliestOpenDate: lot.openDate,
       });
     }

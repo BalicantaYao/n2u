@@ -5,7 +5,7 @@ import { fetchQuotes, fetchHistorical } from "@/lib/market-api";
 import { calculateMA, calculateATR, findRecentHighOpenClose } from "@/lib/stop-loss-calculator";
 import { marketToCurrency } from "@/types/taiwan";
 import type { Market } from "@/types/taiwan";
-import type { Position } from "@/types/trade";
+import type { Position, PositionNote } from "@/types/trade";
 import type { OHLCVBar } from "@/types/market";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       totalShares: number;
       totalCost: number;
       stopLoss?: number;
-      notes: string[];
+      notes: PositionNote[];
       latestOpenBuyTradeId?: string;
       latestOpenDate?: Date;
       earliestOpenDate: Date;
@@ -42,8 +42,8 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       // invariant: 同 symbol 所有開倉中 BUY trades 的 stopLoss 會在寫入時同步（PUT /api/trades/[id]），
       // 所以這裡取「最後一筆非空值」的結果對所有進場筆都一致。
       if (lot.openTrade.stopLoss != null) existing.stopLoss = lot.openTrade.stopLoss;
-      if (lot.openTrade.notes && !existing.notes.includes(lot.openTrade.notes)) {
-        existing.notes.push(lot.openTrade.notes);
+      if (lot.openTrade.notes && !existing.notes.some((n) => n.note === lot.openTrade.notes)) {
+        existing.notes.push({ note: lot.openTrade.notes, date: lot.openDate.toISOString().slice(0, 10) });
       }
       if (!existing.latestOpenDate || lot.openDate > existing.latestOpenDate) {
         existing.latestOpenDate = lot.openDate;
@@ -61,7 +61,9 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
         totalShares: lot.shares,
         totalCost: lot.shares * lot.costPerShare,
         stopLoss: lot.openTrade.stopLoss ?? undefined,
-        notes: lot.openTrade.notes ? [lot.openTrade.notes] : [],
+        notes: lot.openTrade.notes
+          ? [{ note: lot.openTrade.notes, date: lot.openDate.toISOString().slice(0, 10) }]
+          : [],
         latestOpenBuyTradeId: lot.openTradeId,
         latestOpenDate: lot.openDate,
         earliestOpenDate: lot.openDate,

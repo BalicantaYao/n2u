@@ -48,6 +48,13 @@ export interface UpdateTradeInput extends Partial<CreateTradeInput> {
   id: string;
 }
 
+export interface PositionNote {
+  /** 備註內容 */
+  note: string;
+  /** 該備註對應進場日（YYYY-MM-DD） */
+  date: string;
+}
+
 export interface Position {
   symbol: string;
   symbolName?: string;
@@ -76,7 +83,7 @@ export interface Position {
   /** 建議停損價的參考日（YYYY-MM-DD），即近 14 日中開／收盤最高的那一日 */
   suggestedStopLossRefDate?: string;
   isStopLossAlert?: boolean;
-  notes: string[];
+  notes: PositionNote[];
 }
 
 export interface PnLSummary {
