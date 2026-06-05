@@ -143,7 +143,10 @@ export async function GET() {
       pnlAtStopLoss,
       pnlAtStopLossPct,
       isStopLossAlert:
-        currentPrice != null && p.stopLoss != null
+        currentPrice != null &&
+        p.stopLoss != null &&
+        // 台股賣到只剩 1 股屬「觀察股」留倉部位，不亮停損警示
+        !(marketToCurrency(p.market) !== "USD" && p.totalShares === 1)
           ? currentPrice <= p.stopLoss
           : false,
       notes: p.notes,

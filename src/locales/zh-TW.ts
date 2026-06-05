@@ -280,6 +280,7 @@ const zhTW = {
     unrealizedPnL: "未實現損益",
     overallReturn: "整體報酬率",
     positionDetail: "持倉明細",
+    observationTitle: "觀察股",
     noPositions: "目前無持倉",
     stockHeader: "股票",
     sharesHeader: "股數",

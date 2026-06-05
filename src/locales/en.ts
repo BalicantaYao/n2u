@@ -280,6 +280,7 @@ const en = {
     unrealizedPnL: "Unrealized P&L",
     overallReturn: "Overall Return",
     positionDetail: "Position Details",
+    observationTitle: "Watch List",
     noPositions: "No open positions",
     stockHeader: "Stock",
     sharesHeader: "Shares",
