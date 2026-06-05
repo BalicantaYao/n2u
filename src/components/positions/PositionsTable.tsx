@@ -30,9 +30,13 @@ import type { Position } from "@/types/trade";
 
 interface PositionsTableProps {
   positions: Position[];
+  titleKey?: string;
 }
 
-export function PositionsTable({ positions }: PositionsTableProps) {
+export function PositionsTable({
+  positions,
+  titleKey = "positions.positionDetail",
+}: PositionsTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const { t } = useT();
 
@@ -49,7 +53,7 @@ export function PositionsTable({ positions }: PositionsTableProps) {
     <TooltipProvider delayDuration={150}>
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold">{t("positions.positionDetail")}</CardTitle>
+        <CardTitle className="text-sm font-semibold">{t(titleKey)}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {positions.length === 0 ? (

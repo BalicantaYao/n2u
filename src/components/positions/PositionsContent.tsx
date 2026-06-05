@@ -90,6 +90,12 @@ function CurrencySection({
   const overallReturn = totalCost > 0 ? totalUnrealized / totalCost : 0;
   const hasQuotes = positions.some((p) => p.currentPrice != null);
 
+  // 台股賣到只剩 1 股屬「觀察股」留倉部位，從持倉明細抽出獨立成區塊
+  const isWatchLot = (p: Position) =>
+    currency !== "USD" && p.totalShares === 1;
+  const watchPositions = positions.filter(isWatchLot);
+  const mainPositions = positions.filter((p) => !isWatchLot(p));
+
   return (
     <section className="space-y-4">
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
@@ -159,7 +165,13 @@ function CurrencySection({
         />
       </div>
 
-      <PositionsTable positions={positions} />
+      <PositionsTable positions={mainPositions} />
+      {watchPositions.length > 0 && (
+        <PositionsTable
+          positions={watchPositions}
+          titleKey="positions.observationTitle"
+        />
+      )}
     </section>
   );
 }
