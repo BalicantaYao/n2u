@@ -22,11 +22,17 @@ interface Props {
 export function AddObservationButton({ symbol, symbolName, market }: Props) {
   const { t } = useT();
   const add = useObservationStore((s) => s.add);
+  const targets = useObservationStore((s) => s.targets);
+
+  // 此標的是否已在每日觀察清單中（後端會將代號轉為大寫儲存）。
+  const alreadyAdded = targets.some(
+    (target) =>
+      target.symbol === symbol.trim().toUpperCase() && target.market === market,
+  );
 
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [added, setAdded] = useState(false);
 
   async function handleAdd() {
     setSubmitting(true);
@@ -38,7 +44,6 @@ export function AddObservationButton({ symbol, symbolName, market }: Props) {
         note: note.trim() || undefined,
       });
       toast.success(t("observations.added"));
-      setAdded(true);
       setOpen(false);
       setNote("");
     } catch (err) {
@@ -46,6 +51,19 @@ export function AddObservationButton({ symbol, symbolName, market }: Props) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  // 已加入：顯示綠色勾記號，並停用新增（不可再次加入）。
+  if (alreadyAdded) {
+    return (
+      <span
+        title={t("observations.added")}
+        aria-label={t("observations.added")}
+        className="inline-flex rounded p-1 text-green-600 dark:text-green-400 cursor-default"
+      >
+        <Check className="h-4 w-4" />
+      </span>
+    );
   }
 
   return (
@@ -60,11 +78,7 @@ export function AddObservationButton({ symbol, symbolName, market }: Props) {
         aria-label={t("observations.addToDaily")}
         className="rounded p-1 text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
       >
-        {added ? (
-          <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-        ) : (
-          <ListPlus className="h-4 w-4" />
-        )}
+        <ListPlus className="h-4 w-4" />
       </button>
 
       {open && (
