@@ -82,6 +82,21 @@ export async function PUT(
             },
             data: { stopLoss: body.stopLoss ?? null },
           });
+
+          // 記錄此次停損調整與筆記
+          await tx.stopLossAdjustment.create({
+            data: {
+              userId: auth.userId,
+              symbol: existing.symbol,
+              market: existing.market,
+              previousStopLoss: existing.stopLoss,
+              newStopLoss: body.stopLoss ?? null,
+              note:
+                typeof body.stopLossNote === "string" && body.stopLossNote.trim() !== ""
+                  ? body.stopLossNote.trim()
+                  : null,
+            },
+          });
         }
 
         return updated;
@@ -216,6 +231,21 @@ export async function PUT(
             positionLots: { some: { isOpen: true } },
           },
           data: { stopLoss: stopLoss ?? null },
+        });
+
+        // 記錄此次停損調整與筆記
+        await tx.stopLossAdjustment.create({
+          data: {
+            userId: auth.userId,
+            symbol,
+            market,
+            previousStopLoss: existing.stopLoss,
+            newStopLoss: stopLoss ?? null,
+            note:
+              typeof body.stopLossNote === "string" && body.stopLossNote.trim() !== ""
+                ? body.stopLossNote.trim()
+                : null,
+          },
         });
       }
 

@@ -22,6 +22,7 @@ model User {
   watchlists    Watchlist[]
   watchlistItems WatchlistItem[]
   observationTargets ObservationTarget[]
+  stopLossAdjustments StopLossAdjustment[]
 }
 
 model Account {
@@ -195,4 +196,25 @@ model ObservationTarget {
 
   @@unique([userId, symbol, market])
   @@index([userId, archived])
+}
+
+// 停損調整記錄：每次在持倉分析頁調整某部位停損價時留下一筆歷史，附帶一段筆記
+model StopLossAdjustment {
+  id               String   @id @default(cuid())
+  createdAt        DateTime @default(now())
+
+  symbol           String
+  market           String
+
+  // 調整前 / 後的停損價，null 代表「未設定」（首次設定或清除）
+  previousStopLoss Float?
+  newStopLoss      Float?
+
+  // 此次調整的筆記（為何調整、依據）
+  note             String?
+
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, symbol, createdAt])
 }
