@@ -150,6 +150,16 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
     stopLossHistoryBySymbol.set(adj.symbol, list);
   }
 
+  // 近 3 天內曾設過停損價的部位：不再顯示建議停損價
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  const recentlySetStopLoss = new Set<string>();
+  for (const adj of stopLossAdjustments) {
+    if (adj.newStopLoss != null && adj.createdAt >= threeDaysAgo) {
+      recentlySetStopLoss.add(adj.symbol);
+    }
+  }
+
   return Array.from(map.values()).map((p) => {
     const avgCostPerShare = p.totalShares > 0 ? p.totalCost / p.totalShares : 0;
     const quote = quotes[p.symbol];
@@ -180,9 +190,12 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
     const suggestedStopLossRaw =
       atr14 != null && recentHigh != null ? recentHigh.price - 2 * atr14 : null;
     const suggestedStopLoss =
-      suggestedStopLossRaw != null && suggestedStopLossRaw > 0
-        ? suggestedStopLossRaw
-        : undefined;
+      // 近 3 天內曾設過停損價就不給建議
+      recentlySetStopLoss.has(p.symbol)
+        ? undefined
+        : suggestedStopLossRaw != null && suggestedStopLossRaw > 0
+          ? suggestedStopLossRaw
+          : undefined;
     const suggestedStopLossRefDate =
       suggestedStopLoss != null && recentHigh != null
         ? recentHigh.date.toISOString().slice(0, 10)
