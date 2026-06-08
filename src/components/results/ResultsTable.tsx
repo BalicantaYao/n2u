@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, ChevronRight, ScrollText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatPct, formatDate, tradingViewUrl } from "@/lib/utils";
 import { AddObservationButton } from "@/components/observations/AddObservationButton";
@@ -90,6 +91,15 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
                         symbolName={row.symbolName}
                         market={row.market}
                       />
+                      <Link
+                        href={`/journal?symbol=${encodeURIComponent(row.symbol)}&currency=${row.currency}`}
+                        onClick={(e) => e.stopPropagation()}
+                        title={t("results.viewInJournal")}
+                        aria-label={t("results.viewInJournal")}
+                        className="rounded p-1 text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+                      >
+                        <ScrollText className="h-4 w-4" />
+                      </Link>
                     </div>
                     {row.symbolName && (
                       <div className="text-xs text-muted-foreground">{row.symbolName}</div>
@@ -286,15 +296,25 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
                   {formatDate(tr.tradeDate)}
                 </td>
                 <td className="py-2.5 px-3">
-                  <a
-                    href={tradingViewUrl(tr.symbol, tr.market)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium hover:text-primary hover:underline"
-                    title="View on TradingView"
-                  >
-                    {tr.symbol}
-                  </a>
+                  <div className="flex items-center gap-1.5">
+                    <a
+                      href={tradingViewUrl(tr.symbol, tr.market)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium hover:text-primary hover:underline"
+                      title="View on TradingView"
+                    >
+                      {tr.symbol}
+                    </a>
+                    <Link
+                      href={`/journal?symbol=${encodeURIComponent(tr.symbol)}&currency=${tr.currency}`}
+                      title={t("results.viewInJournal")}
+                      aria-label={t("results.viewInJournal")}
+                      className="rounded p-1 text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+                    >
+                      <ScrollText className="h-4 w-4" />
+                    </Link>
+                  </div>
                   {tr.symbolName && (
                     <div className="text-xs text-muted-foreground">{tr.symbolName}</div>
                   )}

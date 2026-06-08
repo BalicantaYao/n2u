@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Header } from "@/components/layout/Header";
 import { TradeTable } from "@/components/journal/TradeTable";
@@ -17,10 +18,30 @@ import type { Currency } from "@/types/taiwan";
 import type { Trade } from "@/types/trade";
 
 export default function JournalPage() {
+  return (
+    <Suspense fallback={null}>
+      <JournalPageInner />
+    </Suspense>
+  );
+}
+
+function JournalPageInner() {
   const { trades, isLoading, fetchTrades, deleteTrade, filters, setFilters } =
     useTradeStore();
   const tab = useMarketViewStore((s) => s.tab);
+  const setTab = useMarketViewStore((s) => s.setTab);
+  const searchParams = useSearchParams();
   const { t } = useT();
+
+  // 自交易成果頁帶入的 ?symbol=&currency= ：套用篩選並切到對應市場分頁（僅進入時一次）。
+  useEffect(() => {
+    const symbol = searchParams.get("symbol");
+    const currency = searchParams.get("currency");
+    if (symbol) setFilters({ symbol: symbol.toUpperCase() });
+    if (currency === "USD") setTab("US");
+    else if (currency === "TWD") setTab("TW");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchTrades();

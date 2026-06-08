@@ -326,6 +326,7 @@ const en = {
     byTrade: "By Trade",
     noRecords: "No realized P&L records in this period",
     symbolHeader: "Symbol",
+    viewInJournal: "View trade records",
     countHeader: "Count",
     buyCost: "Buy Cost",
     realizedPnLHeader: "Realized P&L",
