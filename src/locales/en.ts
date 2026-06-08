@@ -306,6 +306,9 @@ const en = {
     addTradeRecord: "Add Trade",
     editStopLoss: "Edit stop loss on latest entry",
     saveFailed: "Save failed",
+    stopLossNote: "Adjustment note",
+    stopLossNotePlaceholder: "Why adjust the stop? e.g. cost raised, broke below MA…",
+    stopLossHistoryTitle: "Stop-loss adjustment history",
   },
 
   // ── Results ────────────────────────────────────────────────

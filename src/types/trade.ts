@@ -55,6 +55,17 @@ export interface PositionNote {
   date: string;
 }
 
+export interface StopLossAdjustmentEntry {
+  /** 調整前停損價，null = 先前未設定 */
+  previousStopLoss: number | null;
+  /** 調整後停損價，null = 清除停損 */
+  newStopLoss: number | null;
+  /** 此次調整的筆記 */
+  note: string | null;
+  /** 調整時間（ISO 字串） */
+  date: string;
+}
+
 export interface Position {
   symbol: string;
   symbolName?: string;
@@ -84,6 +95,8 @@ export interface Position {
   suggestedStopLossRefDate?: string;
   isStopLossAlert?: boolean;
   notes: PositionNote[];
+  /** 停損調整記錄，依時間新到舊排序 */
+  stopLossHistory?: StopLossAdjustmentEntry[];
 }
 
 export interface PnLSummary {

@@ -306,6 +306,9 @@ const zhTW = {
     addTradeRecord: "新增交易",
     editStopLoss: "編輯最新一筆的停損價",
     saveFailed: "儲存失敗",
+    stopLossNote: "調整筆記",
+    stopLossNotePlaceholder: "為何調整停損？例如：成本墊高、跌破月線…",
+    stopLossHistoryTitle: "停損調整記錄",
   },
 
   // ── Results ────────────────────────────────────────────────

@@ -85,7 +85,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
     undefined,
   );
 
-  const [quotes, sellTrades] = await Promise.all([
+  const [quotes, sellTrades, stopLossAdjustments] = await Promise.all([
     symbols.length > 0 ? fetchQuotes(symbols) : Promise.resolve({} as Record<string, import("@/types/market").Quote>),
     symbolKeys.length > 0
       ? prisma.trade.findMany({
@@ -99,6 +99,27 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
           select: { symbol: true, tradeDate: true, realizedPnL: true },
         })
       : Promise.resolve([] as Array<{ symbol: string; tradeDate: Date; realizedPnL: number | null }>),
+    symbolKeys.length > 0
+      ? prisma.stopLossAdjustment.findMany({
+          where: { userId, symbol: { in: symbolKeys } },
+          orderBy: { createdAt: "desc" },
+          select: {
+            symbol: true,
+            previousStopLoss: true,
+            newStopLoss: true,
+            note: true,
+            createdAt: true,
+          },
+        })
+      : Promise.resolve(
+          [] as Array<{
+            symbol: string;
+            previousStopLoss: number | null;
+            newStopLoss: number | null;
+            note: string | null;
+            createdAt: Date;
+          }>,
+        ),
     Promise.allSettled(
       symbols.map(async ({ symbol, market }) => {
         const bars = await fetchHistorical(symbol, market, fromDate, toDate, "1d");
@@ -114,6 +135,19 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
     if (t.tradeDate >= entry.earliestOpenDate) {
       realizedBySymbol.set(t.symbol, (realizedBySymbol.get(t.symbol) ?? 0) + (t.realizedPnL ?? 0));
     }
+  }
+
+  // 停損調整記錄（依時間新到舊），依 symbol 分組
+  const stopLossHistoryBySymbol = new Map<string, import("@/types/trade").StopLossAdjustmentEntry[]>();
+  for (const adj of stopLossAdjustments) {
+    const list = stopLossHistoryBySymbol.get(adj.symbol) ?? [];
+    list.push({
+      previousStopLoss: adj.previousStopLoss,
+      newStopLoss: adj.newStopLoss,
+      note: adj.note,
+      date: adj.createdAt.toISOString(),
+    });
+    stopLossHistoryBySymbol.set(adj.symbol, list);
   }
 
   return Array.from(map.values()).map((p) => {
@@ -188,6 +222,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
           ? currentPrice <= p.stopLoss
           : false,
       notes: p.notes,
+      stopLossHistory: stopLossHistoryBySymbol.get(p.symbol) ?? [],
     };
   });
 }

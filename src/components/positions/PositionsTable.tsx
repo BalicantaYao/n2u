@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
   TooltipContent,
@@ -98,13 +99,15 @@ export function PositionsTable({
                 {positions.map((pos) => {
                   const pnlPositive = (pos.unrealizedPnL ?? 0) >= 0;
                   const hasNotes = pos.notes.length > 0;
+                  const hasHistory = (pos.stopLossHistory?.length ?? 0) > 0;
+                  const hasExpandable = hasNotes || hasHistory;
                   const isExp = expanded.has(pos.symbol);
                   return (
                     <tbody key={pos.symbol}>
                       <tr
                         className={cn(
                           "border-b hover:bg-muted/30 transition-colors cursor-pointer",
-                          !hasNotes && "md:cursor-default",
+                          !hasExpandable && "md:cursor-default",
                           isExp && "bg-muted/20"
                         )}
                         onClick={() => toggle(pos.symbol)}
@@ -114,7 +117,7 @@ export function PositionsTable({
                           <ChevronDown
                             className={cn(
                               "h-4 w-4 text-muted-foreground transition-transform mx-auto",
-                              !hasNotes && "md:hidden",
+                              !hasExpandable && "md:hidden",
                               isExp && "rotate-180"
                             )}
                           />
@@ -625,6 +628,38 @@ export function PositionsTable({
                                 ))}
                               </div>
                             )}
+
+                            {hasHistory && (
+                              <div className="text-xs space-y-1.5 mt-3">
+                                <p className="text-muted-foreground font-medium">
+                                  {t("positions.stopLossHistoryTitle")}
+                                </p>
+                                {pos.stopLossHistory!.map((adj, i) => (
+                                  <div
+                                    key={i}
+                                    className="text-muted-foreground pl-2 border-l-2 border-border"
+                                  >
+                                    <span className="block text-[11px] tabular-nums opacity-70">
+                                      {formatDate(adj.date)}
+                                    </span>
+                                    <p className="tabular-nums">
+                                      {adj.previousStopLoss != null
+                                        ? adj.previousStopLoss.toFixed(2)
+                                        : "—"}
+                                      {" → "}
+                                      <span className="font-medium text-foreground">
+                                        {adj.newStopLoss != null
+                                          ? adj.newStopLoss.toFixed(2)
+                                          : "—"}
+                                      </span>
+                                    </p>
+                                    {adj.note && (
+                                      <p className="whitespace-pre-wrap">{adj.note}</p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </td>
                         </tr>
                       )}
@@ -672,6 +707,7 @@ function StopLossEditor({
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
+  const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -679,6 +715,7 @@ function StopLossEditor({
   useEffect(() => {
     if (editing) {
       setValue(stopLoss != null ? String(stopLoss) : "");
+      setNote("");
       setError(null);
       // Focus and select on next tick so the input is ready
       setTimeout(() => {
@@ -713,7 +750,7 @@ function StopLossEditor({
       const res = await fetch(`/api/trades/${tradeId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stopLoss: payload }),
+        body: JSON.stringify({ stopLoss: payload, stopLossNote: note.trim() || undefined }),
       });
       if (!res.ok) {
         setError(t("positions.saveFailed"));
@@ -730,58 +767,78 @@ function StopLossEditor({
 
   if (editing) {
     return (
-      <div className="flex items-center justify-end gap-1">
-        <Input
-          ref={inputRef}
-          type="number"
-          step="0.01"
-          inputMode="decimal"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
+      <div
+        className="flex flex-col items-end gap-1.5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-end gap-1">
+          <Input
+            ref={inputRef}
+            type="number"
+            step="0.01"
+            inputMode="decimal"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void save();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                close();
+              }
+            }}
+            disabled={saving}
+            aria-label={t("positions.stopLossPrice")}
+            className={cn(
+              "h-7 w-20 px-1.5 text-right tabular-nums text-sm",
+              error && "border-red-500 focus-visible:ring-red-500"
+            )}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => void save()}
+            disabled={saving}
+            aria-label={t("common.save")}
+            title={t("common.save")}
+          >
+            {saving ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Check className="h-3.5 w-3.5" />
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={close}
+            disabled={saving}
+            aria-label={t("common.cancel")}
+            title={t("common.cancel")}
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+        <Textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              void save();
-            } else if (e.key === "Escape") {
+            if (e.key === "Escape") {
               e.preventDefault();
               close();
             }
           }}
           disabled={saving}
-          aria-label={t("positions.stopLossPrice")}
-          className={cn(
-            "h-7 w-20 px-1.5 text-right tabular-nums text-sm",
-            error && "border-red-500 focus-visible:ring-red-500"
-          )}
+          rows={2}
+          placeholder={t("positions.stopLossNotePlaceholder")}
+          aria-label={t("positions.stopLossNote")}
+          className="w-44 text-xs resize-none text-left"
         />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => void save()}
-          disabled={saving}
-          aria-label={t("common.save")}
-          title={t("common.save")}
-        >
-          {saving ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Check className="h-3.5 w-3.5" />
-          )}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={close}
-          disabled={saving}
-          aria-label={t("common.cancel")}
-          title={t("common.cancel")}
-        >
-          <X className="h-3.5 w-3.5" />
-        </Button>
       </div>
     );
   }
@@ -791,7 +848,10 @@ function StopLossEditor({
       type="button"
       title={title}
       aria-label={title}
-      onClick={() => setEditing(true)}
+      onClick={(e) => {
+        e.stopPropagation();
+        setEditing(true);
+      }}
       className="block w-full text-right -mx-2 -my-1 px-2 py-1 rounded hover:bg-muted/60 transition-colors"
     >
       {children}
