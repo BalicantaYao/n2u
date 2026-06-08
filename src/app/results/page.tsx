@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ResultsTable, SellTradeList } from "@/components/results/ResultsTable";
 import { MarketTabs } from "@/components/common/MarketTabs";
 import { formatCurrency } from "@/lib/utils";
+import { useObservationStore } from "@/store/useObservationStore";
 import { useT } from "@/lib/i18n";
 import type { MarketSummary, SymbolResult, TradingResultsData } from "@/types/trade";
 import type { Currency } from "@/types/taiwan";
@@ -19,6 +20,7 @@ export default function ResultsPage() {
   const [to, setTo] = useState("");
   const [tab, setTab] = useState<Tab>("bySymbol");
   const { t } = useT();
+  const fetchObservations = useObservationStore((s) => s.fetch);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -37,6 +39,11 @@ export default function ResultsPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // 載入目前的每日觀察清單，用於標記已加入的個股。
+  useEffect(() => {
+    fetchObservations();
+  }, [fetchObservations]);
 
   const twBySymbol = useMemo(
     () => data?.bySymbol.filter((g) => (g.currency ?? "TWD") !== "USD") ?? [],
