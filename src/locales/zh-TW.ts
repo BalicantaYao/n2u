@@ -326,6 +326,7 @@ const zhTW = {
     byTrade: "逐筆明細",
     noRecords: "此期間無已實現損益紀錄",
     symbolHeader: "代號",
+    viewInJournal: "查看交易紀錄",
     countHeader: "次數",
     buyCost: "買入成本",
     realizedPnLHeader: "已實現損益",
