@@ -180,7 +180,7 @@ export function PositionsTable({
                   <th className="text-left px-2 md:px-4 py-3 font-medium text-muted-foreground">
                     <SortLabel sortKey="symbol" label={t("positions.stockHeader")} />
                   </th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden text-right px-4 py-3 font-medium text-muted-foreground">
                     <SortLabel sortKey="totalShares" label={t("positions.sharesHeader")} />
                   </th>
                   <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">
@@ -236,7 +236,7 @@ export function PositionsTable({
                   <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
                     <SortLabel sortKey="unrealizedPnL" label={t("positions.unrealizedHeader")} />
                   </th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden text-right px-4 py-3 font-medium text-muted-foreground">
                     <SortLabel sortKey="realizedPnL" label={t("positions.realizedHeader")} />
                   </th>
                   <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
@@ -249,14 +249,12 @@ export function PositionsTable({
                   const pnlPositive = (pos.unrealizedPnL ?? 0) >= 0;
                   const hasNotes = pos.notes.length > 0;
                   const hasHistory = (pos.stopLossHistory?.length ?? 0) > 0;
-                  const hasExpandable = hasNotes || hasHistory;
                   const isExp = expanded.has(pos.symbol);
                   return (
                     <tbody key={pos.symbol}>
                       <tr
                         className={cn(
                           "border-b hover:bg-muted/30 transition-colors cursor-pointer",
-                          !hasExpandable && "md:cursor-default",
                           isExp && "bg-muted/20"
                         )}
                         onClick={() => toggle(pos.symbol)}
@@ -266,7 +264,6 @@ export function PositionsTable({
                           <ChevronDown
                             className={cn(
                               "h-4 w-4 text-muted-foreground transition-transform mx-auto",
-                              !hasExpandable && "md:hidden",
                               isExp && "rotate-180"
                             )}
                           />
@@ -310,7 +307,7 @@ export function PositionsTable({
                         </td>
 
                         {/* Shares */}
-                        <td className="hidden md:table-cell px-4 py-3 text-right tabular-nums">
+                        <td className="hidden px-4 py-3 text-right tabular-nums">
                           {pos.currency === "USD"
                             ? `${pos.totalShares.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${t("common.shares")}`
                             : pos.totalShares >= 1000
@@ -567,7 +564,7 @@ export function PositionsTable({
                         {/* Realized P&L (current holding period) */}
                         <td
                           className={cn(
-                            "hidden md:table-cell px-4 py-3 text-right tabular-nums font-medium",
+                            "hidden px-4 py-3 text-right tabular-nums font-medium",
                             !pos.realizedPnL
                               ? "text-muted-foreground"
                               : pos.realizedPnL > 0
@@ -629,7 +626,36 @@ export function PositionsTable({
                       {/* Expanded sub-row: hidden mobile fields + notes */}
                       {isExp && (
                         <tr className="bg-muted/20 border-b">
-                          <td colSpan={15} className="px-4 md:px-8 py-3">
+                          <td colSpan={13} className="px-4 md:px-8 py-3">
+                            {/* Desktop-only: fields hidden from main columns */}
+                            <div className="hidden md:flex items-center gap-6 text-xs mb-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-muted-foreground">{t("positions.sharesHeader")}:</span>
+                                <span className="tabular-nums">
+                                  {pos.currency === "USD"
+                                    ? `${pos.totalShares.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${t("common.shares")}`
+                                    : pos.totalShares >= 1000
+                                      ? `${pos.totalShares / 1000} ${t("common.lots")}`
+                                      : `${pos.totalShares} ${t("common.shares")}`}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-muted-foreground">{t("positions.realizedHeader")}:</span>
+                                <span
+                                  className={cn(
+                                    "tabular-nums font-medium",
+                                    !pos.realizedPnL
+                                      ? "text-muted-foreground"
+                                      : pos.realizedPnL > 0
+                                        ? "text-green-600 dark:text-green-400"
+                                        : "text-red-600 dark:text-red-400"
+                                  )}
+                                >
+                                  {formatCurrency(pos.realizedPnL ?? 0, pos.currency, true)}
+                                </span>
+                              </div>
+                            </div>
+
                             {/* Mobile-only details (the columns hidden in the row above) */}
                             <div className="md:hidden grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                               <DetailItem
