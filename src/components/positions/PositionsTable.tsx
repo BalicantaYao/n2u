@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,9 @@ import {
   Check,
   X,
   Loader2,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import type { Position } from "@/types/trade";
 
@@ -34,11 +37,60 @@ interface PositionsTableProps {
   titleKey?: string;
 }
 
+type SortKey =
+  | "symbol"
+  | "totalShares"
+  | "avgCostPerShare"
+  | "currentPrice"
+  | "holdingDays"
+  | "dailyChangePct"
+  | "stopLoss"
+  | "pnlAtStopLoss"
+  | "totalCost"
+  | "marketValue"
+  | "unrealizedPnL"
+  | "realizedPnL"
+  | "totalPnLPct";
+
+type SortDir = "asc" | "desc";
+
+function sortValue(pos: Position, key: SortKey): number | string | null | undefined {
+  switch (key) {
+    case "symbol":
+      return pos.symbol;
+    case "totalShares":
+      return pos.totalShares;
+    case "avgCostPerShare":
+      return pos.avgCostPerShare;
+    case "currentPrice":
+      return pos.currentPrice;
+    case "holdingDays":
+      return pos.holdingDays;
+    case "dailyChangePct":
+      return pos.dailyChangePct;
+    case "stopLoss":
+      return pos.stopLoss;
+    case "pnlAtStopLoss":
+      return pos.pnlAtStopLoss;
+    case "totalCost":
+      return pos.totalCost;
+    case "marketValue":
+      return pos.marketValue;
+    case "unrealizedPnL":
+      return pos.unrealizedPnL;
+    case "realizedPnL":
+      return pos.realizedPnL ?? 0;
+    case "totalPnLPct":
+      return pos.totalPnLPct;
+  }
+}
+
 export function PositionsTable({
   positions,
   titleKey = "positions.positionDetail",
 }: PositionsTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir } | null>(null);
   const { t } = useT();
 
   function toggle(symbol: string) {
@@ -48,6 +100,63 @@ export function PositionsTable({
       else next.add(symbol);
       return next;
     });
+  }
+
+  // 點擊表頭循環：降冪 → 升冪 → 取消（回到原始順序）
+  function toggleSort(key: SortKey) {
+    setSort((prev) => {
+      if (!prev || prev.key !== key) return { key, dir: "desc" };
+      if (prev.dir === "desc") return { key, dir: "asc" };
+      return null;
+    });
+  }
+
+  const sortedPositions = useMemo(() => {
+    if (!sort) return positions;
+    const arr = [...positions];
+    arr.sort((a, b) => {
+      const av = sortValue(a, sort.key);
+      const bv = sortValue(b, sort.key);
+      // 缺值一律排到最後
+      const aNull = av == null;
+      const bNull = bv == null;
+      if (aNull && bNull) return 0;
+      if (aNull) return 1;
+      if (bNull) return -1;
+      let cmp: number;
+      if (typeof av === "string" || typeof bv === "string") {
+        cmp = String(av).localeCompare(String(bv));
+      } else {
+        cmp = (av as number) - (bv as number);
+      }
+      return sort.dir === "asc" ? cmp : -cmp;
+    });
+    return arr;
+  }, [positions, sort]);
+
+  function SortLabel({ sortKey, label }: { sortKey: SortKey; label: string }) {
+    const active = sort?.key === sortKey;
+    return (
+      <button
+        type="button"
+        onClick={() => toggleSort(sortKey)}
+        className={cn(
+          "inline-flex items-center gap-1 hover:text-foreground transition-colors",
+          active && "text-foreground"
+        )}
+      >
+        {label}
+        {active ? (
+          sort!.dir === "asc" ? (
+            <ArrowUp className="h-3 w-3" />
+          ) : (
+            <ArrowDown className="h-3 w-3" />
+          )
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-40" />
+        )}
+      </button>
+    );
   }
 
   return (
@@ -68,18 +177,46 @@ export function PositionsTable({
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="w-6 px-1 py-3" />
-                  <th className="text-left px-2 md:px-4 py-3 font-medium text-muted-foreground">{t("positions.stockHeader")}</th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.sharesHeader")}</th>
-                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">{t("positions.avgCost")}</th>
-                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">{t("positions.currentPrice")}</th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.atrHeader")}</th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.dailyChangeHeader")}</th>
+                  <th className="text-left px-2 md:px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="symbol" label={t("positions.stockHeader")} />
+                  </th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="totalShares" label={t("positions.sharesHeader")} />
+                  </th>
+                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="avgCostPerShare" label={t("positions.avgCost")} />
+                  </th>
+                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="currentPrice" label={t("positions.currentPrice")} />
+                  </th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="holdingDays" label={t("positions.holdingDaysHeader")} />
+                  </th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="dailyChangePct" label={t("positions.dailyChangeHeader")} />
+                  </th>
                   <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="cursor-help border-b border-dotted border-muted-foreground/40">
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("stopLoss")}
+                          className={cn(
+                            "inline-flex items-center gap-1 cursor-help border-b border-dotted border-muted-foreground/40 hover:text-foreground transition-colors",
+                            sort?.key === "stopLoss" && "text-foreground"
+                          )}
+                        >
                           {t("positions.stopLossHeader")}
-                        </span>
+                          {sort?.key === "stopLoss" ? (
+                            sort.dir === "asc" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-40" />
+                          )}
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent align="end" className="px-3 py-2 text-[11px]">
                         <div className="font-medium">{t("positions.suggestedStopLossLabel")}</div>
@@ -87,16 +224,28 @@ export function PositionsTable({
                       </TooltipContent>
                     </Tooltip>
                   </th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.stopLossPnLHeader")}</th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.costHeader")}</th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.valueHeader")}</th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.unrealizedHeader")}</th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.realizedHeader")}</th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">{t("positions.returnHeader")}</th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="pnlAtStopLoss" label={t("positions.stopLossPnLHeader")} />
+                  </th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="totalCost" label={t("positions.costHeader")} />
+                  </th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="marketValue" label={t("positions.valueHeader")} />
+                  </th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="unrealizedPnL" label={t("positions.unrealizedHeader")} />
+                  </th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="realizedPnL" label={t("positions.realizedHeader")} />
+                  </th>
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                    <SortLabel sortKey="totalPnLPct" label={t("positions.returnHeader")} />
+                  </th>
                   <th className="hidden md:table-cell w-12 px-2 py-3" />
                 </tr>
               </thead>
-                {positions.map((pos) => {
+                {sortedPositions.map((pos) => {
                   const pnlPositive = (pos.unrealizedPnL ?? 0) >= 0;
                   const hasNotes = pos.notes.length > 0;
                   const hasHistory = (pos.stopLossHistory?.length ?? 0) > 0;
@@ -232,20 +381,15 @@ export function PositionsTable({
                           })()}
                         </td>
 
-                        {/* ATR(14) + volatility % (ATR / avg cost) */}
-                        <td
-                          className="hidden md:table-cell px-4 py-3 text-right tabular-nums"
-                          title={t("positions.atr14")}
-                        >
-                          {pos.atr14 != null ? (
-                            <>
-                              <div>{pos.atr14.toFixed(2)}</div>
-                              {pos.avgCostPerShare > 0 && (
-                                <div className="text-[11px] mt-0.5 text-muted-foreground">
-                                  {formatPct(pos.atr14 / pos.avgCostPerShare)}
-                                </div>
-                              )}
-                            </>
+                        {/* 持倉天數 */}
+                        <td className="hidden md:table-cell px-4 py-3 text-right tabular-nums">
+                          {pos.holdingDays != null ? (
+                            <span>
+                              {pos.holdingDays}
+                              <span className="ml-1 text-[11px] text-muted-foreground">
+                                {t("positions.daysUnit")}
+                              </span>
+                            </span>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
@@ -516,10 +660,10 @@ export function PositionsTable({
                                 }
                               />
                               <DetailItem
-                                label={t("positions.atrHeader")}
+                                label={t("positions.holdingDaysHeader")}
                                 value={
-                                  pos.atr14 != null
-                                    ? `${pos.atr14.toFixed(2)}${pos.avgCostPerShare > 0 ? ` (${formatPct(pos.atr14 / pos.avgCostPerShare)})` : ""}`
+                                  pos.holdingDays != null
+                                    ? `${pos.holdingDays} ${t("positions.daysUnit")}`
                                     : "—"
                                 }
                               />
