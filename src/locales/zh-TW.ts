@@ -302,6 +302,8 @@ const zhTW = {
     ma10: "10日均線",
     atr14: "ATR(14)：近 14 日平均真實波幅",
     atrHeader: "ATR",
+    holdingDaysHeader: "持倉天數",
+    daysUnit: "天",
     refresh: "刷新報價",
     addTradeRecord: "新增交易",
     editStopLoss: "編輯最新一筆的停損價",

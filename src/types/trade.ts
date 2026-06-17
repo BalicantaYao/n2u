@@ -90,6 +90,8 @@ export interface Position {
   ma5?: number;
   ma10?: number;
   atr14?: number;
+  /** 持倉天數：自最早一筆仍開倉的進場日起算的曆日數 */
+  holdingDays?: number;
   suggestedStopLoss?: number;
   /** 建議停損價的參考日（YYYY-MM-DD），即近 14 日中開／收盤最高的那一日 */
   suggestedStopLossRefDate?: string;

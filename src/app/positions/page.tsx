@@ -201,6 +201,12 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
         ? recentHigh.date.toISOString().slice(0, 10)
         : undefined;
 
+    // 持倉天數：自最早一筆仍開倉的進場日起算的曆日數
+    const holdingDays = Math.max(
+      0,
+      Math.floor((Date.now() - p.earliestOpenDate.getTime()) / 86_400_000),
+    );
+
     return {
       symbol: p.symbol,
       symbolName: p.symbolName ?? quote?.symbolName,
@@ -225,6 +231,7 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       ma5,
       ma10,
       atr14,
+      holdingDays,
       suggestedStopLoss,
       suggestedStopLossRefDate,
       isStopLossAlert:

@@ -302,6 +302,8 @@ const en = {
     ma10: "MA10",
     atr14: "ATR(14): 14-day average true range",
     atrHeader: "ATR",
+    holdingDaysHeader: "Days Held",
+    daysUnit: "d",
     refresh: "Refresh",
     addTradeRecord: "Add Trade",
     editStopLoss: "Edit stop loss on latest entry",
