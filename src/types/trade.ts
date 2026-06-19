@@ -95,6 +95,13 @@ export interface Position {
   suggestedStopLoss?: number;
   /** 建議停損價的參考日（YYYY-MM-DD），即近 14 日中開／收盤最高的那一日 */
   suggestedStopLossRefDate?: string;
+  /**
+   * 距離上次調整停損的曆日數。以最近一次停損調整為準，
+   * 若從未調整則以最近一次進場日為基準。無停損價時為 undefined。
+   */
+  daysSinceStopLossUpdate?: number;
+  /** 已設停損且超過 3 天未調整 → 提醒檢視 */
+  needsStopLossReview?: boolean;
   isStopLossAlert?: boolean;
   notes: PositionNote[];
   /** 停損調整記錄，依時間新到舊排序 */
