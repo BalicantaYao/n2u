@@ -8,6 +8,7 @@ export interface UserProfile {
   email?: string | null;
   image?: string | null;
   commissionDiscount: number;
+  tradeChecklist: string[];
 }
 
 let cachedProfile: UserProfile | null = null;
