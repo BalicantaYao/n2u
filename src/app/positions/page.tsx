@@ -154,11 +154,19 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
   const threeDaysAgo = new Date();
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
   const recentlySetStopLoss = new Set<string>();
+  // 每檔最近一次停損調整時間（stopLossAdjustments 已依 createdAt 新到舊排序）
+  const lastStopLossAdjBySymbol = new Map<string, Date>();
   for (const adj of stopLossAdjustments) {
     if (adj.newStopLoss != null && adj.createdAt >= threeDaysAgo) {
       recentlySetStopLoss.add(adj.symbol);
     }
+    if (!lastStopLossAdjBySymbol.has(adj.symbol)) {
+      lastStopLossAdjBySymbol.set(adj.symbol, adj.createdAt);
+    }
   }
+
+  // 超過幾天未調整停損即提醒檢視
+  const STOP_LOSS_REVIEW_DAYS = 3;
 
   return Array.from(map.values()).map((p) => {
     const avgCostPerShare = p.totalShares > 0 ? p.totalCost / p.totalShares : 0;
@@ -207,6 +215,20 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       Math.floor((Date.now() - p.earliestOpenDate.getTime()) / 86_400_000),
     );
 
+    // 距離上次調整停損的曆日數：以最近一次停損調整為準，
+    // 從未調整過則退回最近一次進場日（停損多於進場時設定）。
+    const lastStopLossUpdate =
+      lastStopLossAdjBySymbol.get(p.symbol) ?? p.latestOpenDate ?? p.earliestOpenDate;
+    const daysSinceStopLossUpdate =
+      p.stopLoss != null
+        ? Math.max(
+            0,
+            Math.floor((Date.now() - lastStopLossUpdate.getTime()) / 86_400_000),
+          )
+        : undefined;
+    const needsStopLossReview =
+      daysSinceStopLossUpdate != null && daysSinceStopLossUpdate > STOP_LOSS_REVIEW_DAYS;
+
     return {
       symbol: p.symbol,
       symbolName: p.symbolName ?? quote?.symbolName,
@@ -234,6 +256,8 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
       holdingDays,
       suggestedStopLoss,
       suggestedStopLossRefDate,
+      daysSinceStopLossUpdate,
+      needsStopLossReview,
       isStopLossAlert:
         currentPrice != null &&
         p.stopLoss != null &&

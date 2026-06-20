@@ -311,6 +311,10 @@ const en = {
     stopLossNote: "Adjustment note",
     stopLossNotePlaceholder: "Why adjust the stop? e.g. cost raised, broke below MA…",
     stopLossHistoryTitle: "Stop-loss adjustment history",
+    stopLossReviewReminderTitle: "Stop loss needs review",
+    stopLossReviewReminderDesc:
+      "These US stocks haven't had their stop loss adjusted in over 3 days. Review whether to raise it:",
+    stopLossReviewBadge: "Stop loss not adjusted in {{days}}+ days",
   },
 
   // ── Results ────────────────────────────────────────────────

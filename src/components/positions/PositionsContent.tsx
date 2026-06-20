@@ -16,6 +16,7 @@ import {
   Banknote,
   Percent,
   RefreshCw,
+  BellRing,
 } from "lucide-react";
 import type { Position } from "@/types/trade";
 import type { Currency } from "@/types/taiwan";
@@ -96,6 +97,10 @@ function CurrencySection({
   const watchPositions = positions.filter(isWatchLot);
   const mainPositions = positions.filter((p) => !isWatchLot(p));
 
+  // 美股：超過 3 天未調整停損的個股，提醒檢視
+  const stopLossReviewPositions =
+    currency === "USD" ? mainPositions.filter((p) => p.needsStopLossReview) : [];
+
   return (
     <section className="space-y-4">
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
@@ -164,6 +169,39 @@ function CurrencySection({
           }
         />
       </div>
+
+      {stopLossReviewPositions.length > 0 && (
+        <div className="flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-900/60 dark:bg-amber-950/30">
+          <BellRing className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+          <div className="space-y-1">
+            <p className="font-medium text-amber-800 dark:text-amber-300">
+              {t("positions.stopLossReviewReminderTitle")}
+            </p>
+            <p className="text-amber-700 dark:text-amber-400/90">
+              {t("positions.stopLossReviewReminderDesc")}
+            </p>
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
+              {stopLossReviewPositions.map((p) => (
+                <span
+                  key={p.symbol}
+                  className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium tabular-nums text-amber-800 dark:bg-amber-900/50 dark:text-amber-200"
+                  title={t("positions.stopLossReviewBadge", {
+                    days: p.daysSinceStopLossUpdate ?? 0,
+                  })}
+                >
+                  {p.symbol}
+                  {p.daysSinceStopLossUpdate != null && (
+                    <span className="opacity-70">
+                      {p.daysSinceStopLossUpdate}
+                      {t("positions.daysUnit")}
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <PositionsTable positions={mainPositions} />
       {watchPositions.length > 0 && (

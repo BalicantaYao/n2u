@@ -29,6 +29,7 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  BellRing,
 } from "lucide-react";
 import type { Position } from "@/types/trade";
 
@@ -287,6 +288,15 @@ export function PositionsTable({
                                 {pos.isStopLossAlert && (
                                   <span title={t("positions.stopLossAlert")}>
                                     <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
+                                  </span>
+                                )}
+                                {pos.currency === "USD" && pos.needsStopLossReview && (
+                                  <span
+                                    title={t("positions.stopLossReviewBadge", {
+                                      days: pos.daysSinceStopLossUpdate ?? 0,
+                                    })}
+                                  >
+                                    <BellRing className="h-3.5 w-3.5 text-amber-500" />
                                   </span>
                                 )}
                                 {hasNotes && (

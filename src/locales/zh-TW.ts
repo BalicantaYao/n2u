@@ -311,6 +311,9 @@ const zhTW = {
     stopLossNote: "調整筆記",
     stopLossNotePlaceholder: "為何調整停損？例如：成本墊高、跌破月線…",
     stopLossHistoryTitle: "停損調整記錄",
+    stopLossReviewReminderTitle: "停損待檢視",
+    stopLossReviewReminderDesc: "以下美股已超過 3 天未調整停損，請檢視是否需要上移：",
+    stopLossReviewBadge: "超過 {{days}} 天未調整停損",
   },
 
   // ── Results ────────────────────────────────────────────────
