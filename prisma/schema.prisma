@@ -14,6 +14,8 @@ model User {
   image         String?
   // 台股券商手續費折扣係數，1.0 = 無折扣，0.6 = 6 折，0.28 = 2.8 折，僅作用於台股
   commissionDiscount Float @default(1)
+  // 新增交易時的檢查清單，JSON 陣列格式儲存字串清單
+  tradeChecklist     String?
   accounts      Account[]
   sessions      Session[]
   trades        Trade[]

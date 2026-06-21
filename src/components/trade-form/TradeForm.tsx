@@ -12,6 +12,8 @@ import { SymbolSearch } from "./SymbolSearch";
 import { FeePreview } from "./FeePreview";
 import { StopLossHelper } from "./StopLossHelper";
 import { MaxLossPreview } from "./MaxLossPreview";
+import { TradeChecklist } from "./TradeChecklist";
+import { useUserProfile } from "@/lib/use-user-profile";
 import { cn } from "@/lib/utils";
 import { getTodayTW, formatShares } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -56,6 +58,7 @@ export function TradeForm({
   const [loading, setLoading] = useState(false);
   const [fetchingPrice, setFetchingPrice] = useState(false);
   const { t } = useT();
+  const profile = useUserProfile();
 
   const isEdit = mode === "edit";
   const metadataOnly = editableFields === "metadata-only";
@@ -582,6 +585,11 @@ export function TradeForm({
           rows={3}
         />
       </div>
+
+      {/* Trade checklist — only shown when creating a new trade */}
+      {!isEdit && (profile?.tradeChecklist?.length ?? 0) > 0 && (
+        <TradeChecklist items={profile!.tradeChecklist} />
+      )}
 
       {/* Fee preview — only show when core fields are editable */}
       {!metadataOnly && (

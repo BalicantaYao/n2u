@@ -8,12 +8,15 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where: { id: auth.userId },
-    select: { id: true, name: true, email: true, image: true, commissionDiscount: true },
+    select: { id: true, name: true, email: true, image: true, commissionDiscount: true, tradeChecklist: true },
   });
   if (!user) {
     return NextResponse.json({ error: "找不到使用者" }, { status: 404 });
   }
-  return NextResponse.json(user);
+  return NextResponse.json({
+    ...user,
+    tradeChecklist: user.tradeChecklist ? JSON.parse(user.tradeChecklist) : [],
+  });
 }
 
 export async function PUT(req: NextRequest) {
@@ -35,6 +38,18 @@ export async function PUT(req: NextRequest) {
     data.commissionDiscount = Math.round(raw * 10000) / 10000;
   }
 
+  if ("tradeChecklist" in body) {
+    const raw = body.tradeChecklist;
+    if (!Array.isArray(raw) || raw.some((item) => typeof item !== "string")) {
+      return NextResponse.json(
+        { error: "檢查清單格式錯誤" },
+        { status: 400 },
+      );
+    }
+    const items = (raw as string[]).map((s) => s.trim()).filter(Boolean).slice(0, 30);
+    data.tradeChecklist = JSON.stringify(items);
+  }
+
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: "沒有可更新的欄位" }, { status: 400 });
   }
@@ -42,7 +57,10 @@ export async function PUT(req: NextRequest) {
   const user = await prisma.user.update({
     where: { id: auth.userId },
     data,
-    select: { id: true, name: true, email: true, image: true, commissionDiscount: true },
+    select: { id: true, name: true, email: true, image: true, commissionDiscount: true, tradeChecklist: true },
   });
-  return NextResponse.json(user);
+  return NextResponse.json({
+    ...user,
+    tradeChecklist: user.tradeChecklist ? JSON.parse(user.tradeChecklist) : [],
+  });
 }

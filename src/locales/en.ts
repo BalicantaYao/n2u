@@ -188,6 +188,8 @@ const en = {
     createFailedRetry: "Create failed, please retry",
     selectSymbol: "Please select a stock symbol",
     invalidPrice: "Please enter a valid price",
+    checklistTitle: "Pre-Entry Checklist",
+    checklistReminder: "Check off each item before submitting your trade",
     invalidLots: "Please enter lot quantity",
     invalidShares: "Please enter share quantity",
     searchPlaceholder: "Search symbol or name (e.g. 2330)",
@@ -460,6 +462,13 @@ const en = {
     saving: "Saving...",
     saved: "Settings saved",
     saveFailed: "Save failed",
+    checklistSection: "Trade Entry Checklist",
+    checklistSectionDesc: "Set up items to verify before logging a new trade, e.g. confirm stop-loss, check position sizing, review technicals.",
+    checklistHint: "Up to 30 items. Drag the handle to reorder; click text to edit inline.",
+    checklistEmpty: "No checklist items yet. Add one below.",
+    checklistAdd: "Add",
+    checklistNewItemPlaceholder: "Type a checklist item, then press Enter or click Add…",
+    checklistMaxItems: "Maximum {{max}} items allowed",
   },
 } as const;
 

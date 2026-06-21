@@ -188,6 +188,8 @@ const zhTW = {
     createFailedRetry: "新增失敗，請重試",
     selectSymbol: "請選擇股票代碼",
     invalidPrice: "請輸入正確的成交價格",
+    checklistTitle: "進場前確認清單",
+    checklistReminder: "點選各項目確認後再送出交易",
     invalidLots: "請輸入整張數量",
     invalidShares: "請輸入零股股數",
     searchPlaceholder: "搜尋代碼或名稱（如 2330、台積電）",
@@ -457,6 +459,13 @@ const zhTW = {
     saving: "儲存中...",
     saved: "設定已儲存",
     saveFailed: "儲存失敗",
+    checklistSection: "新增交易檢查清單",
+    checklistSectionDesc: "設定每次新增交易前需要確認的項目，例如：確認停損位置、確認資金比例、確認技術訊號等。",
+    checklistHint: "最多可設定 30 個項目，拖曳左側圖示可調整順序，點選行內文字可直接修改。",
+    checklistEmpty: "目前沒有任何檢查項目，請在下方輸入框新增。",
+    checklistAdd: "新增",
+    checklistNewItemPlaceholder: "輸入檢查項目，按 Enter 或點擊新增…",
+    checklistMaxItems: "最多只能設定 {{max}} 個項目",
   },
 } as const;
 
