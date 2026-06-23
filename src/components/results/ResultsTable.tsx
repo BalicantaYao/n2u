@@ -7,8 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatPct, formatDate, tradingViewUrl } from "@/lib/utils";
 import { AddObservationButton } from "@/components/observations/AddObservationButton";
 import { useT } from "@/lib/i18n";
+import { useColumnResize } from "@/hooks/useColumnResize";
 import type { SymbolResult, SellTradeDetail } from "@/types/trade";
 import type { Currency } from "@/types/taiwan";
+
+const RESULTS_TABLE_DEFAULT_WIDTHS = [32, 160, 80, 120, 120, 100, 110, 120];
+const SELL_LIST_DEFAULT_WIDTHS = [120, 100, 160, 90, 100, 100, 120, 120, 100];
 
 interface ResultsTableProps {
   bySymbol: SymbolResult[];
@@ -17,6 +21,7 @@ interface ResultsTableProps {
 export function ResultsTable({ bySymbol }: ResultsTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const { t } = useT();
+  const { widths, startResize } = useColumnResize("results-table-col-widths", RESULTS_TABLE_DEFAULT_WIDTHS);
 
   function toggle(symbol: string) {
     setExpanded((prev) => {
@@ -35,19 +40,37 @@ export function ResultsTable({ bySymbol }: ResultsTableProps) {
     );
   }
 
+  const resColsCfg = [
+    { label: "", align: "left" as const, cls: "" },
+    { label: t("results.symbolHeader"), align: "left" as const, cls: "" },
+    { label: t("results.countHeader"), align: "right" as const, cls: "hidden md:table-cell" },
+    { label: t("results.buyCost"), align: "right" as const, cls: "hidden lg:table-cell" },
+    { label: t("results.realizedPnLHeader"), align: "right" as const, cls: "" },
+    { label: t("results.returnHeader"), align: "right" as const, cls: "hidden sm:table-cell" },
+    { label: t("results.winLossHeader"), align: "right" as const, cls: "hidden md:table-cell" },
+    { label: t("results.lastTrade"), align: "right" as const, cls: "hidden lg:table-cell" },
+  ];
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-muted-foreground text-xs">
-            <th className="text-left py-2.5 px-3 w-6"></th>
-            <th className="text-left py-2.5 px-3">{t("results.symbolHeader")}</th>
-            <th className="text-right py-2.5 px-3 hidden md:table-cell">{t("results.countHeader")}</th>
-            <th className="text-right py-2.5 px-3 hidden lg:table-cell">{t("results.buyCost")}</th>
-            <th className="text-right py-2.5 px-3">{t("results.realizedPnLHeader")}</th>
-            <th className="text-right py-2.5 px-3 hidden sm:table-cell">{t("results.returnHeader")}</th>
-            <th className="text-right py-2.5 px-3 hidden md:table-cell">{t("results.winLossHeader")}</th>
-            <th className="text-right py-2.5 px-3 hidden lg:table-cell">{t("results.lastTrade")}</th>
+            {resColsCfg.map((col, i) => (
+              <th
+                key={i}
+                className={`py-2.5 px-3 font-medium relative select-none text-${col.align} ${col.cls}`}
+                style={{ minWidth: widths[i] }}
+              >
+                <span className="pr-2">{col.label}</span>
+                {i < widths.length - 1 && (
+                  <div
+                    className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10"
+                    onMouseDown={startResize(i)}
+                  />
+                )}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -234,6 +257,7 @@ interface TradeListProps {
 
 export function SellTradeList({ bySymbol }: TradeListProps) {
   const { t } = useT();
+  const { widths: slWidths, startResize: slStartResize } = useColumnResize("sell-list-col-widths", SELL_LIST_DEFAULT_WIDTHS);
 
   // Flatten all trades, sort by date desc
   const allTrades = bySymbol
@@ -256,20 +280,38 @@ export function SellTradeList({ bySymbol }: TradeListProps) {
     );
   }
 
+  const slColsCfg = [
+    { label: t("results.buyDate"), align: "left" as const, cls: "hidden md:table-cell" },
+    { label: t("common.date"), align: "left" as const, cls: "" },
+    { label: t("results.symbolHeader"), align: "left" as const, cls: "" },
+    { label: t("results.sharesHeader"), align: "right" as const, cls: "" },
+    { label: t("results.buyAvgPrice"), align: "right" as const, cls: "hidden lg:table-cell" },
+    { label: t("results.sellPrice"), align: "right" as const, cls: "hidden sm:table-cell" },
+    { label: t("results.buyCost"), align: "right" as const, cls: "hidden md:table-cell" },
+    { label: t("results.realizedPnLHeader"), align: "right" as const, cls: "" },
+    { label: t("results.returnHeader"), align: "right" as const, cls: "hidden sm:table-cell" },
+  ];
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-muted-foreground text-xs">
-            <th className="text-left py-2.5 px-3 hidden md:table-cell">{t("results.buyDate")}</th>
-            <th className="text-left py-2.5 px-3">{t("common.date")}</th>
-            <th className="text-left py-2.5 px-3">{t("results.symbolHeader")}</th>
-            <th className="text-right py-2.5 px-3">{t("results.sharesHeader")}</th>
-            <th className="text-right py-2.5 px-3 hidden lg:table-cell">{t("results.buyAvgPrice")}</th>
-            <th className="text-right py-2.5 px-3 hidden sm:table-cell">{t("results.sellPrice")}</th>
-            <th className="text-right py-2.5 px-3 hidden md:table-cell">{t("results.buyCost")}</th>
-            <th className="text-right py-2.5 px-3">{t("results.realizedPnLHeader")}</th>
-            <th className="text-right py-2.5 px-3 hidden sm:table-cell">{t("results.returnHeader")}</th>
+            {slColsCfg.map((col, i) => (
+              <th
+                key={i}
+                className={`py-2.5 px-3 font-medium relative select-none text-${col.align} ${col.cls}`}
+                style={{ minWidth: slWidths[i] }}
+              >
+                <span className="pr-2">{col.label}</span>
+                {i < slWidths.length - 1 && (
+                  <div
+                    className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10"
+                    onMouseDown={slStartResize(i)}
+                  />
+                )}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>

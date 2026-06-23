@@ -16,6 +16,10 @@ import {
 } from "@/components/ui/tooltip";
 import { formatCurrency, formatPct, formatDate, cn, tradingViewUrl } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
+import { useColumnResize } from "@/hooks/useColumnResize";
+
+// col order: expand, symbol, shares(hidden), avgCost, currentPrice, holdingDays, dailyChange, stopLoss, pnlAtStopLoss, totalCost, marketValue, unrealizedPnL, realizedPnL(hidden), totalPnLPct, actions
+const POSITIONS_TABLE_DEFAULT_WIDTHS = [32, 160, 80, 90, 90, 80, 100, 100, 110, 110, 110, 110, 80, 90, 56];
 import {
   Briefcase,
   AlertTriangle,
@@ -93,6 +97,7 @@ export function PositionsTable({
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir } | null>(null);
   const { t } = useT();
+  const { widths, startResize } = useColumnResize("positions-table-col-widths", POSITIONS_TABLE_DEFAULT_WIDTHS);
 
   function toggle(symbol: string) {
     setExpanded((prev) => {
@@ -177,26 +182,34 @@ export function PositionsTable({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="w-6 px-1 py-3" />
-                  <th className="text-left px-2 md:px-4 py-3 font-medium text-muted-foreground">
+                  <th className="px-1 py-3 relative select-none" style={{ minWidth: widths[0] }}>
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(0)} />
+                  </th>
+                  <th className="text-left px-2 md:px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[1] }}>
                     <SortLabel sortKey="symbol" label={t("positions.stockHeader")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(1)} />
                   </th>
-                  <th className="hidden text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden text-right px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[2] }}>
                     <SortLabel sortKey="totalShares" label={t("positions.sharesHeader")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(2)} />
                   </th>
-                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">
+                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[3] }}>
                     <SortLabel sortKey="avgCostPerShare" label={t("positions.avgCost")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(3)} />
                   </th>
-                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">
+                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[4] }}>
                     <SortLabel sortKey="currentPrice" label={t("positions.currentPrice")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(4)} />
                   </th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[5] }}>
                     <SortLabel sortKey="holdingDays" label={t("positions.holdingDaysHeader")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(5)} />
                   </th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[6] }}>
                     <SortLabel sortKey="dailyChangePct" label={t("positions.dailyChangeHeader")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(6)} />
                   </th>
-                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground">
+                  <th className="text-right px-2 md:px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[7] }}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
@@ -224,26 +237,33 @@ export function PositionsTable({
                         <div className="text-muted-foreground">{t("positions.suggestedStopLossTip")}</div>
                       </TooltipContent>
                     </Tooltip>
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(7)} />
                   </th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[8] }}>
                     <SortLabel sortKey="pnlAtStopLoss" label={t("positions.stopLossPnLHeader")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(8)} />
                   </th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[9] }}>
                     <SortLabel sortKey="totalCost" label={t("positions.costHeader")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(9)} />
                   </th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[10] }}>
                     <SortLabel sortKey="marketValue" label={t("positions.valueHeader")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(10)} />
                   </th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[11] }}>
                     <SortLabel sortKey="unrealizedPnL" label={t("positions.unrealizedHeader")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(11)} />
                   </th>
-                  <th className="hidden text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden text-right px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[12] }}>
                     <SortLabel sortKey="realizedPnL" label={t("positions.realizedHeader")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(12)} />
                   </th>
-                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden md:table-cell text-right px-4 py-3 font-medium text-muted-foreground relative select-none" style={{ minWidth: widths[13] }}>
                     <SortLabel sortKey="totalPnLPct" label={t("positions.returnHeader")} />
+                    <div className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10" onMouseDown={startResize(13)} />
                   </th>
-                  <th className="hidden md:table-cell w-12 px-2 py-3" />
+                  <th className="hidden md:table-cell px-2 py-3 relative select-none" style={{ minWidth: widths[14] }} />
                 </tr>
               </thead>
                 {sortedPositions.map((pos) => {
