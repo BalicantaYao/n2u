@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate, formatShares, cn, tradingViewUrl } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { ChevronDown, Pencil, Trash2, AlertTriangle } from "lucide-react";
+import { useColumnResize } from "@/hooks/useColumnResize";
 import type { Trade } from "@/types/trade";
 import type { Market } from "@/types/taiwan";
+
+const TRADE_TABLE_DEFAULT_WIDTHS = [40, 100, 160, 80, 90, 90, 110, 120, 110, 90];
 
 function marketBadgeVariant(m: Market): "twse" | "tpex" | "nyse" | "nasdaq" {
   if (m === "NYSE") return "nyse";
@@ -31,6 +34,7 @@ interface TradeTableProps {
 export function TradeTable({ trades, onDelete }: TradeTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const { t } = useT();
+  const { widths, startResize } = useColumnResize("trade-table-col-widths", TRADE_TABLE_DEFAULT_WIDTHS);
 
   function toggle(id: string) {
     setExpanded((prev) => {
@@ -193,16 +197,32 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-xs text-muted-foreground bg-muted/30">
-              <th className="text-left py-3 px-4 font-medium w-6"></th>
-              <th className="text-left py-3 pr-4 font-medium">{t("common.date")}</th>
-              <th className="text-left py-3 pr-4 font-medium">{t("common.symbol")}</th>
-              <th className="text-left py-3 pr-4 font-medium">{t("common.direction")}</th>
-              <th className="text-right py-3 pr-4 font-medium">{t("common.quantity")}</th>
-              <th className="text-right py-3 pr-4 font-medium">{t("common.avgPrice")}</th>
-              <th className="text-right py-3 pr-4 font-medium">{t("common.commission")}</th>
-              <th className="text-right py-3 pr-4 font-medium">{t("common.transactionTax")}</th>
-              <th className="text-right py-3 pr-4 font-medium">{t("common.pnl")}</th>
-              <th className="text-center py-3 font-medium">{t("common.actions")}</th>
+              {([
+                { label: "", align: "left" },
+                { label: t("common.date"), align: "left" },
+                { label: t("common.symbol"), align: "left" },
+                { label: t("common.direction"), align: "left" },
+                { label: t("common.quantity"), align: "right" },
+                { label: t("common.avgPrice"), align: "right" },
+                { label: t("common.commission"), align: "right" },
+                { label: t("common.transactionTax"), align: "right" },
+                { label: t("common.pnl"), align: "right" },
+                { label: t("common.actions"), align: "center" },
+              ] as const).map((col, i) => (
+                <th
+                  key={i}
+                  className={cn("py-3 px-3 font-medium relative select-none", `text-${col.align}`)}
+                  style={{ minWidth: widths[i] }}
+                >
+                  <span className="pr-2">{col.label}</span>
+                  {i < widths.length - 1 && (
+                    <div
+                      className="absolute inset-y-0 right-0 w-1 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 z-10"
+                      onMouseDown={startResize(i)}
+                    />
+                  )}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -213,7 +233,7 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                   className="border-b hover:bg-muted/40 cursor-pointer"
                   onClick={() => toggle(tr.id)}
                 >
-                  <td className="py-3 px-4">
+                  <td className="py-3 px-3">
                     <ChevronDown
                       className={cn(
                         "h-3.5 w-3.5 text-muted-foreground transition-transform",
@@ -221,33 +241,33 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                       )}
                     />
                   </td>
-                  <td className="py-3 pr-4 text-muted-foreground whitespace-nowrap">
+                  <td className="py-3 px-3 text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
                     {formatDate(tr.tradeDate)}
                   </td>
-                  <td className="py-3 pr-4">
-                    <div className="flex items-center gap-1.5">
+                  <td className="py-3 px-3 overflow-hidden">
+                    <div className="flex items-center gap-1.5 overflow-hidden">
                       <a
                         href={tradingViewUrl(tr.symbol, tr.market)}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="font-medium hover:text-primary hover:underline"
+                        className="font-medium hover:text-primary hover:underline truncate"
                         title="View on TradingView"
                       >
                         {tr.symbol}
                       </a>
                       <Badge
                         variant={marketBadgeVariant(tr.market)}
-                        className="text-xs py-0"
+                        className="text-xs py-0 shrink-0"
                       >
                         {marketLabel(tr.market, t)}
                       </Badge>
                     </div>
                     {tr.symbolName && (
-                      <p className="text-xs text-muted-foreground">{tr.symbolName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{tr.symbolName}</p>
                     )}
                   </td>
-                  <td className="py-3 pr-4">
+                  <td className="py-3 px-3 overflow-hidden">
                     <Badge
                       variant={tr.side === "BUY" ? "profit" : "loss"}
                       className="text-xs"
@@ -255,21 +275,21 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                       {tr.side === "BUY" ? t("common.buy") : t("common.sell")}
                     </Badge>
                   </td>
-                  <td className="py-3 pr-4 text-right tabular-nums">
+                  <td className="py-3 px-3 text-right tabular-nums overflow-hidden text-ellipsis">
                     {formatShares(tr.shares, tr.lotType as "ROUND" | "ODD", tr.market)}
                   </td>
-                  <td className="py-3 pr-4 text-right tabular-nums">
+                  <td className="py-3 px-3 text-right tabular-nums overflow-hidden text-ellipsis">
                     {tr.price.toLocaleString()}
                   </td>
-                  <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
+                  <td className="py-3 px-3 text-right tabular-nums text-muted-foreground overflow-hidden text-ellipsis">
                     {formatCurrency(tr.commission, tr.currency)}
                   </td>
-                  <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
+                  <td className="py-3 px-3 text-right tabular-nums text-muted-foreground overflow-hidden text-ellipsis">
                     {formatCurrency(tr.transactionTax, tr.currency)}
                   </td>
                   <td
                     className={cn(
-                      "py-3 pr-4 text-right tabular-nums font-medium",
+                      "py-3 px-3 text-right tabular-nums font-medium overflow-hidden text-ellipsis",
                       tr.realizedPnL != null && tr.realizedPnL > 0 && "text-green-600 dark:text-green-400",
                       tr.realizedPnL != null && tr.realizedPnL < 0 && "text-red-600 dark:text-red-400"
                     )}
@@ -278,7 +298,7 @@ export function TradeTable({ trades, onDelete }: TradeTableProps) {
                       ? formatCurrency(tr.realizedPnL, tr.currency, true)
                       : <span className="text-muted-foreground text-xs">{t("common.inPosition")}</span>}
                   </td>
-                  <td className="py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td className="py-3 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-center gap-1">
                       <Link href={`/journal/${tr.id}/edit`}>
                         <Button
