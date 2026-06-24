@@ -470,6 +470,31 @@ const en = {
     checklistNewItemPlaceholder: "Type a checklist item, then press Enter or click Add…",
     checklistMaxItems: "Maximum {{max}} items allowed",
   },
+
+  wallet: {
+    sectionTitle: "Cash Wallet",
+    sectionDesc:
+      "Manage cash balances for Taiwan (TWD) and US (USD) markets. Buys are deducted from the matching wallet and sells are credited back; you cannot buy with insufficient funds. Wallets start at 0 — past historical trades are not counted.",
+    balance: "Balance",
+    available: "Available",
+    currentBalance: "Current balance",
+    deposit: "Deposit",
+    withdraw: "Withdraw",
+    amountPlaceholder: "Enter amount",
+    notePlaceholder: "Note (optional)",
+    depositSuccess: "Deposit successful",
+    withdrawSuccess: "Withdrawal successful",
+    actionFailed: "Action failed",
+    invalidAmount: "Amount must be greater than 0",
+    insufficientHint: "Insufficient balance — please deposit first",
+    history: "Transaction history",
+    noHistory: "No transactions yet",
+    typeDEPOSIT: "Deposit",
+    typeWITHDRAW: "Withdraw",
+    typeTRADE_BUY: "Buy debit",
+    typeTRADE_SELL: "Sell credit",
+    typeREVERSAL: "Reversal",
+  },
 } as const;
 
 export default en;

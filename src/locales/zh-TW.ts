@@ -467,6 +467,31 @@ const zhTW = {
     checklistNewItemPlaceholder: "輸入檢查項目，按 Enter 或點擊新增…",
     checklistMaxItems: "最多只能設定 {{max}} 個項目",
   },
+
+  wallet: {
+    sectionTitle: "現金錢包",
+    sectionDesc:
+      "管理台股（TWD）與美股（USD）的現金餘額。買入會從對應錢包扣款、賣出會回到錢包，餘額不足將無法買入。錢包從 0 起算，過往的歷史交易不會計入。",
+    balance: "餘額",
+    available: "可用餘額",
+    currentBalance: "目前餘額",
+    deposit: "儲值",
+    withdraw: "提領",
+    amountPlaceholder: "輸入金額",
+    notePlaceholder: "備註（選填）",
+    depositSuccess: "儲值成功",
+    withdrawSuccess: "提領成功",
+    actionFailed: "操作失敗",
+    invalidAmount: "金額需大於 0",
+    insufficientHint: "餘額不足，請先儲值",
+    history: "異動明細",
+    noHistory: "尚無異動紀錄",
+    typeDEPOSIT: "儲值",
+    typeWITHDRAW: "提領",
+    typeTRADE_BUY: "買入扣款",
+    typeTRADE_SELL: "賣出入帳",
+    typeREVERSAL: "回沖",
+  },
 } as const;
 
 export default zhTW;

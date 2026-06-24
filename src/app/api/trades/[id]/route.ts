@@ -7,6 +7,7 @@ import { calculateFees, calcSettlementDate } from "@/lib/fees";
 import { lotsToShares } from "@/lib/taiwan-fees";
 import { recomputeSymbolPnL } from "@/lib/pnl-calculator";
 import { marketToCurrency, isUSMarket } from "@/types/taiwan";
+import { applyWalletMovement, assertSufficientBalance, InsufficientFundsError } from "@/lib/wallet";
 
 const CORE_FIELDS = [
   "symbol", "symbolName", "market", "side", "tradeDate",
@@ -213,6 +214,35 @@ export async function PUT(
         },
       });
 
+      // 錢包：先回沖此交易原本的累計影響（以原幣別），再依新金額重新扣款。
+      // 僅 BUY 會走到此處（SELL 核心欄位已於前面擋下）。歷史交易無連結帳本 → 回沖總和為 0。
+      const linkedOld = await tx.walletTransaction.aggregate({
+        where: { tradeId: params.id },
+        _sum: { amount: true },
+      });
+      const oldNetEffect = linkedOld._sum.amount ?? 0;
+      const hadWalletMovement = oldNetEffect !== 0;
+      if (hadWalletMovement) {
+        await applyWalletMovement(tx, {
+          userId: auth.userId,
+          currency: existing.currency as import("@/types/taiwan").Currency,
+          type: "REVERSAL",
+          amount: -oldNetEffect,
+          tradeId: params.id,
+          note: "交易修改回沖",
+        });
+
+        // 以新金額重新扣款（先確認新幣別錢包餘額充足）
+        await assertSufficientBalance(tx, auth.userId, currency, fees.netAmount);
+        await applyWalletMovement(tx, {
+          userId: auth.userId,
+          currency,
+          type: "TRADE_BUY",
+          amount: -fees.netAmount,
+          tradeId: params.id,
+        });
+      }
+
       // 重算受影響 symbol 的 FIFO 與 realizedPnL；若 symbol 變動，新舊都要重算
       await recomputeSymbolPnL(tx, auth.userId, symbol);
       if (symbol !== existing.symbol) {
@@ -258,6 +288,18 @@ export async function PUT(
 
     return NextResponse.json(trade);
   } catch (error) {
+    if (error instanceof InsufficientFundsError) {
+      return NextResponse.json(
+        {
+          error: "餘額不足，請先儲值",
+          code: "INSUFFICIENT_FUNDS",
+          currency: error.currency,
+          required: error.required,
+          balance: error.balance,
+        },
+        { status: 400 },
+      );
+    }
     console.error("更新交易失敗:", error);
     return NextResponse.json({ error: "更新交易失敗" }, { status: 500 });
   }
@@ -278,6 +320,23 @@ export async function DELETE(
   const symbol = trade.symbol;
 
   await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
+    // 回沖此交易對錢包的累計影響（歷史交易無連結帳本 → 總和為 0，自然 no-op）
+    const linked = await tx.walletTransaction.aggregate({
+      where: { tradeId: params.id },
+      _sum: { amount: true },
+    });
+    const netEffect = linked._sum.amount ?? 0;
+    if (netEffect !== 0) {
+      await applyWalletMovement(tx, {
+        userId: auth.userId,
+        currency: trade.currency as import("@/types/taiwan").Currency,
+        type: "REVERSAL",
+        amount: -netEffect,
+        tradeId: params.id,
+        note: "交易刪除回沖",
+      });
+    }
+
     await tx.trade.delete({ where: { id: params.id } });
     await recomputeSymbolPnL(tx, auth.userId, symbol);
   });

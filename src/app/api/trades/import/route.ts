@@ -8,6 +8,8 @@ import { recomputeSymbolPnL } from "@/lib/pnl-calculator";
 import { marketToCurrency, isUSMarket } from "@/types/taiwan";
 import type { CreateTradeInput } from "@/types/trade";
 
+// 注意：CSV 批次匯入視為「歷史補登」，刻意不影響現金錢包餘額（不扣款、不入帳、不建立帳本），
+// 與「錢包從零起算、歷史交易不計入」的設計一致。若未來需要讓匯入也影響錢包，再於此處加入 applyWalletMovement。
 export async function POST(req: NextRequest) {
   const auth = await requireAuth();
   if (auth.error) return auth.error;
