@@ -14,13 +14,14 @@ import { StopLossHelper } from "./StopLossHelper";
 import { MaxLossPreview } from "./MaxLossPreview";
 import { TradeChecklist } from "./TradeChecklist";
 import { useUserProfile } from "@/lib/use-user-profile";
-import { cn } from "@/lib/utils";
+import { useWalletBalance, refreshWallet } from "@/lib/use-wallet";
+import { cn, formatCurrency } from "@/lib/utils";
 import { getTodayTW, formatShares } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { Info, RefreshCw } from "lucide-react";
 import type { Trade } from "@/types/trade";
 import type { Market, Side, LotType } from "@/types/taiwan";
-import { isUSMarket } from "@/types/taiwan";
+import { isUSMarket, marketToCurrency } from "@/types/taiwan";
 
 const MARKET_LABEL_KEYS: Record<Market, string> = {
   TWSE: "common.twseFull",
@@ -121,6 +122,17 @@ export function TradeForm({
       ? lotsNum * 1000
       : sharesNum;
 
+  // 現金錢包：依市場幣別取得餘額，買入時估算成本以提示餘額是否充足
+  const currency = marketToCurrency(market);
+  const walletBalance = useWalletBalance(currency);
+  const estimatedCost = priceNum * effectiveShares; // 約略成交金額（伺服器會精算手續費並把關）
+  const insufficientFunds =
+    side === "BUY" &&
+    !metadataOnly &&
+    walletBalance !== null &&
+    estimatedCost > 0 &&
+    estimatedCost > walletBalance;
+
   async function handleFetchPrice() {
     if (!symbol) {
       toast.error(t("trade.selectSymbolFirst"));
@@ -167,6 +179,7 @@ export function TradeForm({
           throw new Error(err.error ?? t("trade.updateFailed"));
         }
         toast.success(t("trade.tradeUpdated"));
+        refreshWallet();
         router.push("/journal");
       } catch (err) {
         toast.error(err instanceof Error ? err.message : t("trade.updateFailedRetry"));
@@ -220,6 +233,7 @@ export function TradeForm({
       }
 
       toast.success(isEdit ? t("trade.tradeUpdated") : t("trade.tradeCreated"));
+      refreshWallet();
       router.push("/journal");
     } catch (err) {
       toast.error(
@@ -606,9 +620,29 @@ export function TradeForm({
         />
       )}
 
+      {/* Wallet balance hint — 顯示對應幣別可用餘額，買入時餘額不足以紅字提示 */}
+      {!metadataOnly && walletBalance !== null && (
+        <div
+          className={cn(
+            "flex items-center justify-between rounded-lg border px-3 py-2 text-sm",
+            insufficientFunds
+              ? "border-red-300 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300"
+              : "bg-muted/30 text-muted-foreground"
+          )}
+        >
+          <span>
+            {t("wallet.available")}（{currency}）
+          </span>
+          <span className="tabular-nums font-medium">
+            {formatCurrency(walletBalance, currency)}
+            {insufficientFunds && ` · ${t("wallet.insufficientHint")}`}
+          </span>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <Button type="submit" disabled={loading} className="min-w-[120px]">
+        <Button type="submit" disabled={loading || insufficientFunds} className="min-w-[120px]">
           {loading ? t("trade.saving") : isEdit ? t("trade.saveChanges") : t("trade.createTrade")}
         </Button>
         <Button

@@ -25,6 +25,8 @@ model User {
   watchlistItems WatchlistItem[]
   observationTargets ObservationTarget[]
   stopLossAdjustments StopLossAdjustment[]
+  wallets       Wallet[]
+  walletTransactions WalletTransaction[]
 }
 
 model Account {
@@ -198,6 +200,50 @@ model ObservationTarget {
 
   @@unique([userId, symbol, market])
   @@index([userId, archived])
+}
+
+// 現金錢包：每位使用者每種幣別（TWD/USD）各一個獨立錢包，記錄可動用現金餘額
+model Wallet {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  currency     String   // "TWD" | "USD"
+  balance      Float    @default(0)
+
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions WalletTransaction[]
+
+  @@unique([userId, currency])
+  @@index([userId])
+}
+
+// 錢包異動帳本：記錄每一筆儲值、提領、買入扣款、賣出入帳與回沖
+model WalletTransaction {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+
+  currency     String
+  // "DEPOSIT" | "WITHDRAW" | "TRADE_BUY" | "TRADE_SELL" | "REVERSAL"
+  type         String
+  // 帶正負號：儲值/賣出入帳為正、提領/買入扣款為負
+  amount       Float
+  // 異動後餘額（稽核用）
+  balanceAfter Float
+  // 連結 Trade（買/賣異動用）；不設外鍵，避免刪交易時連動帳本
+  tradeId      String?
+  note         String?
+
+  walletId     String
+  wallet       Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, currency, createdAt])
+  @@index([tradeId])
 }
 
 // 停損調整記錄：每次在持倉分析頁調整某部位停損價時留下一筆歷史，附帶一段筆記

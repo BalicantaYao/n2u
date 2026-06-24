@@ -6,6 +6,7 @@ import { calculateFees, calcSettlementDate } from "@/lib/fees";
 import { lotsToShares } from "@/lib/taiwan-fees";
 import { recomputeSymbolPnL } from "@/lib/pnl-calculator";
 import { marketToCurrency, isUSMarket } from "@/types/taiwan";
+import { applyWalletMovement, assertSufficientBalance, InsufficientFundsError } from "@/lib/wallet";
 import type { CreateTradeInput } from "@/types/trade";
 
 export async function GET(req: NextRequest) {
@@ -96,6 +97,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const trade = await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">) => {
+      // 買入前先確認現金錢包餘額充足；不足則阻擋並提示儲值
+      if (side === "BUY") {
+        await assertSufficientBalance(tx, auth.userId, currency, fees.netAmount);
+      }
+
       const created = await tx.trade.create({
         data: {
           symbol: symbol.toUpperCase(),
@@ -122,6 +128,15 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      // 買入扣款 / 賣出入帳，並記錄帳本
+      await applyWalletMovement(tx, {
+        userId: auth.userId,
+        currency,
+        type: side === "BUY" ? "TRADE_BUY" : "TRADE_SELL",
+        amount: side === "BUY" ? -fees.netAmount : fees.netAmount,
+        tradeId: created.id,
+      });
+
       await recomputeSymbolPnL(tx, auth.userId, symbol.toUpperCase());
 
       return tx.trade.findUniqueOrThrow({ where: { id: created.id } });
@@ -129,6 +144,18 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(trade, { status: 201 });
   } catch (error) {
+    if (error instanceof InsufficientFundsError) {
+      return NextResponse.json(
+        {
+          error: "餘額不足，請先儲值",
+          code: "INSUFFICIENT_FUNDS",
+          currency: error.currency,
+          required: error.required,
+          balance: error.balance,
+        },
+        { status: 400 },
+      );
+    }
     console.error("新增交易失敗:", error);
     return NextResponse.json({ error: "新增交易失敗" }, { status: 500 });
   }
