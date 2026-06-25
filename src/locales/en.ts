@@ -111,6 +111,11 @@ const en = {
     winLossAnalysis: "Win/Loss Analysis",
     dailyPnL30: "Last 30 Days Daily P&L",
     recentTrades: "Recent Trades",
+    walletBalance: "Wallet Balance",
+    assetAllocation: "Asset Allocation",
+    totalAssets: "Total Assets",
+    cash: "Cash",
+    noAssets: "No holdings or cash data",
   },
 
   // ── Dashboard Charts ───────────────────────────────────────

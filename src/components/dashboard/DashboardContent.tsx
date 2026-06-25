@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { PnLChart } from "@/components/dashboard/PnLChart";
@@ -7,6 +8,8 @@ import { DailyPnLBar } from "@/components/dashboard/DailyPnLBar";
 import { WinLossDonut } from "@/components/dashboard/WinLossDonut";
 import { RecentTrades } from "@/components/dashboard/RecentTrades";
 import { DailyObservationPanel } from "@/components/dashboard/DailyObservationPanel";
+import { WalletBalanceCard } from "@/components/dashboard/WalletBalanceCard";
+import { AssetAllocationChart } from "@/components/dashboard/AssetAllocationChart";
 import { MarketTabs } from "@/components/common/MarketTabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
@@ -20,7 +23,7 @@ import {
   Banknote,
 } from "lucide-react";
 import type { DailyPnL } from "@/types/trade";
-import type { Trade } from "@/types/trade";
+import type { Trade, Position } from "@/types/trade";
 import type { Currency } from "@/types/taiwan";
 
 interface PnLSummary {
@@ -53,6 +56,27 @@ export function DashboardContent({
   recentTradesTWD,
   recentTradesUSD,
 }: DashboardContentProps) {
+  // 持倉資料供「資產分布」使用，於用戶端載入（含即時報價市值）
+  const [positions, setPositions] = useState<Position[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/positions")
+      .then((res) => (res.ok ? (res.json() as Promise<Position[]>) : null))
+      .then((data) => {
+        if (active) setPositions(data ?? []);
+      })
+      .catch(() => {
+        if (active) setPositions([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const twPositions = positions == null ? null : positions.filter((p) => p.currency !== "USD");
+  const usPositions = positions == null ? null : positions.filter((p) => p.currency === "USD");
+
   return (
     <div>
       <Header titleKey="dashboard.title" />
@@ -65,6 +89,7 @@ export function DashboardContent({
               summary={summaryTWD}
               dailyPnL={dailyPnLTWD}
               recentTrades={recentTradesTWD}
+              positions={twPositions}
             />
           }
           us={
@@ -73,6 +98,7 @@ export function DashboardContent({
               summary={summaryUSD}
               dailyPnL={dailyPnLUSD}
               recentTrades={recentTradesUSD}
+              positions={usPositions}
             />
           }
         />
@@ -86,11 +112,13 @@ function MarketPanel({
   summary,
   dailyPnL,
   recentTrades,
+  positions,
 }: {
   currency: Currency;
   summary: PnLSummary;
   dailyPnL: DailyPnL[];
   recentTrades: Trade[];
+  positions: Position[] | null;
 }) {
   const { t } = useT();
   const ev = summary.winRate * summary.avgWin - (1 - summary.winRate) * summary.avgLoss;
@@ -99,6 +127,21 @@ function MarketPanel({
 
   return (
     <section className="space-y-4">
+      {/* 錢包餘額小卡 + 資產分布 overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <WalletBalanceCard currency={currency} />
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold">
+              {t("dashboard.assetAllocation")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AssetAllocationChart currency={currency} positions={positions} />
+          </CardContent>
+        </Card>
+      </div>
+
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard

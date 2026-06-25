@@ -111,6 +111,11 @@ const zhTW = {
     winLossAnalysis: "勝敗分析",
     dailyPnL30: "近 30 日每日損益",
     recentTrades: "最近交易",
+    walletBalance: "錢包餘額",
+    assetAllocation: "資產分布",
+    totalAssets: "總資產",
+    cash: "現金",
+    noAssets: "尚無持倉與現金資料",
   },
 
   // ── Dashboard Charts ───────────────────────────────────────
