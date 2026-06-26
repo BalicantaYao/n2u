@@ -198,8 +198,8 @@ async function getOpenPositions(userId: string): Promise<Position[]> {
     const suggestedStopLossRaw =
       atr14 != null && recentHigh != null ? recentHigh.price - 2 * atr14 : null;
     const suggestedStopLoss =
-      // 近 3 天內曾設過停損價就不給建議
-      recentlySetStopLoss.has(p.symbol)
+      // 只對美股提供建議停損，且近 3 天內曾設過停損價就不給建議
+      marketToCurrency(p.market) !== "USD" || recentlySetStopLoss.has(p.symbol)
         ? undefined
         : suggestedStopLossRaw != null && suggestedStopLossRaw > 0
           ? suggestedStopLossRaw

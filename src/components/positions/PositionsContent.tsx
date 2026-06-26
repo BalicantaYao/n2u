@@ -97,9 +97,10 @@ function CurrencySection({
   const watchPositions = positions.filter(isWatchLot);
   const mainPositions = positions.filter((p) => !isWatchLot(p));
 
-  // 美股：超過 3 天未調整停損的個股，提醒檢視
-  const stopLossReviewPositions =
-    currency === "USD" ? mainPositions.filter((p) => p.needsStopLossReview) : [];
+  // 超過 3 天未調整停損的個股，提醒檢視
+  const stopLossReviewPositions = mainPositions.filter(
+    (p) => p.needsStopLossReview,
+  );
 
   return (
     <section className="space-y-4">
