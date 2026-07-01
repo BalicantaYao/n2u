@@ -14,6 +14,8 @@ const en = {
     journalShort: "Journal",
     positions: "Positions",
     positionsShort: "Positions",
+    futuresBasis: "Futures Basis",
+    futuresBasisShort: "Basis",
     results: "Results",
     resultsShort: "Results",
     observations: "Daily Watch",
@@ -440,6 +442,22 @@ const en = {
     addMemoForSymbol: "Add a daily memo for {symbol}",
     relatedMemos: "Memo history for {symbol}",
     noMemosYet: "No memos linked to this symbol yet.",
+  },
+
+  // ── Futures Basis ───────────────────────────────────────────
+  futuresBasis: {
+    title: "Futures Basis",
+    description: "TAIEX index futures and single stock futures (near-month contracts) basis spread vs. spot price",
+    refresh: "Refresh",
+    indexTitle: "TAIEX Futures (TX)",
+    stockFuturesTitle: "Stock Futures",
+    underlying: "Underlying",
+    contract: "Contract",
+    futuresPrice: "Futures Price",
+    spotPrice: "Spot Price",
+    basis: "Basis",
+    basisPct: "Basis %",
+    noData: "No data available",
   },
 
   // ── Settings ─────────────────────────────────────────────────

@@ -17,6 +17,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -28,6 +29,7 @@ const navItems = [
   { href: "/watchlist", labelKey: "nav.watchlist", icon: Eye },
   { href: "/journal", labelKey: "nav.journal", icon: BookOpen },
   { href: "/positions", labelKey: "nav.positions", icon: Briefcase },
+  { href: "/futures-basis", labelKey: "nav.futuresBasis", icon: Scale },
   { href: "/results", labelKey: "nav.results", icon: BarChart3 },
   { href: "/observations", labelKey: "nav.observations", icon: ListChecks },
   { href: "/memos", labelKey: "nav.memos", icon: StickyNote },

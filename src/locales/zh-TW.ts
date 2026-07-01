@@ -14,6 +14,8 @@ const zhTW = {
     journalShort: "日誌",
     positions: "持倉分析",
     positionsShort: "持倉",
+    futuresBasis: "期貨正逆價差",
+    futuresBasisShort: "價差",
     results: "交易成果",
     resultsShort: "成果",
     observations: "每日觀察",
@@ -439,6 +441,22 @@ const zhTW = {
     addMemoForSymbol: "為 {symbol} 新增每日筆記",
     relatedMemos: "{symbol} 的歷史筆記",
     noMemosYet: "目前還沒有與這檔股票相關的筆記。",
+  },
+
+  // ── Futures Basis ───────────────────────────────────────────
+  futuresBasis: {
+    title: "期貨正逆價差",
+    description: "台指期貨與股票期貨（近月合約）相對現貨的正逆價差",
+    refresh: "重新整理",
+    indexTitle: "台指期貨",
+    stockFuturesTitle: "股票期貨",
+    underlying: "標的",
+    contract: "合約代碼",
+    futuresPrice: "期貨價",
+    spotPrice: "現貨價",
+    basis: "價差",
+    basisPct: "價差率",
+    noData: "目前沒有資料",
   },
 
   // ── Settings ─────────────────────────────────────────────────
