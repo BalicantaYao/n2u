@@ -37,6 +37,7 @@ import {
   ArrowDown,
   ArrowUpDown,
   BellRing,
+  ScrollText,
 } from "lucide-react";
 import type { Position } from "@/types/trade";
 
@@ -352,6 +353,15 @@ export function PositionsTable({
                   >
                     {pos.symbol}
                   </a>
+                  <Link
+                    href={`/journal?symbol=${encodeURIComponent(pos.symbol)}&currency=${pos.currency}`}
+                    onClick={(e) => e.stopPropagation()}
+                    title={t("positions.viewInJournal")}
+                    aria-label={t("positions.viewInJournal")}
+                    className="rounded p-1 text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+                  >
+                    <ScrollText className="h-4 w-4" />
+                  </Link>
                   {pos.isStopLossAlert && (
                     <span title={t("positions.stopLossAlert")}>
                       <AlertTriangle className="h-3.5 w-3.5 text-red-500" />

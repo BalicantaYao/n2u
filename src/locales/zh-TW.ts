@@ -313,6 +313,7 @@ const zhTW = {
     daysUnit: "天",
     refresh: "刷新報價",
     addTradeRecord: "新增交易",
+    viewInJournal: "查看交易紀錄",
     editStopLoss: "編輯最新一筆的停損價",
     saveFailed: "儲存失敗",
     stopLossNote: "調整筆記",

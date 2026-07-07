@@ -313,6 +313,7 @@ const en = {
     daysUnit: "d",
     refresh: "Refresh",
     addTradeRecord: "Add Trade",
+    viewInJournal: "View trade records",
     editStopLoss: "Edit stop loss on latest entry",
     saveFailed: "Save failed",
     stopLossNote: "Adjustment note",
