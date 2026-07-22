@@ -33,6 +33,7 @@ export interface OHLCVBar {
 }
 
 import type { Market } from "./taiwan";
+import type { StopLossAdjustmentEntry } from "./trade";
 
 export interface SearchResult {
   symbol: string;
@@ -94,6 +95,8 @@ export interface StopLossHelperResponse {
   indicators: {
     sma: MovingAverageIndicator[];
   };
+  /** 停損價歷史設定記錄（依時間新到舊）。僅在目前仍持有此股票時才有內容 */
+  stopLossHistory: StopLossAdjustmentEntry[];
   meta: {
     barsCount: number;
     hasHistoricalData: boolean;
