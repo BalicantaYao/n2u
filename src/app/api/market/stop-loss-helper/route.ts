@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   fromDate.setDate(fromDate.getDate() - 90);
 
   // Fetch market data and position in parallel; DB failure is non-fatal
-  const [bars, quote, openLots] = await Promise.all([
+  const [bars, quote, openLots, stopLossAdjustments] = await Promise.all([
     fetchHistorical(symbol, market, fromDate, new Date(), "1d"),
     fetchQuote(symbol, market),
     prisma.positionLot
@@ -49,6 +49,27 @@ export async function GET(req: NextRequest) {
         select: { shares: true, costPerShare: true },
       })
       .catch(() => [] as { shares: number; costPerShare: number }[]),
+    prisma.stopLossAdjustment
+      .findMany({
+        where: { userId: auth.userId, symbol },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        select: {
+          previousStopLoss: true,
+          newStopLoss: true,
+          note: true,
+          createdAt: true,
+        },
+      })
+      .catch(
+        () =>
+          [] as {
+            previousStopLoss: number | null;
+            newStopLoss: number | null;
+            note: string | null;
+            createdAt: Date;
+          }[]
+      ),
   ]);
 
   // Aggregate existing position
@@ -104,6 +125,17 @@ export async function GET(req: NextRequest) {
     return { period, value: rounded, distancePct };
   });
 
+  // 停損價歷史設定記錄：僅在目前仍持有此股票時提供（依時間新到舊）
+  const stopLossHistory =
+    openLots.length > 0
+      ? stopLossAdjustments.map((adj) => ({
+          previousStopLoss: adj.previousStopLoss,
+          newStopLoss: adj.newStopLoss,
+          note: adj.note,
+          date: adj.createdAt.toISOString(),
+        }))
+      : [];
+
   return NextResponse.json({
     suggestions,
     positionImpact,
@@ -122,6 +154,7 @@ export async function GET(req: NextRequest) {
     indicators: {
       sma,
     },
+    stopLossHistory,
     meta: {
       barsCount: bars.length,
       hasHistoricalData: bars.length > 0,

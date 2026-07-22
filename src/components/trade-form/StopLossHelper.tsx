@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import { ChevronDown, Loader2, AlertTriangle, TrendingDown } from "lucide-react";
 import type { Market, Side } from "@/types/taiwan";
 import { marketToCurrency } from "@/types/taiwan";
@@ -301,6 +301,39 @@ export function StopLossHelper({
                 <p className="text-xs text-muted-foreground">
                   編輯模式：以{basisLabel} {formatCurrency(basisPrice, currency)} 為基準
                 </p>
+              )}
+
+              {/* 停損價歷史設定記錄 — 僅在目前仍持有此股票時顯示（依時間新到舊） */}
+              {hasExistingPosition && data.stopLossHistory.length > 0 && (
+                <div className="space-y-1.5 rounded-lg border bg-background/50 p-3 text-xs">
+                  <p className="font-semibold text-muted-foreground uppercase tracking-wide">
+                    停損價歷史設定記錄
+                  </p>
+                  {data.stopLossHistory.map((adj, i) => (
+                    <div
+                      key={i}
+                      className="pl-2 border-l-2 border-border text-muted-foreground"
+                    >
+                      <span className="block text-[11px] tabular-nums opacity-70">
+                        {formatDate(adj.date)}
+                      </span>
+                      <p className="tabular-nums">
+                        {adj.previousStopLoss != null
+                          ? formatCurrency(adj.previousStopLoss, currency)
+                          : "—"}
+                        {" → "}
+                        <span className="font-medium text-foreground">
+                          {adj.newStopLoss != null
+                            ? formatCurrency(adj.newStopLoss, currency)
+                            : "—"}
+                        </span>
+                      </p>
+                      {adj.note && (
+                        <p className="whitespace-pre-wrap">{adj.note}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
 
               {/* No historical data notice */}
