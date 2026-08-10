@@ -204,11 +204,15 @@ function CurrencySection({
         </div>
       )}
 
-      <PositionsTable positions={mainPositions} />
+      <PositionsTable
+        positions={mainPositions}
+        portfolioValue={totalMarketValue}
+      />
       {watchPositions.length > 0 && (
         <PositionsTable
           positions={watchPositions}
           titleKey="positions.observationTitle"
+          portfolioValue={totalMarketValue}
         />
       )}
     </section>

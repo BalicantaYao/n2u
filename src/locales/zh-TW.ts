@@ -296,6 +296,8 @@ const zhTW = {
     dailyChangeHeader: "今日漲跌",
     costHeader: "投入成本",
     valueHeader: "市值",
+    weightHeader: "佔比",
+    weightTip: "個股市值 ÷ 該幣別持倉總市值（無報價時以投入成本計）",
     unrealizedHeader: "未實現損益",
     realizedHeader: "已實現損益",
     returnHeader: "報酬率",

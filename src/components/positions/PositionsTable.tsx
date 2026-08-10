@@ -21,7 +21,7 @@ import { useColumnOrder } from "@/hooks/useColumnOrder";
 
 // Removed always-hidden columns (shares, realizedPnL) from main column array.
 // They are shown in the expanded detail row instead.
-const POSITIONS_TABLE_DEFAULT_WIDTHS = [32, 160, 90, 90, 80, 100, 100, 110, 110, 110, 110, 90, 56];
+const POSITIONS_TABLE_DEFAULT_WIDTHS = [32, 160, 90, 90, 80, 100, 100, 110, 110, 110, 90, 110, 90, 56];
 
 import {
   Briefcase,
@@ -44,14 +44,21 @@ import type { Position } from "@/types/trade";
 const POSITIONS_COL_IDS = [
   "expand", "symbol", "avgCost", "currentPrice", "holdingDays",
   "dailyChange", "stopLoss", "pnlAtStopLoss", "totalCost",
-  "marketValue", "unrealizedPnL", "totalPnLPct", "actions",
+  "marketValue", "weight", "unrealizedPnL", "totalPnLPct", "actions",
 ] as const;
 type PosColId = typeof POSITIONS_COL_IDS[number];
 const POSITIONS_FIXED_COLS = new Set<string>(["expand", "actions"]);
 
+/** 佔比以市值計算，尚無報價時退回投入成本 */
+function positionValue(pos: Position): number {
+  return pos.marketValue ?? pos.totalCost;
+}
+
 interface PositionsTableProps {
   positions: Position[];
   titleKey?: string;
+  /** 佔比分母：整個幣別的總市值。未提供時以表格自身部位加總 */
+  portfolioValue?: number;
 }
 
 type SortKey =
@@ -65,6 +72,7 @@ type SortKey =
   | "pnlAtStopLoss"
   | "totalCost"
   | "marketValue"
+  | "weight"
   | "unrealizedPnL"
   | "realizedPnL"
   | "totalPnLPct";
@@ -83,6 +91,7 @@ function sortValue(pos: Position, key: SortKey): number | string | null | undefi
     case "pnlAtStopLoss": return pos.pnlAtStopLoss;
     case "totalCost": return pos.totalCost;
     case "marketValue": return pos.marketValue;
+    case "weight": return positionValue(pos);
     case "unrealizedPnL": return pos.unrealizedPnL;
     case "realizedPnL": return pos.realizedPnL ?? 0;
     case "totalPnLPct": return pos.totalPnLPct;
@@ -92,6 +101,7 @@ function sortValue(pos: Position, key: SortKey): number | string | null | undefi
 export function PositionsTable({
   positions,
   titleKey = "positions.positionDetail",
+  portfolioValue,
 }: PositionsTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir } | null>(null);
@@ -140,6 +150,20 @@ export function PositionsTable({
     });
     return arr;
   }, [positions, sort]);
+
+  const weightBase = useMemo(() => {
+    if (portfolioValue != null && portfolioValue > 0) return portfolioValue;
+    return positions.reduce((s, p) => s + positionValue(p), 0);
+  }, [positions, portfolioValue]);
+
+  function weightOf(pos: Position): number | null {
+    if (weightBase <= 0) return null;
+    return positionValue(pos) / weightBase;
+  }
+
+  function formatWeight(weight: number): string {
+    return `${(weight * 100).toFixed(1)}%`;
+  }
 
   function SortLabel({ sortKey, label }: { sortKey: SortKey; label: string }) {
     const active = sort?.key === sortKey;
@@ -303,6 +327,34 @@ export function PositionsTable({
         return (
           <th {...commonThProps} className={thCls("hidden md:table-cell text-right")}>
             <SortLabel sortKey="marketValue" label={t("positions.valueHeader")} />
+            {resizeHandle}
+          </th>
+        );
+      case "weight":
+        return (
+          <th {...commonThProps} className={thCls("hidden md:table-cell text-right")}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => toggleSort("weight")}
+                  className={cn(
+                    "inline-flex items-center gap-1 cursor-help border-b border-dotted border-muted-foreground/40 hover:text-foreground transition-colors",
+                    sort?.key === "weight" && "text-foreground"
+                  )}
+                >
+                  {t("positions.weightHeader")}
+                  {sort?.key === "weight" ? (
+                    sort.dir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                  ) : (
+                    <ArrowUpDown className="h-3 w-3 opacity-40" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent align="end" className="px-3 py-2 text-[11px]">
+                <div className="text-muted-foreground">{t("positions.weightTip")}</div>
+              </TooltipContent>
+            </Tooltip>
             {resizeHandle}
           </th>
         );
@@ -544,6 +596,26 @@ export function PositionsTable({
             {pos.marketValue != null ? formatCurrency(pos.marketValue, pos.currency) : "—"}
           </td>
         );
+      case "weight": {
+        const weight = weightOf(pos);
+        return (
+          <td key={colId} className="hidden md:table-cell px-4 py-3 text-right tabular-nums">
+            {weight != null ? (
+              <>
+                <div>{formatWeight(weight)}</div>
+                <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary/60"
+                    style={{ width: `${Math.min(100, Math.max(0, weight * 100))}%` }}
+                  />
+                </div>
+              </>
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            )}
+          </td>
+        );
+      }
       case "unrealizedPnL":
         return (
           <td key={colId} className={cn(
@@ -693,6 +765,13 @@ export function PositionsTable({
                               <DetailItem
                                 label={t("positions.valueHeader")}
                                 value={pos.marketValue != null ? formatCurrency(pos.marketValue, pos.currency) : "—"}
+                              />
+                              <DetailItem
+                                label={t("positions.weightHeader")}
+                                value={(() => {
+                                  const weight = weightOf(pos);
+                                  return weight != null ? formatWeight(weight) : "—";
+                                })()}
                               />
                               <DetailItem
                                 label={t("positions.unrealizedHeader")}
