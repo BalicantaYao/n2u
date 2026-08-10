@@ -296,6 +296,9 @@ const en = {
     dailyChangeHeader: "Today",
     costHeader: "Cost",
     valueHeader: "Value",
+    weightHeader: "Weight",
+    weightTip:
+      "Position market value ÷ total market value for this currency (falls back to cost when no quote)",
     unrealizedHeader: "Unrealized P&L",
     realizedHeader: "Realized P&L",
     returnHeader: "Return",
