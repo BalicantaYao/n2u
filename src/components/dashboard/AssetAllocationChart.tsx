@@ -50,7 +50,12 @@ export function AssetAllocationChart({
     );
   }
 
+  // 台股賣到只剩 1 股、或美股投入成本 < 1 元，屬「觀察股」留倉部位，不計入資產分布
+  const isWatchLot = (p: Position) =>
+    currency === "USD" ? p.totalCost < 1 : p.totalShares === 1;
+
   const holdings: Slice[] = positions
+    .filter((p) => !isWatchLot(p))
     .map((p) => ({
       name: p.symbolName ? `${p.symbol} ${p.symbolName}` : p.symbol,
       value: p.marketValue ?? p.totalCost,
