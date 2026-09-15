@@ -10,6 +10,7 @@ import {
   StickyNote,
   Eye,
   ListChecks,
+  Layers,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/positions", labelKey: "nav.positions", shortKey: "nav.positionsShort", icon: Briefcase },
   { href: "/results", labelKey: "nav.results", shortKey: "nav.resultsShort", icon: BarChart3 },
   { href: "/observations", labelKey: "nav.observations", shortKey: "nav.observationsShort", icon: ListChecks },
+  { href: "/covered-calls", labelKey: "nav.coveredCalls", shortKey: "nav.coveredCallsShort", icon: Layers },
   { href: "/memos", labelKey: "nav.memos", shortKey: "nav.memosShort", icon: StickyNote },
   { href: "/settings", labelKey: "nav.settings", shortKey: "nav.settingsShort", icon: Settings },
 ];

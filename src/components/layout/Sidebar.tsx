@@ -13,6 +13,7 @@ import {
   StickyNote,
   Eye,
   ListChecks,
+  Layers,
   LogOut,
   Settings,
   ChevronLeft,
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/positions", labelKey: "nav.positions", icon: Briefcase },
   { href: "/results", labelKey: "nav.results", icon: BarChart3 },
   { href: "/observations", labelKey: "nav.observations", icon: ListChecks },
+  { href: "/covered-calls", labelKey: "nav.coveredCalls", icon: Layers },
   { href: "/memos", labelKey: "nav.memos", icon: StickyNote },
   { href: "/settings", labelKey: "nav.settings", icon: Settings },
 ];
