@@ -1,7 +1,21 @@
 import type { Market, Currency } from "./taiwan";
 
-/** 底倉型態：買進買權（long call）或現股 */
-export type UnderlyingType = "LONG_CALL" | "STOCK";
+/** 底倉型態：目前只支援買進買權（long call） */
+export type UnderlyingType = "LONG_CALL";
+
+/**
+ * 掩護性買權目前只做台股加權股價指數（台指選擇權 TXO）這一個標的，
+ * 標的、市場與契約乘數都由這裡固定，不由使用者輸入。
+ */
+export const TAIEX_UNDERLYING = {
+  symbol: "TAIEX",
+  /** 顯示名稱；與其他台股標的一樣存中文名 */
+  symbolName: "加權指數",
+  market: "TWSE" as Market,
+  /** 台指選擇權每 1 點 50 元 */
+  contractMultiplier: 50,
+  underlyingType: "LONG_CALL" as UnderlyingType,
+} as const;
 
 /** 底倉狀態 */
 export type CoveredCallStatus = "OPEN" | "CLOSED";
@@ -67,18 +81,17 @@ export interface CoveredCallPosition {
   legs: CoveredCallLeg[];
 }
 
+/**
+ * 建立底倉；標的（加權指數）、市場與契約乘數由後端以
+ * {@link TAIEX_UNDERLYING} 固定，前端只送買進資訊。
+ */
 export interface CreateCoveredCallInput {
-  symbol: string;
-  market: Market;
-  symbolName?: string;
-  underlyingType?: UnderlyingType;
-  contractMultiplier?: number;
   quantity: number;
   openDate: string;
   openPrice: number;
   openFee?: number;
-  strike?: number | null;
-  expiry?: string | null;
+  strike: number;
+  expiry: string;
   notes?: string;
 }
 
@@ -86,9 +99,8 @@ export interface UpdateCoveredCallInput {
   quantity?: number;
   openPrice?: number;
   openFee?: number;
-  strike?: number | null;
-  expiry?: string | null;
-  contractMultiplier?: number;
+  strike?: number;
+  expiry?: string;
   notes?: string;
   /** 帶入 closeDate 即結束底倉；傳 null 代表重新開啟 */
   closeDate?: string | null;

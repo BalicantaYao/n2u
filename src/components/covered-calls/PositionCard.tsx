@@ -68,10 +68,7 @@ export function PositionCard({ position }: { position: CoveredCallPosition }) {
   const s = summarizePosition(position);
   const { currency } = position;
   const isOpen = position.status === "OPEN";
-  const isLongCall = position.underlyingType === "LONG_CALL";
-  const unit = isLongCall
-    ? t("coveredCalls.quantityUnitContracts")
-    : t("coveredCalls.quantityUnitLots");
+  const unit = t("coveredCalls.quantityUnitContracts");
   const longDays = daysUntil(position.expiry);
   const remainingContracts = position.quantity - s.openContracts;
 
@@ -128,9 +125,7 @@ export function PositionCard({ position }: { position: CoveredCallPosition }) {
               </span>
             )}
             <Badge variant="outline" className="text-[11px]">
-              {isLongCall
-                ? t("coveredCalls.typeLongCall")
-                : t("coveredCalls.typeStock")}
+              {t("coveredCalls.typeLongCall")}
             </Badge>
             {!isOpen && (
               <Badge variant="secondary" className="text-[11px]">
@@ -141,8 +136,8 @@ export function PositionCard({ position }: { position: CoveredCallPosition }) {
 
           <p className="mt-0.5 text-xs text-muted-foreground">
             {position.quantity} {unit}
-            {isLongCall && position.strike != null && ` · ${position.strike} C`}
-            {isLongCall && position.expiry && (
+            {position.strike != null && ` · ${position.strike} C`}
+            {position.expiry && (
               <>
                 {" · "}
                 {formatDateOnly(position.expiry)}
@@ -201,11 +196,7 @@ export function PositionCard({ position }: { position: CoveredCallPosition }) {
           value={s.costRecoveryPct != null ? formatPct(s.costRecoveryPct, 1) : "—"}
         />
         <Metric
-          label={
-            isLongCall
-              ? t("coveredCalls.breakeven")
-              : t("coveredCalls.effectiveCost")
-          }
+          label={t("coveredCalls.breakeven")}
           value={s.breakeven.toFixed(2)}
           hint={t("coveredCalls.effectiveCostHint")}
         />
