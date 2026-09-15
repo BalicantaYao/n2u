@@ -8,14 +8,8 @@ import {
   parseDate,
 } from "@/lib/covered-call-server";
 import { marketToCurrency } from "@/types/taiwan";
-import type { Market } from "@/types/taiwan";
-import type {
-  CreateCoveredCallInput,
-  UnderlyingType,
-} from "@/types/covered-call";
-
-const VALID_MARKETS = new Set<Market>(["TWSE", "TPEX", "NYSE", "NASDAQ"]);
-const VALID_UNDERLYING = new Set<UnderlyingType>(["LONG_CALL", "STOCK"]);
+import { TAIEX_UNDERLYING } from "@/types/covered-call";
+import type { CreateCoveredCallInput } from "@/types/covered-call";
 
 export async function GET(req: NextRequest) {
   const auth = await requireAuth();
@@ -42,21 +36,9 @@ export async function POST(req: NextRequest) {
 
   const body: CreateCoveredCallInput = await req.json();
 
-  const symbol = (body.symbol ?? "").trim().toUpperCase();
-  const market = (body.market ?? "").trim().toUpperCase() as Market;
-  const underlyingType = (body.underlyingType ?? "LONG_CALL") as UnderlyingType;
   const openDate = parseDate(body.openDate);
   const expiry = parseDate(body.expiry);
 
-  if (!symbol) {
-    return NextResponse.json({ error: "股票代號不可為空" }, { status: 400 });
-  }
-  if (!VALID_MARKETS.has(market)) {
-    return NextResponse.json({ error: "不支援的市場" }, { status: 400 });
-  }
-  if (!VALID_UNDERLYING.has(underlyingType)) {
-    return NextResponse.json({ error: "不支援的底倉型態" }, { status: 400 });
-  }
   if (!isPositiveNumber(body.quantity)) {
     return NextResponse.json({ error: "底倉數量必須大於 0" }, { status: 400 });
   }
@@ -66,32 +48,27 @@ export async function POST(req: NextRequest) {
   if (!openDate) {
     return NextResponse.json({ error: "請填寫買進日期" }, { status: 400 });
   }
-  const contractMultiplier = body.contractMultiplier ?? 2000;
-  if (!isPositiveNumber(contractMultiplier)) {
-    return NextResponse.json({ error: "契約乘數必須大於 0" }, { status: 400 });
+  if (!isPositiveNumber(body.strike)) {
+    return NextResponse.json({ error: "買權底倉需填寫履約價" }, { status: 400 });
   }
-  if (underlyingType === "LONG_CALL") {
-    if (!isPositiveNumber(body.strike)) {
-      return NextResponse.json({ error: "買權底倉需填寫履約價" }, { status: 400 });
-    }
-    if (!expiry) {
-      return NextResponse.json({ error: "買權底倉需填寫到期日" }, { status: 400 });
-    }
+  if (!expiry) {
+    return NextResponse.json({ error: "買權底倉需填寫到期日" }, { status: 400 });
   }
 
+  // 標的固定為台股加權股價指數（台指選擇權），不接受前端指定
   const position = await prisma.coveredCallPosition.create({
     data: {
-      symbol,
-      symbolName: body.symbolName?.trim() || null,
-      market,
-      currency: marketToCurrency(market),
-      underlyingType,
-      contractMultiplier,
+      symbol: TAIEX_UNDERLYING.symbol,
+      symbolName: TAIEX_UNDERLYING.symbolName,
+      market: TAIEX_UNDERLYING.market,
+      currency: marketToCurrency(TAIEX_UNDERLYING.market),
+      underlyingType: TAIEX_UNDERLYING.underlyingType,
+      contractMultiplier: TAIEX_UNDERLYING.contractMultiplier,
       quantity: body.quantity,
       openDate,
       openPrice: body.openPrice,
       openFee: isNonNegativeNumber(body.openFee) ? body.openFee : 0,
-      strike: isPositiveNumber(body.strike) ? body.strike : null,
+      strike: body.strike,
       expiry,
       notes: body.notes?.trim() || null,
       userId: auth.userId,

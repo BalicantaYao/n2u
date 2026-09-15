@@ -1,12 +1,12 @@
 /**
  * Covered Call 結構的損益計算。
  *
- * 一個「底倉」(CoveredCallPosition) 是買進的 Call（long call）或現股，
+ * 一個「底倉」(CoveredCallPosition) 是買進的加權指數 Call（long call），
  * 底下掛著多筆「賣出 Call」(CoveredCallLeg)，每次賣出收取權利金。
  *
- * 金額換算一律為：價格 × 契約乘數 × 數量。
- * 台股股票選擇權每口 2,000 股、台指選擇權每點 50 元、現股一張 1,000 股，
- * 乘數由使用者於底倉設定，同一底倉的所有賣出腳共用。
+ * 金額換算一律為：價格 × 契約乘數 × 口數。
+ * 標的固定為台股加權股價指數，台指選擇權每點 50 元，
+ * 同一底倉的所有賣出腳共用這個乘數。
  */
 
 import type { CoveredCallLeg, CoveredCallPosition } from "@/types/covered-call";
@@ -83,7 +83,7 @@ export interface CoveredCallSummary {
   costRecoveryPct: number | null;
   /** 扣掉已收權利金後的每單位有效成本 */
   effectiveCostPerUnit: number;
-  /** 損益兩平價；long call 為履約價 + 有效成本，現股即有效成本 */
+  /** 損益兩平價 = 履約價 + 有效成本（無履約價時即有效成本） */
   breakeven: number;
   /** 未平倉賣出口數 */
   openContracts: number;
@@ -97,7 +97,7 @@ export interface CoveredCallSummary {
   /** 未平倉賣出腳中最近的到期日與剩餘天數 */
   nearestExpiry: string | null;
   nearestExpiryDays: number | null;
-  /** 底倉到期日剩餘天數（現股底倉為 null） */
+  /** 底倉到期日剩餘天數（未填到期日為 null） */
   longDaysToExpiry: number | null;
 }
 

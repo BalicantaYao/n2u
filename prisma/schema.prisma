@@ -269,8 +269,10 @@ model StopLossAdjustment {
   @@index([userId, symbol, createdAt])
 }
 
-// 掩護性買權（Covered Call）底倉：持有的買進買權（long call）或現股，
+// 掩護性買權（Covered Call）底倉：持有的加權指數買權（long call），
 // 之後可持續對其賣出 Call 收權利金，組成 covered call / diagonal 結構。
+// 標的目前固定為台股加權股價指數（symbol = "TAIEX"、market = "TWSE"），
+// 由 API 依 TAIEX_UNDERLYING 寫入，不由使用者指定。
 model CoveredCallPosition {
   id                 String   @id @default(cuid())
   createdAt          DateTime @default(now())
@@ -281,19 +283,18 @@ model CoveredCallPosition {
   market             String
   currency           String   @default("TWD")
 
-  // 底倉型態："LONG_CALL"（買進買權）| "STOCK"（現股）
+  // 底倉型態："LONG_CALL"（買進買權）
   underlyingType     String   @default("LONG_CALL")
-  // 契約乘數：每 1 點（或每 1 元）權利金對應的金額。
-  // 台股股票選擇權 = 2000 股/口；台指選擇權 = 50 元/點；現股一張 = 1000 股
-  contractMultiplier Float    @default(2000)
+  // 契約乘數：每 1 點權利金對應的金額；台指選擇權 = 50 元/點
+  contractMultiplier Float    @default(50)
 
-  // 底倉數量（口數或張數）與建立成本
+  // 底倉口數與建立成本
   quantity           Float
   openDate           DateTime
   openPrice          Float
   openFee            Float    @default(0)
 
-  // long call 的履約價與到期日；現股底倉可留空
+  // 買權底倉的履約價與到期日（建立時必填；舊資料可能為空）
   strike             Float?
   expiry             DateTime?
 

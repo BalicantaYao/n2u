@@ -68,17 +68,19 @@ export async function PUT(
     }
     data.openFee = body.openFee;
   }
-  if (body.contractMultiplier !== undefined) {
-    if (!isPositiveNumber(body.contractMultiplier)) {
-      return NextResponse.json({ error: "契約乘數必須大於 0" }, { status: 400 });
-    }
-    data.contractMultiplier = body.contractMultiplier;
-  }
+  // 契約乘數跟著標的（台指選擇權每點 50 元）固定，不接受修改
   if (body.strike !== undefined) {
-    data.strike = isPositiveNumber(body.strike) ? body.strike : null;
+    if (!isPositiveNumber(body.strike)) {
+      return NextResponse.json({ error: "買權底倉需填寫履約價" }, { status: 400 });
+    }
+    data.strike = body.strike;
   }
   if (body.expiry !== undefined) {
-    data.expiry = parseDate(body.expiry);
+    const expiry = parseDate(body.expiry);
+    if (!expiry) {
+      return NextResponse.json({ error: "買權底倉需填寫到期日" }, { status: 400 });
+    }
+    data.expiry = expiry;
   }
   if (body.notes !== undefined) {
     data.notes = body.notes.trim() || null;
