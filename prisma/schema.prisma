@@ -27,6 +27,8 @@ model User {
   stopLossAdjustments StopLossAdjustment[]
   wallets       Wallet[]
   walletTransactions WalletTransaction[]
+  coveredCallPositions CoveredCallPosition[]
+  coveredCallLegs      CoveredCallLeg[]
 }
 
 model Account {
@@ -265,4 +267,84 @@ model StopLossAdjustment {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, symbol, createdAt])
+}
+
+// 掩護性買權（Covered Call）底倉：持有的買進買權（long call）或現股，
+// 之後可持續對其賣出 Call 收權利金，組成 covered call / diagonal 結構。
+model CoveredCallPosition {
+  id                 String   @id @default(cuid())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  symbol             String
+  symbolName         String?
+  market             String
+  currency           String   @default("TWD")
+
+  // 底倉型態："LONG_CALL"（買進買權）| "STOCK"（現股）
+  underlyingType     String   @default("LONG_CALL")
+  // 契約乘數：每 1 點（或每 1 元）權利金對應的金額。
+  // 台股股票選擇權 = 2000 股/口；台指選擇權 = 50 元/點；現股一張 = 1000 股
+  contractMultiplier Float    @default(2000)
+
+  // 底倉數量（口數或張數）與建立成本
+  quantity           Float
+  openDate           DateTime
+  openPrice          Float
+  openFee            Float    @default(0)
+
+  // long call 的履約價與到期日；現股底倉可留空
+  strike             Float?
+  expiry             DateTime?
+
+  // "OPEN" | "CLOSED"
+  status             String   @default("OPEN")
+  closeDate          DateTime?
+  closePrice         Float?
+  closeFee           Float?
+
+  notes              String?
+
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  legs               CoveredCallLeg[]
+
+  @@index([userId, status])
+  @@index([userId, symbol])
+}
+
+// 對底倉賣出的每一口 Call（sell call）記錄：開倉收權利金，之後買回／到期／被指派／轉倉平倉。
+model CoveredCallLeg {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  positionId   String
+  position     CoveredCallPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  strike       Float
+  expiry       DateTime
+  contracts    Float
+  openDate     DateTime
+  openPremium  Float
+  openFee      Float    @default(0)
+
+  // "OPEN" | "BOUGHT_BACK"（買回平倉）| "EXPIRED"（到期歸零）| "ASSIGNED"（被指派）| "ROLLED"（轉倉）
+  status       String   @default("OPEN")
+  closeDate    DateTime?
+  // 平倉權利金；到期歸零為 0，被指派時填結算價值
+  closePremium Float?
+  closeFee     Float?
+
+  // 轉倉來源：本腿由哪一腿 roll 而來
+  rolledFromId String?
+
+  notes        String?
+
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([positionId, status])
+  @@index([userId, openDate])
 }
