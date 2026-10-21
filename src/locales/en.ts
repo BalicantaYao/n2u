@@ -482,6 +482,29 @@ const en = {
     checklistAdd: "Add",
     checklistNewItemPlaceholder: "Type a checklist item, then press Enter or click Add…",
     checklistMaxItems: "Maximum {{max}} items allowed",
+    backupSection: "Trade Backup",
+    backupSectionDesc:
+      "Download every Taiwan (TWSE/TPEX) and US stock trade on this account. JSON keeps the full record and can be restored here. CSV uses the same columns as batch import.",
+    backupDownloadJson: "Download JSON",
+    backupDownloadCsv: "Download CSV",
+    backupDownloading: "Preparing...",
+    backupDownloadFailed: "Download failed",
+    backupDownloadSuccess: "Downloaded {{count}} trades",
+    backupScopeNote:
+      "Covered calls, memos, watchlists, and observation targets are not included. The file contains only your trades.",
+    backupCsvHint:
+      "Whole-share Taiwan rows keep date, symbol, side, quantity, price, stop loss, and notes. Fees are recalculated on import. Use JSON to restore exact fees, US trades, stop-loss history, and the commission discount.",
+    backupChooseFile: "Choose JSON backup",
+    backupRestore: "Restore",
+    backupRestoring: "Restoring...",
+    backupRestoreHint:
+      "Restore adds the file's trades and stop-loss adjustments to this account and applies the saved Taiwan commission discount. Existing trades stay, and realized P&L is recalculated for symbols included in the file. Cash wallets are not changed; trade-linked wallet entries stay in the file for reference.",
+    backupRestoreConfirm:
+      "Add these trades to the current account? Existing trades stay, but realized P&L for symbols in the file will be recalculated.",
+    backupRestoreSuccess: "Restored {{trades}} trades and {{adjustments}} stop-loss adjustments",
+    backupRestoreFailed: "Restore failed",
+    backupInvalidJson: "This file is not a valid backup",
+    backupFileSummary: "{{name}} · {{count}} trades",
   },
 
   wallet: {
