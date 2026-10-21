@@ -478,6 +478,28 @@ const zhTW = {
     checklistAdd: "新增",
     checklistNewItemPlaceholder: "輸入檢查項目，按 Enter 或點擊新增…",
     checklistMaxItems: "最多只能設定 {{max}} 個項目",
+    backupSection: "交易備份",
+    backupSectionDesc:
+      "下載這個帳號的全部台股（上市／上櫃）與美股交易。JSON 保留完整欄位，可在此還原；CSV 的欄位與批次匯入相同。",
+    backupDownloadJson: "下載 JSON",
+    backupDownloadCsv: "下載 CSV",
+    backupDownloading: "準備中...",
+    backupDownloadFailed: "下載失敗",
+    backupDownloadSuccess: "已下載 {{count}} 筆交易",
+    backupScopeNote: "不含掩護性買權、筆記、觀察清單與自選股，檔案裡只有你自己的交易。",
+    backupCsvHint:
+      "台股整數股會保留日期、代碼、方向、股數、價格、停損與備註；匯入時手續費會依目前折扣重算。若要還原精確費用、美股、停損調整紀錄與手續費折扣，請用 JSON。",
+    backupChooseFile: "選擇 JSON 備份",
+    backupRestore: "還原",
+    backupRestoring: "還原中...",
+    backupRestoreHint:
+      "還原會把檔案中的交易與停損調整新增到這個帳號，並套用備份裡的台股手續費折扣。既有交易會保留，但備份中出現的股票會重算已實現損益。現金錢包不會變動；與交易相關的錢包紀錄只留在備份檔中供查閱。",
+    backupRestoreConfirm:
+      "確定要把這些交易新增到目前帳號嗎？既有交易會保留，但備份中出現的股票會重算已實現損益。",
+    backupRestoreSuccess: "已還原 {{trades}} 筆交易、{{adjustments}} 筆停損調整",
+    backupRestoreFailed: "還原失敗",
+    backupInvalidJson: "這個檔案不是有效的備份",
+    backupFileSummary: "{{name}} · {{count}} 筆交易",
   },
 
   wallet: {

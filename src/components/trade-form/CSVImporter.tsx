@@ -58,7 +58,8 @@ function parseCSV(raw: string, t: (key: string) => string): RawRow[] {
     const tradeDate = cols[0]?.trim() ?? "";
     const symbol = cols[1]?.trim().toUpperCase() ?? "";
     const price = parseFloat(cols[2]?.trim() ?? "");
-    const rawShares = parseInt(cols[3]?.trim() ?? "");
+    // parseFloat keeps fractional US quantities. Positive shares are buys; negative shares are sells.
+    const rawShares = parseFloat(cols[3]?.trim() ?? "");
     const stopLossStr = cols[4]?.trim() ?? "";
     const stopLoss = stopLossStr ? parseFloat(stopLossStr) : undefined;
     // cols[5] is 價值 — ignored
